@@ -1,6 +1,8 @@
 import { whatsappStatus, whatsappQr, type WhatsAppStatus } from '$lib/stores/userStore';
 
-const ENGINE_URL = 'http://localhost:4000';
+const ENGINE_URL = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+  ? 'http://localhost:4000'
+  : 'https://whatsapp-engine-production-04f4.up.railway.app';
 
 class WhatsAppClientService {
   private eventSource: EventSource | null = null;
