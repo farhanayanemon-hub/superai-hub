@@ -44,10 +44,10 @@
       } else {
         // Fallback simulation when no key is entered yet
         await new Promise((r) => setTimeout(r, 1400));
-        outputText = `⚠️ [ডেমো মোড - আপনার Gemini API Key কানেক্ট করা নেই]\n\nনিন্মে একটি নমুনা আউটপুট দেখানো হলো:\n\n✨ **${$activeTool.name} রেডি আউটপুট:**\n\n১. আপনার দেওয়া তথ্য অনুযায়ী এআই মডেল একটি প্রিমিয়াম ড্রাফট প্রস্তুত করেছে।\n২. আনলিমিটেড ফ্রি রিয়েল-টাইম জেনারেশনের জন্য উপরের "BYOK Key যোগ করুন" বাটনে ক্লিক করে আপনার ফ্রি Google AI Studio API Key যুক্ত করুন।\n\n💡 কোনো ক্রেডিট কার্ডের প্রয়োজন নেই, সম্পূর্ণ ফ্রি!`;
+        outputText = `⚠️ **[Demo Mode - Gemini API Key Not Connected]**\n\nHere is a preview output based on your inputs:\n\n✨ **${$activeTool.name} Output:**\n\n1. The AI model has prepared a draft based on your parameters.\n2. For unlimited, real-time generation, click **"Set BYOK Key"** at the top and plug in your free Google AI Studio API key.\n\n💡 No credit card required, 100% free forever!`;
       }
     } catch (err: any) {
-      errorMessage = err.message || 'একটি অপ্রত্যাশিত সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।';
+      errorMessage = err.message || 'An unexpected error occurred. Please try again.';
     } finally {
       isGenerating = false;
     }
@@ -109,13 +109,13 @@
       <div class="px-6 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between gap-3 text-xs text-amber-200">
         <div class="flex items-center gap-2">
           <Icon name="AlertCircle" size={16} class="text-amber-400 shrink-0" />
-          <span>ফ্রি আনলিমিটেড ব্যবহারের জন্য আপনার Gemini API Key সেট করুন।</span>
+          <span>Connect your free Gemini API Key for unlimited AI generations.</span>
         </div>
         <button
           onclick={onOpenByok}
           class="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors shrink-0"
         >
-          কী দিন
+          Set Key
         </button>
       </div>
     {/if}
@@ -127,9 +127,9 @@
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Icon name="FileText" size={14} class="text-emerald-400" />
-            <span>ইনপুট প্যারামিটার</span>
+            <span>Input Parameters</span>
           </h3>
-          <span class="text-[11px] text-slate-500">প্রয়োজনীয় তথ্য পূরণ করুন</span>
+          <span class="text-[11px] text-slate-500">Provide details below</span>
         </div>
 
         {#each $activeTool.inputs as input}
@@ -176,10 +176,10 @@
         >
           {#if isGenerating}
             <Icon name="Loader2" size={18} class="animate-spin" />
-            <span>Gemini AI প্রসেসিং করছে...</span>
+            <span>Processing with Gemini AI...</span>
           {:else}
             <Icon name="Sparkles" size={18} />
-            <span>আউটপুট জেনারেট করুন</span>
+            <span>Generate Output</span>
           {/if}
         </button>
       </div>
@@ -198,7 +198,7 @@
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>ফলাফল (Result)</span>
+              <span>Result Output</span>
             </h3>
 
             <!-- Action Controls -->
@@ -208,7 +208,7 @@
                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all"
               >
                 <Icon name={copied ? 'Check' : 'Copy'} size={13} class={copied ? 'text-emerald-400' : ''} />
-                <span>{copied ? 'কপি হয়েছে' : 'কপি'}</span>
+                <span>{copied ? 'Copied!' : 'Copy'}</span>
               </button>
 
               <button
@@ -216,7 +216,7 @@
                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm shadow-emerald-600/30"
               >
                 <Icon name="MessageSquare" size={13} />
-                <span>WhatsApp এ পাঠান</span>
+                <span>Send to WhatsApp</span>
               </button>
             </div>
           </div>

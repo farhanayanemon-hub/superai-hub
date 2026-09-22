@@ -17,17 +17,17 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- 2. Subscriptions Table
--- Supports Monthly (৳499) and Launch Special Yearly (৳1,499) with 3-day grace period
+-- Supports Monthly and Launch Special Yearly with 3-day grace period
 CREATE TABLE IF NOT EXISTS subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     plan_type VARCHAR(20) NOT NULL CHECK (plan_type IN ('monthly', 'yearly')),
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'grace_period')),
-    amount_paid NUMERIC(10, 2) NOT NULL, -- 499 or 1499
+    amount_paid NUMERIC(10, 2) NOT NULL,
     starts_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    renewal_price NUMERIC(10, 2) NOT NULL, -- 499 for monthly, 2999 for yearly after year 1
-    payment_gateway VARCHAR(50) DEFAULT 'bKash', -- bKash, Nagad, Rocket, SSLCOMMERZ, OpayBD
+    renewal_price NUMERIC(10, 2) NOT NULL,
+    payment_gateway VARCHAR(50) DEFAULT 'Card',
     gateway_transaction_id VARCHAR(100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

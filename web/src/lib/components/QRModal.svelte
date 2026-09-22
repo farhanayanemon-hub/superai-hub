@@ -61,6 +61,7 @@
       onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
+      tabindex="-1"
     >
       <!-- Header -->
       <div class="px-6 py-5 border-b border-slate-800 bg-slate-950/70 flex items-center justify-between">
@@ -69,7 +70,7 @@
             <Icon name="QrCode" size={20} />
           </div>
           <div>
-            <h3 class="font-bold text-base text-white">WhatsApp পার্সোনাল বট কানেক্টর</h3>
+            <h3 class="font-bold text-base text-white">WhatsApp Self-Bot Connector</h3>
             <p class="text-xs text-slate-400">Baileys Multi-Device Protocol • Anti-Ban Protected</p>
           </div>
         </div>
@@ -92,9 +93,9 @@
             </div>
 
             <div>
-              <h4 class="text-lg font-bold text-white">WhatsApp সফলভাবে কানেক্টেড!</h4>
+              <h4 class="text-lg font-bold text-white">WhatsApp Successfully Connected!</h4>
               <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                আপনার WhatsApp সেশনটি সক্রিয় রয়েছে। এখন নিজের ইনবক্সে ("Message Yourself") যেকোনো প্রশ্ন বা কমান্ড পাঠালেই এআই স্বয়ংক্রিয়ভাবে রিপ্লাই করবে।
+                Your WhatsApp self-assistant is active. Simply open WhatsApp and message yourself ("Message Yourself") to run any of the 50+ AI tools or generate images.
               </p>
             </div>
 
@@ -104,7 +105,7 @@
                 <span>Anti-Ban Guardrails Active</span>
               </div>
               <p class="text-[11px] text-slate-400">
-                বটটি শুধুমাত্র আপনার নিজের পাঠানো মেসেজ রিসিভ করে। অপরিচিত অন্য কারো চ্যাটে অটো-রিপ্লাই পুরোপুরি ব্লক করা।
+                The bot only processes messages sent to yourself. Auto-replies to external contacts and groups are strictly blocked.
               </p>
             </div>
 
@@ -113,13 +114,13 @@
                 onclick={handleDisconnect}
                 class="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-colors"
               >
-                সেশন ডিসকানেক্ট করুন
+                Disconnect Session
               </button>
               <button
                 onclick={onClose}
                 class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-emerald-500/20"
               >
-                সম্পন্ন হয়েছে
+                Done
               </button>
             </div>
           </div>
@@ -131,7 +132,7 @@
               {#if isConnecting}
                 <div class="flex flex-col items-center gap-2 text-slate-800">
                   <Icon name="Loader2" size={32} class="animate-spin text-emerald-600" />
-                  <span class="text-xs font-bold">সেশন লিঙ্ক হচ্ছে...</span>
+                  <span class="text-xs font-bold">Linking session...</span>
                 </div>
               {:else if $whatsappQr}
                 <img src={$whatsappQr} alt="WhatsApp QR Code" class="w-full h-full object-contain p-2" />
@@ -139,7 +140,6 @@
                 <!-- Generative SVG-styled high-res QR code with SuperAI Logo in center -->
                 <div class="relative w-full h-full flex items-center justify-center bg-slate-50 rounded-xl overflow-hidden p-2">
                   <svg viewBox="0 0 100 100" class="w-full h-full text-slate-900 fill-current">
-                    <!-- Standard QR corner markers -->
                     <rect x="5" y="5" width="26" height="26" rx="4" fill="#0f172a" />
                     <rect x="9" y="9" width="18" height="18" rx="2" fill="#ffffff" />
                     <rect x="13" y="13" width="10" height="10" rx="1" fill="#059669" />
@@ -152,7 +152,6 @@
                     <rect x="9" y="73" width="18" height="18" rx="2" fill="#ffffff" />
                     <rect x="13" y="77" width="10" height="10" rx="1" fill="#059669" />
 
-                    <!-- Data dots -->
                     <rect x="36" y="8" width="5" height="5" />
                     <rect x="45" y="12" width="5" height="5" />
                     <rect x="55" y="6" width="5" height="5" />
@@ -176,7 +175,6 @@
                     <rect x="42" y="86" width="5" height="5" />
                     <rect x="55" y="88" width="5" height="5" />
 
-                    <!-- Center Branding Emblem -->
                     <rect x="40" y="40" width="20" height="20" rx="4" fill="#059669" />
                     <circle cx="50" cy="50" r="6" fill="#ffffff" />
                   </svg>
@@ -187,15 +185,15 @@
             <!-- Countdown Timer -->
             <div class="flex items-center justify-center gap-1.5 text-xs text-slate-400">
               <Icon name="RefreshCw" size={13} class="text-emerald-400" />
-              <span>কিউআর কোড রিফ্রেশ হবে: <strong class="text-emerald-400 font-mono">{countdown}s</strong></span>
+              <span>QR code refreshes in: <strong class="text-emerald-400 font-mono">{countdown}s</strong></span>
             </div>
 
             <!-- Instructions -->
             <div class="text-left bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs space-y-2 text-slate-300">
-              <p class="font-bold text-white text-xs">কীভাবে স্ক্যান করবেন:</p>
-              <p>১. আপনার ফোনের WhatsApp ওপেন করুন।</p>
-              <p>২. উপরে থ্রি ডটস (Android) অথবা Settings (iPhone) এ গিয়ে <strong>Linked Devices</strong> এ চাপুন।</p>
-              <p>৩. <strong>Link a Device</strong> এ চাপ দিয়ে স্ক্রিনের এই কিউআর কোডটি স্ক্যান করুন।</p>
+              <p class="font-bold text-white text-xs">How to scan and link:</p>
+              <p>1. Open WhatsApp on your mobile phone.</p>
+              <p>2. Tap the three dots menu (Android) or Settings (iPhone) and select <strong>Linked Devices</strong>.</p>
+              <p>3. Tap <strong>Link a Device</strong> and scan the QR code above.</p>
             </div>
 
             <!-- Simulation Action button for testing -->
@@ -206,10 +204,10 @@
             >
               {#if isConnecting}
                 <Icon name="Loader2" size={16} class="animate-spin" />
-                <span>কানেকশন ভ্যালিডেট হচ্ছে...</span>
+                <span>Validating connection...</span>
               {:else}
                 <Icon name="Check" size={16} />
-                <span>স্ক্যান সম্পূর্ণ হলে এখানে ক্লিক করুন</span>
+                <span>Click here once scanned</span>
               {/if}
             </button>
           </div>

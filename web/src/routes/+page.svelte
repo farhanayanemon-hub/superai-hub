@@ -21,24 +21,24 @@
 
   const faqs = [
     {
-      q: 'BYOK (Bring Your Own Key) কী এবং Gemini API কি সত্যিই ১০০% ফ্রি?',
-      a: 'হ্যাঁ, Google AI Studio প্রত্যেক ব্যবহারকারীকে সম্পূর্ণ ফ্রিতে নিজস্ব Gemini 1.5/2.0 Flash API Key প্রদান করে, যা দিয়ে প্রতিদিন ১৫০০টিরও বেশি রিকোয়েস্ট কোনো খরচ বা ক্রেডিট কার্ড ছাড়াই পাঠানো যায়। এই মডেলের কারণে প্ল্যাটফর্মের কোনো সার্ভার-টোকেন বিলিং খরচ নেই এবং ব্যবহারকারী আনলিমিটেড স্পিডে ব্যবহার করতে পারেন।'
+      q: 'What is BYOK (Bring Your Own Key) and is Gemini API truly free?',
+      a: 'Yes! Google AI Studio provides every user with a free Gemini 1.5/2.0 Flash API Key offering over 1,500 requests per day with zero fees and no credit card required. Because you use your own key, there are no middleman token markups and you get maximum generation speeds.'
     },
     {
-      q: 'আমার WhatsApp নম্বর ব্যান হওয়ার কোনো ঝুঁকি আছে কি?',
-      a: 'বিন্দুমাত্র কোনো ঝুঁকি নেই! SuperAI Hub কোনো স্প্যামিং বা বাল্ক মেসেজিং প্ল্যাটফর্ম নয়। আমাদের Baileys ইঞ্জিন শুধুমাত্র ব্যবহারকারীর নিজের সেন্ড করা সেলফ-মেসেজ (Message Yourself চ্যাট) মনিটর করে। অন্য কোনো পরিচিত বা অপরিচিত ব্যক্তি কিংবা গ্রুপে বট কখনোই অটোমেটিক মেসেজ দেয় না এবং মানুষের স্বাভাবিক টাইপিং স্পিড (২-৩ সেকেন্ড কম্পোজিং ডিলে) অনুকরণ করে।'
+      q: 'Is there any risk of my WhatsApp number getting banned?',
+      a: 'None at all! SuperAI Hub is strictly an executive self-assistant, not a bulk marketing or spam tool. Our Baileys engine exclusively monitors your personal self-chat ("Message Yourself"). It completely ignores external contacts and groups, simulating natural human typing speed with a 2.5-second composing delay.'
     },
     {
-      q: '৫০+ টুলস এবং WhatsApp বট কি মোবাইল থেকেই চালানো যাবে?',
-      a: 'অবশ্যই! আমাদের ওয়েব ড্যাশবোর্ড সম্পূর্ণ মোবাইল-অপটিমাইজড। আর একবার WhatsApp কানেক্ট করে নিলে আপনার ওয়েব ব্রাউজার খোলারও প্রয়োজন পড়বে না—সরাসরি ফোনের WhatsApp-এই ৫০টি টুল এবং ইমেজ জেনারেটর ব্যবহার করতে পারবেন।'
+      q: 'Can I use all 50+ tools and the WhatsApp bot on mobile?',
+      a: 'Absolutely! Our dashboard is fully optimized for smartphones, tablets, and desktops. Once WhatsApp is connected, you can execute any tool, lookup formulas, draft emails, and generate images directly within your WhatsApp chat without opening a browser.'
     },
     {
-      q: 'বাৎসরিক প্ল্যানের ৭৫% ডিসকাউন্ট অফার কতদিন থাকবে?',
-      a: 'এটি আমাদের অফিসিয়াল লঞ্চ ক্যাম্পেইন অফার। প্রথম বছরের জন্য মাত্র ৳১,৪৯৯ তে সম্পূর্ণ অ্যাক্সেস পাওয়া যাবে (যা মাসিক ৳১২৫ এর সমান)। প্রথম বছর শেষে পরবর্তী বছরগুলো থেকে রেগুলার মূল্য ৳২,৯৯৯/বছর প্রযোজ্য হবে।'
+      q: 'How long will the 75% launch special be available?',
+      a: 'This special pricing is limited to our initial launch campaign. You lock in full VIP access for an entire year at just BDT 1,499 (equal to only BDT 125/month). Standard renewal rate is BDT 2,999/year after the first year.'
     },
     {
-      q: 'কীভাবে পেমেন্ট করব এবং অ্যাক্টিভেশন কতক্ষণ লাগে?',
-      a: 'bKash, Nagad, Rocket কিংবা ডেবিট/ক্রেডিট কার্ড দিয়ে পেমেন্ট করা মাত্রই স্বয়ংক্রিয়ভাবে অ্যাকাউন্ট অ্যাক্টিভ হয়ে যায়। পাশাপাশি যেকোনো প্রয়োজনে ৩ দিনের গ্রেস পিরিয়ড সুরক্ষা থাকছে।'
+      q: 'How do payments work and how fast is activation?',
+      a: 'Payments via bKash, Nagad, Rocket, Visa, and Mastercard are processed instantly with immediate account activation. In addition, all subscriptions include 3-day grace period safety protection.'
     }
   ];
 
@@ -60,8 +60,8 @@
 </script>
 
 <svelte:head>
-  <title>SuperAI Hub - ৫০+ AI হেল্পার ও নিজস্ব WhatsApp অ্যাসিস্ট্যান্ট</title>
-  <meta name="description" content="একটি ড্যাশবোর্ড থেকে ৫০+ AI টুলস এবং নিজস্ব WhatsApp ইনবক্সে সরাসরি AI অ্যাসিস্ট্যান্ট। BYOK ফ্রি Gemini মডেল।" />
+  <title>SuperAI Hub - 50+ AI Helpers & WhatsApp Personal Assistant</title>
+  <meta name="description" content="Access 50+ specialized AI tools from an intuitive dashboard and use your personal WhatsApp inbox as an AI assistant. BYOK Free Gemini model." />
 </svelte:head>
 
 <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
@@ -86,22 +86,22 @@
           <!-- Top Tagline Badge -->
           <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-500/10 backdrop-blur-md">
             <Icon name="Sparkles" size={15} />
-            <span>অল-ইন-ওয়ান AI Micro-SaaS প্ল্যাটফর্ম • Bring Your Own Key</span>
+            <span>All-in-One AI Micro-SaaS Platform • Bring Your Own Key</span>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span class="text-amber-300">৭৫% লঞ্চ অফার</span>
+            <span class="text-amber-300">75% Launch Offer</span>
           </div>
 
           <!-- Main Title -->
           <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.15]">
-            ৫০+ স্পেশালাইজড AI হেল্পার <br class="hidden sm:inline" />
+            50+ Specialized AI Helpers <br class="hidden sm:inline" />
             <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-              এখন আপনার WhatsApp ইনবক্সে!
+              Now Inside Your WhatsApp Inbox!
             </span>
           </h1>
 
           <!-- Subtitle -->
           <p class="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            কোনো আলাদা জটিল অ্যাপ ডাউনলোড বা প্রম্পট লেখার ঝামেলা নেই। নিজের WhatsApp এ বাংলায় মেসেজ দিন—সেন্ট্রাল AI ব্রেন অটোমেটিক কাজ করে সঠিক আউটপুট বুঝিয়ে দেবে।
+            No complicated app downloads or complex prompt engineering. Message yourself on WhatsApp—our central AI brain automatically executes the right tool and delivers ready-to-use output.
           </p>
 
           <!-- CTAs Bar -->
@@ -111,7 +111,7 @@
               class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold text-sm sm:text-base shadow-xl shadow-emerald-500/25 transition-all active:scale-95 flex items-center justify-center gap-2"
             >
               <Icon name="Sparkles" size={18} />
-              <span>মাত্র ৳১,৪৯৯ তে ১ বছরের VIP নিন</span>
+              <span>Claim 1-Year VIP for only BDT 1,499</span>
             </a>
 
             <a
@@ -119,7 +119,7 @@
               class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-white font-bold text-sm sm:text-base transition-all shadow-md flex items-center justify-center gap-2"
             >
               <Icon name="Play" size={16} class="text-emerald-400" />
-              <span>লাইভ WhatsApp ডেমো দেখুন</span>
+              <span>Watch Live WhatsApp Demo</span>
             </a>
           </div>
 
@@ -127,19 +127,19 @@
           <div class="pt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs text-slate-400">
             <div class="flex items-center gap-2">
               <Icon name="Shield" size={16} class="text-emerald-400" />
-              <span>১০০% ব্যান-প্রটেক্টেড সেলফ চ্যাট</span>
+              <span>100% Anti-Ban Self-Chat</span>
             </div>
             <div class="flex items-center gap-2">
               <Icon name="Key" size={16} class="text-cyan-400" />
-              <span>ফ্রি Gemini API Key (BYOK)</span>
+              <span>Free Gemini API Key (BYOK)</span>
             </div>
             <div class="flex items-center gap-2">
               <Icon name="CheckCircle2" size={16} class="text-teal-400" />
-              <span>৫০+ রেডি-মেড বিজনেস টুলস</span>
+              <span>50+ Pre-Built Business Helpers</span>
             </div>
             <div class="flex items-center gap-2">
               <Icon name="Image" size={16} class="text-purple-400" />
-              <span>Pollinations / Flux ছবি জেনারেশন</span>
+              <span>Flux / Pollinations Image Gen</span>
             </div>
           </div>
         </div>
@@ -160,12 +160,12 @@
             </div>
 
             <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              নিজের ইনবক্সে মেসেজ দিন, <br />
-              <span class="text-emerald-400">বাকি দায়িত্ব SuperAI ব্রেনের!</span>
+              Message Your Own Inbox, <br />
+              <span class="text-emerald-400">Let SuperAI Brain Handle The Rest!</span>
             </h2>
 
             <p class="text-sm sm:text-base text-slate-400 leading-relaxed">
-              আপনি কি বারবার বিভিন্ন AI অ্যাপে লগইন করে প্রম্পট কপি-পেস্ট করতে করতে ক্লান্ত? SuperAI Hub দিয়ে আপনার নিজস্ব WhatsApp ইনবক্সকে বানিয়ে ফেলুন একটি অল-ইন-ওয়ান এক্সিকিউটিভ অ্যাসিস্ট্যান্ট।
+              Tired of logging into multiple apps and copy-pasting prompts back and forth? SuperAI Hub turns your private WhatsApp inbox into an executive personal assistant.
             </p>
 
             <!-- Feature Bullet Cards -->
@@ -175,9 +175,9 @@
                   <Icon name="Megaphone" size={18} />
                 </div>
                 <div>
-                  <h4 class="font-bold text-sm text-white">ইনটেন্ট-অ্যাওয়ার সেন্ট্রাল ব্রেন রাউটার</h4>
+                  <h4 class="font-bold text-sm text-white">Intent-Aware Central Brain Router</h4>
                   <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                    "বিজ্ঞাপন লিখে দাও" লিখলে অ্যাড টুল, "বসের ছুটির দরখাস্ত" লিখলে ইমেইল টুল—ব্রেন নিজে নিজেই সেরা ফরম্যাটে উত্তর তৈরি করে দেয়।
+                    Say "Write an ad" and it triggers the ad copywriter; say "Sick leave email" and it drafts a corporate email—the central brain selects the best tool automatically.
                   </p>
                 </div>
               </div>
@@ -187,9 +187,9 @@
                   <Icon name="Image" size={18} />
                 </div>
                 <div>
-                  <h4 class="font-bold text-sm text-white">ইনস্ট্যান্ট টেক্সট-টু-ইমেজ জেনারেশন</h4>
+                  <h4 class="font-bold text-sm text-white">Instant Text-to-Image Generation</h4>
                   <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                    শুধু লিখুন <code class="text-purple-300 font-mono">/image futuristic car</code> বা বাংলায় ছবির বর্ণনা দিন, সঙ্গে সঙ্গে হাই-রেজ্যুলিউশন ছবি আপনার হোয়াটসঅ্যাপে পৌঁছে যাবে।
+                    Simply send <code class="text-purple-300 font-mono">/image futuristic car</code>, and high-resolution visuals are delivered directly into your WhatsApp chat.
                   </p>
                 </div>
               </div>
@@ -199,9 +199,9 @@
                   <Icon name="Shield" size={18} />
                 </div>
                 <div>
-                  <h4 class="font-bold text-sm text-white">কঠোর অ্যান্টি-ব্যান ও প্রাইভেসি ফিল্টার</h4>
+                  <h4 class="font-bold text-sm text-white">Strict Anti-Ban & Privacy Guardrails</h4>
                   <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                    আপনার নম্বর সম্পূর্ণ নিরাপদ। বট শুধুমাত্র আপনার "Message Yourself" ইনবক্স ফিল্টার করে, তৃতীয় পক্ষের মেসেজ বা গ্রুপ সম্পূর্ণ উপেক্ষা করে।
+                    Your account is completely secure. The bot operates solely within your "Message Yourself" chat and completely ignores third-party messages and groups.
                   </p>
                 </div>
               </div>
@@ -214,7 +214,7 @@
                 class="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
               >
                 <Icon name="QrCode" size={16} />
-                <span>আপনার WhatsApp অ্যাকাউন্ট কানেক্ট করুন</span>
+                <span>Connect Your WhatsApp Account</span>
               </button>
             </div>
           </div>
@@ -245,15 +245,15 @@
         <div class="text-center space-y-4 max-w-3xl mx-auto mb-10">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
             <Icon name="Grid" size={13} />
-            <span>৫০+ প্রোফেশনাল AI হেল্পার</span>
+            <span>50+ Professional AI Helpers</span>
           </div>
 
           <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            কাজের জন্য সঠিক AI টুল খুঁজুন নিমেষেই
+            Find the Perfect AI Tool in Seconds
           </h2>
 
           <p class="text-sm sm:text-base text-slate-400">
-            F-Commerce সেলস, সোশ্যাল মিডিয়া, কর্পোরেট ক্যারিয়ার ও কোডিং—যেকোনো কার্ডে ক্লিক করে লাইভ এক্সিকিউট করুন।
+            E-Commerce Sales, Social Media, Career Growth, and Coding—click any tool card to execute in real-time.
           </p>
 
           <!-- Search Input Box -->
@@ -263,7 +263,7 @@
               <input
                 type="text"
                 bind:value={$searchQuery}
-                placeholder="টুলের নাম বা কাজের বিবরণ লিখে সার্চ করুন (যেমন: ফেসবুক অ্যাড, এক্সেল, ইমেইল, সিভি)..."
+                placeholder="Search tools by title, keyword, or problem (e.g., Facebook Ad, Excel, Email, Resume)..."
                 class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl pl-11 pr-4 py-3.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500/70 shadow-lg shadow-black/20"
               />
               {#if $searchQuery}
@@ -306,12 +306,12 @@
         {#if filteredTools.length === 0}
           <div class="text-center py-16 text-slate-500 space-y-3">
             <Icon name="Search" size={36} class="mx-auto text-slate-600 opacity-60" />
-            <p class="text-sm font-semibold text-slate-400">"{$searchQuery}" এর সাথে কোনো টুল মেলেনি</p>
+            <p class="text-sm font-semibold text-slate-400">No tools matched "{$searchQuery}"</p>
             <button
               onclick={() => { $searchQuery = ''; $activeCategory = 'all'; }}
               class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-emerald-400 hover:bg-slate-800"
             >
-              সব টুলস আবার দেখান
+              Reset Filter & Show All Tools
             </button>
           </div>
         {/if}
@@ -335,13 +335,13 @@
         <div class="text-center space-y-3 mb-12">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
             <Icon name="HelpCircle" size={13} />
-            <span>সচরাচর জিজ্ঞাসা</span>
+            <span>Frequently Asked Questions</span>
           </div>
           <h2 class="text-3xl font-extrabold text-white tracking-tight">
-            আপনার মনের প্রশ্নগুলোর উত্তর
+            Got Questions? We Have Answers
           </h2>
           <p class="text-sm text-slate-400">
-            SuperAI Hub সম্পর্কে বিস্তারিত জানুন।
+            Everything you need to know about SuperAI Hub and WhatsApp integration.
           </p>
         </div>
 

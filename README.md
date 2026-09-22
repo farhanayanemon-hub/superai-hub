@@ -1,84 +1,70 @@
 # SuperAI Hub - 50+ AI Helpers & WhatsApp Personal Assistant
 
-SuperAI Hub হলো একটি অল-ইন-ওয়ান AI Micro-SaaS প্ল্যাটফর্ম। ব্যবহারকারীরা একটি ওয়েব ড্যাশবোর্ড থেকে **৫০+ স্পেশালাইজড AI হেল্পারের** অ্যাক্সেস পাবেন এবং নিজস্ব WhatsApp অ্যাকাউন্ট কানেক্ট করে নিজের "Message Yourself" ইনবক্সকে পার্সোনাল AI অ্যাসিস্ট্যান্ট হিসেবে ব্যবহার করতে পারবেন।
+SuperAI Hub is an all-in-one AI Micro-SaaS platform. Users can access **50+ specialized AI helpers** across E-Commerce, Content, Career, and Technical domains from a modern web dashboard and link their personal WhatsApp account to turn their "Message Yourself" inbox into an autonomous AI assistant.
 
-- **BYOK (Bring Your Own Key) মডেল:** ব্যবহারকারী তার নিজস্ব ফ্রি Google AI Studio Gemini API Key ব্যবহার করবেন। এতে প্ল্যাটফর্মের সেন্ট্রাল কোনো AI API বিলিং খরচ নেই।
-- **Anti-Ban Guardrails:** বটটি শুধুমাত্র ব্যবহারকারীর নিজের সেন্ড করা মেসেজ হ্যান্ডেল করে (`fromMe === true` এবং রিসিভার `myself`)। অপরিচিত কোনো ইনকামিং চ্যাটে অটো-রিপ্লাই পুরোপুরি নিষিদ্ধ।
-- **Pollinations.ai / Flux ইন্টিগ্রেশন:** `/image` কমান্ড বা বাংলায় ছবির বিবরণ দিলে সরাসরি WhatsApp-এ হাই-রেজ্যুলিউশন ছবি পাঠানো হয়।
+- **BYOK (Bring Your Own Key) Architecture:** Users provide their own free Google AI Studio Gemini API key (1,500 daily requests free quota). Zero central AI token costs to the platform.
+- **Strict Anti-Ban Guardrails:** The bot exclusively handles self-messages sent by the user to themselves (`fromMe === true` and receiver is self). Automated replies to external contacts and groups are strictly blocked, with natural 2.5-second composing delays.
+- **Flux / Pollinations Image Generation:** Generate high-resolution visuals directly in WhatsApp via `/image <prompt>` commands.
 
 ---
 
-## 📁 প্রজেক্ট স্ট্রাকচার
+## 📁 Project Structure
 
 ```
-EzboAgents/
-├── web/                           # SvelteKit + Tailwind CSS Frontend
-│   ├── src/lib/config/tools.ts    # সম্পূর্ণ ৫০টি টুলের সিস্টেম প্রম্পট ও স্কিমা
-│   ├── src/lib/config/pricing.ts  # মাসিক (৳৪৯৯) ও বাৎসরিক (৳১,৪৯৯) প্ল্যান
-│   ├── src/lib/components/        # WhatsApp সিমুলেটর, স্যান্ডবক্স, ড্রয়ার, মোডাল
-│   └── src/routes/                # ল্যান্ডিং পেজ ও ড্যাশবোর্ড
+superai-hub/
+├── web/                           # SvelteKit 2 + Svelte 5 + Tailwind CSS Frontend
+│   ├── src/lib/config/tools.ts    # Complete 50+ AI tools catalog & schemas
+│   ├── src/lib/config/pricing.ts  # Monthly & Yearly launch special tiers
+│   ├── src/lib/components/        # Simulator, Sandbox, Tool Drawer, BYOK/QR Modals
+│   └── src/routes/                # Landing page & User Dashboard
 │
-├── whatsapp-engine/               # Node.js + Baileys WhatsApp সার্ভিস
-│   ├── src/baileysManager.ts      # Multi-Device session & QR কোড স্ট্রিমার
-│   ├── src/guardrails.ts          # কঠোর অ্যান্টি-ব্যান ও হিউম্যান টাইপিং ডিলে
-│   ├── src/brainRouter.ts         # Gemini 1.5 Flash সেন্ট্রাল ইনটেন্ট রাউটার
-│   ├── src/imageGenerator.ts      # Pollinations.ai / Flux ইমেজ জেনারেটর
+├── whatsapp-engine/               # Node.js + Baileys WhatsApp Engine
+│   ├── src/baileysManager.ts      # Multi-Device session & live QR streamer
+│   ├── src/guardrails.ts          # Anti-ban filters & human typing simulation
+│   ├── src/brainRouter.ts         # Gemini 1.5 Flash central intent router
+│   ├── src/imageGenerator.ts      # Flux / Pollinations AI image generator
 │   └── src/server.ts              # Express API & Server-Sent Events (SSE)
 │
-└── database/schema.sql            # PostgreSQL / Supabase ডাটাবেজ স্কিমা
+└── database/schema.sql            # PostgreSQL / Supabase database migration
 ```
 
 ---
 
-## 🚀 লোকাল ডেভেলপমেন্ট রান করার নিয়ম
+## 🚀 Local Development Setup
 
-### ১. ডিপেন্ডেন্সি ইনস্টলেশন
-```powershell
-# Frontend ওয়েব ডিপেন্ডেন্সি
+### 1. Install Dependencies
+```bash
+# Frontend dependencies
 cd web
 npm install
 
-# WhatsApp ইঞ্জিন ডিপেন্ডেন্সি
+# WhatsApp engine dependencies
 cd ../whatsapp-engine
 npm install
 ```
 
-### ২. সার্ভার চালু করা
-একটি কমান্ডে দুটি সার্ভিস এক সাথে রান করতে পারেন অথবা আলাদা টার্মিনালে:
+### 2. Run Development Servers
+You can run both services concurrently:
 
-```powershell
-# টার্মিনাল ১: Frontend Web App (http://localhost:5173)
+```bash
+# Terminal 1: Frontend Web App (http://localhost:5173)
 npm run dev
 
-# টার্মিনাল ২: WhatsApp Engine Service (http://localhost:4000)
+# Terminal 2: WhatsApp Engine Service (http://localhost:4000)
 npm run dev:engine
 ```
 
 ---
 
-## 💎 প্রাইসিং ও সাবস্ক্রিপশন প্ল্যান
+## 💎 Pricing & Subscription Tiers
 
-1. **Monthly Plan:**
-   - মূল্য: **৳৪৯৯ / মাস** (৩০ দিন)
-   - সকল ৫০+ ওয়েব টুলস ও WhatsApp পার্সোনাল বট আনলিমিটেড।
-
-2. **Yearly VIP Plan (Launch Special):**
-   - অফার মূল্য: **৳১,৪৯৯ / ১ম বছর** (৭৫% ছাড়)
-   - পরবর্তী বছরগুলো থেকে রেগুলার মূল্য ৳২,৯৯৯/বছর।
-   - ৩ দিনের সাবস্ক্রিপশন গ্রেস পিরিয়ড সুরক্ষা।
+1. **Monthly Pro Plan (BDT 499 / month):** Full access to all 50+ tools, unlimited WhatsApp self-assistant, free Gemini BYOK, and 24/7 support.
+2. **Yearly VIP Special (BDT 1,499 / 1st year - 75% OFF):** Comprehensive unlimited access, priority high-speed response, early access to new tools, and 3-day grace period protection. (Standard renewal: BDT 2,999/year).
 
 ---
 
-## 🛡️ অ্যান্টি-ব্যান গার্ডরেইল সুরক্ষা
+## 🌐 Live Deployments
 
-হোয়াটসঅ্যাপ কোনো থার্ড-পার্টি বাল্ক মেসেজিং সহ্য করে না। তাই SuperAI Hub নিচের কঠোর গার্ডরেইল মেনে চলে:
-1. **Self-Chat Strict Scope:** শুধুমাত্র নিজের ফোন নম্বর থেকে নিজের নম্বরে পাঠানো মেসেজে কাজ করে।
-2. **Human Simulation:** উত্তর প্রস্তুত হওয়ার পর ২–৩ সেকেন্ড `composing` (typing...) স্ট্যাটাস দেখিয়ে তারপর আউটপুট পাঠানো হয়।
-3. **Zero Third-Party Reply:** অন্য কোনো পরিচিত বা অপরিচিত ব্যক্তি কিংবা গ্রুপে বট কখনোই অটোমেটিক মেসেজ দেয় না।
-
----
-
-## 🌐 প্রোডাকশন ডিপ্লয়মেন্ট
-
-- **Frontend (web):** Vercel বা Cloudflare Pages-এ সহজে ডিপ্লয় করা যায়।
-- **WhatsApp Engine (whatsapp-engine):** Railway.app, Render, অথবা সিঙ্গাপুর লোকেশন VPS-এ Node.js ডকার কন্টেইনার হিসেবে ডিপ্লয় করুন, যাতে Baileys এর সেশন সকেট নিরবচ্ছিন্নভাবে চালু থাকে।
+- **Frontend (Vercel):** [https://web-dun-seven-nfi4eqbg3i.vercel.app](https://web-dun-seven-nfi4eqbg3i.vercel.app)
+- **WhatsApp Engine (Railway):** [https://whatsapp-engine-production-04f4.up.railway.app](https://whatsapp-engine-production-04f4.up.railway.app)
+- **GitHub Repository:** [https://github.com/farhanayanemon-hub/superai-hub](https://github.com/farhanayanemon-hub/superai-hub)

@@ -19,7 +19,7 @@
 
   async function handlePayment() {
     if (!customerPhone.trim()) {
-      alert('অনুগ্রহ করে আপনার সচল মোবাইল নম্বর দিন।');
+      alert('Please enter your active mobile or contact number.');
       return;
     }
 
@@ -49,13 +49,13 @@
   <div class="text-center space-y-3 mb-10">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
       <Icon name="Crown" size={13} />
-      <span>স্বচ্ছ ও সাশ্রয়ী সাবস্ক্রিপশন</span>
+      <span>Transparent & Affordable Pricing</span>
     </div>
     <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-      আপনার ব্যবসার গতি বাড়ান মাত্র এক ক্লিকে
+      Accelerate Your Business with One Click
     </h2>
     <p class="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
-      কোনো লুকানো খরচ নেই। ফ্রি Gemini API Key ব্যবহার করায় কোনো টোকেন চার্জ কাটা হবে না।
+      Zero hidden costs. Powered by your free Google Gemini API Key with zero extra token fees.
     </p>
 
     <!-- Plan Toggle Bar -->
@@ -65,16 +65,16 @@
           onclick={() => (selectedBilling = 'monthly')}
           class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all {selectedBilling === 'monthly' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'}"
         >
-          মাসিক প্ল্যান (৳৪৯৯/মাস)
+          Monthly Plan (BDT 499/mo)
         </button>
 
         <button
           onclick={() => (selectedBilling = 'yearly')}
           class="relative px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 {selectedBilling === 'yearly' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'}"
         >
-          <span>বাৎসরিক স্পেশাল (৳১,৪৯৯/১ম বছর)</span>
+          <span>Yearly VIP Special (BDT 1,499/1st yr)</span>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 uppercase tracking-tight">
-            ৭৫% ছাড়
+            75% OFF
           </span>
         </button>
       </div>
@@ -87,9 +87,9 @@
     <div class="rounded-3xl bg-slate-900/80 border border-slate-800 p-8 flex flex-col justify-between relative backdrop-blur-sm transition-all hover:border-slate-700">
       <div>
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-bold text-white">{PRICING_PLANS.monthly.nameBn}</h3>
+          <h3 class="text-xl font-bold text-white">{PRICING_PLANS.monthly.name}</h3>
           <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-            ৩০ দিনের মেয়াদ
+            30 Days Validity
           </span>
         </div>
 
@@ -99,7 +99,7 @@
 
         <!-- Price Display -->
         <div class="flex items-baseline gap-1.5 mb-6">
-          <span class="text-4xl sm:text-5xl font-extrabold text-white font-mono">৳{PRICING_PLANS.monthly.price}</span>
+          <span class="text-4xl sm:text-5xl font-extrabold text-white font-mono">BDT {PRICING_PLANS.monthly.price}</span>
           <span class="text-sm text-slate-400">{PRICING_PLANS.monthly.periodBn}</span>
         </div>
 
@@ -126,12 +126,12 @@
     <div class="rounded-3xl bg-gradient-to-b from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-emerald-500/60 p-8 flex flex-col justify-between relative backdrop-blur-sm shadow-2xl shadow-emerald-500/10 transition-all hover:border-emerald-400">
       <!-- Top Badge -->
       <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-extrabold shadow-md uppercase tracking-wider">
-        সবচেয়ে জনপ্রিয় • অফার লিমিটেড
+        Most Popular • Limited Offer
       </div>
 
       <div>
         <div class="flex items-center justify-between mb-4 mt-2">
-          <h3 class="text-xl font-bold text-white">{PRICING_PLANS.yearly.nameBn}</h3>
+          <h3 class="text-xl font-bold text-white">{PRICING_PLANS.yearly.name}</h3>
           <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
             {PRICING_PLANS.yearly.discountBadge}
           </span>
@@ -144,9 +144,9 @@
         <!-- Price Display -->
         <div class="mb-2">
           <div class="flex items-baseline gap-2">
-            <span class="text-4xl sm:text-5xl font-extrabold text-white font-mono">৳{PRICING_PLANS.yearly.price}</span>
+            <span class="text-4xl sm:text-5xl font-extrabold text-white font-mono">BDT {PRICING_PLANS.yearly.price}</span>
             <span class="text-sm text-slate-400">{PRICING_PLANS.yearly.periodBn}</span>
-            <span class="text-sm line-through text-slate-500 font-mono">৳{PRICING_PLANS.yearly.originalPrice}</span>
+            <span class="text-sm line-through text-slate-500 font-mono">BDT {PRICING_PLANS.yearly.originalPrice}</span>
           </div>
           <p class="text-[11px] text-amber-400/90 mt-1">
             * {PRICING_PLANS.yearly.renewalNotice}
@@ -177,14 +177,14 @@
   <!-- Gateway logos strip -->
   <div class="mt-12 text-center space-y-3">
     <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">
-      তাত্ক্ষণিক পেমেন্ট সাপোর্ট: bKash, Nagad, Rocket, ও কার্ড
+      Instant Payment Activation: bKash, Nagad, Rocket, Visa & Mastercard
     </p>
     <div class="flex items-center justify-center gap-6 opacity-70">
       <span class="text-xs font-bold text-pink-400">bKash</span>
       <span class="text-xs font-bold text-orange-400">Nagad</span>
       <span class="text-xs font-bold text-purple-400">Rocket</span>
       <span class="text-xs font-bold text-blue-400">Visa / MasterCard</span>
-      <span class="text-xs font-bold text-emerald-400">৩ দিনের গ্রেস পিরিয়ড</span>
+      <span class="text-xs font-bold text-emerald-400">3-Day Grace Period</span>
     </div>
   </div>
 </div>
@@ -201,10 +201,11 @@
       onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
+      tabindex="-1"
     >
       <!-- Header -->
       <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
-        <h3 class="font-bold text-base text-white">অর্ডার কনফার্মেশন ও চেকআউট</h3>
+        <h3 class="font-bold text-base text-white">Order Confirmation & Checkout</h3>
         <button
           onclick={() => (checkoutModalOpen = false)}
           disabled={isCheckingOut}
@@ -220,9 +221,9 @@
           <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
             <Icon name="CheckCircle2" size={36} />
           </div>
-          <h4 class="text-xl font-bold text-white">পেমেন্ট সফল হয়েছে!</h4>
+          <h4 class="text-xl font-bold text-white">Payment Successful!</h4>
           <p class="text-xs text-slate-300">
-            আপনার {selectedPlan.nameBn} অ্যাক্টিভ হয়েছে। ড্যাশবোর্ডে রিডাইরেক্ট করা হচ্ছে...
+            Your {selectedPlan.name} is now active. Redirecting to dashboard...
           </p>
         </div>
       {:else}
@@ -231,19 +232,19 @@
           <!-- Order Summary -->
           <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
             <div>
-              <h4 class="font-bold text-sm text-white">{selectedPlan.nameBn}</h4>
-              <p class="text-[11px] text-slate-400">৫০+ টুলস + WhatsApp বট আনলিমিটেড</p>
+              <h4 class="font-bold text-sm text-white">{selectedPlan.name}</h4>
+              <p class="text-[11px] text-slate-400">50+ Tools + Unlimited WhatsApp Bot</p>
             </div>
             <div class="text-right">
-              <span class="text-xl font-bold text-emerald-400 font-mono">৳{selectedPlan.price}</span>
+              <span class="text-xl font-bold text-emerald-400 font-mono">BDT {selectedPlan.price}</span>
               <p class="text-[10px] text-slate-500">{selectedPlan.periodBn}</p>
             </div>
           </div>
 
           <!-- Select Gateway -->
           <div class="space-y-2">
-            <label class="block font-semibold text-slate-200">পেমেন্ট মাধ্যম নির্বাচন করুন</label>
-            <div class="grid grid-cols-2 gap-2">
+            <label for="payment-method-select" class="block font-semibold text-slate-200">Select Payment Method</label>
+            <div id="payment-method-select" class="grid grid-cols-2 gap-2">
               {#each PAYMENT_METHODS as method}
                 <button
                   type="button"
@@ -259,11 +260,12 @@
 
           <!-- Phone Number Input -->
           <div class="space-y-1.5">
-            <label class="block font-semibold text-slate-200">আপনার মোবাইল নম্বর</label>
+            <label for="customer-phone-input" class="block font-semibold text-slate-200">Your Mobile / Contact Number</label>
             <input
+              id="customer-phone-input"
               type="text"
               bind:value={customerPhone}
-              placeholder="017XXXXXXXX বা 018XXXXXXXX"
+              placeholder="e.g. +88017XXXXXXXX or +1XXXXXXXXXX"
               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500"
             />
           </div>
@@ -276,10 +278,10 @@
           >
             {#if isCheckingOut}
               <Icon name="Loader2" size={16} class="animate-spin" />
-              <span>পেমেন্ট গেটওয়ে ভ্যালিডেট হচ্ছে...</span>
+              <span>Validating Payment Gateway...</span>
             {:else}
               <Icon name="Check" size={16} />
-              <span>৳{selectedPlan.price} পরিশোধ করে অ্যাক্টিভ করুন</span>
+              <span>Pay BDT {selectedPlan.price} & Activate Instantly</span>
             {/if}
           </button>
         </div>

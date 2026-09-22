@@ -19,7 +19,7 @@
 
   async function handleTestAndSave() {
     if (!inputKey.trim()) {
-      feedbackMessage = { type: 'error', text: 'অনুগ্রহ করে একটি Gemini API Key পেস্ট করুন।' };
+      feedbackMessage = { type: 'error', text: 'Please enter a Gemini API Key.' };
       return;
     }
 
@@ -32,7 +32,7 @@
         setApiKey(inputKey.trim(), true);
         feedbackMessage = {
           type: 'success',
-          text: 'অভিনন্দন! আপনার Google Gemini API Key সফলভাবে কানেক্ট ও এনক্রিপ্ট হয়ে সেভ হয়েছে।'
+          text: 'Success! Your Google Gemini API Key has been verified, encrypted, and saved locally.'
         };
         setTimeout(() => {
           onClose();
@@ -40,11 +40,11 @@
       } else {
         feedbackMessage = {
           type: 'error',
-          text: check.error || 'ভুল কী। দয়া করে Google AI Studio থেকে সঠিক কী কপি করেছেন কি না যাচাই করুন।'
+          text: check.error || 'Invalid API key. Please check your key from Google AI Studio.'
         };
       }
     } catch (err: any) {
-      feedbackMessage = { type: 'error', text: err.message || 'ভ্যালিডেশন ব্যর্থ হয়েছে।' };
+      feedbackMessage = { type: 'error', text: err.message || 'Validation failed.' };
     } finally {
       isTesting = false;
     }
@@ -53,7 +53,7 @@
   function handleRemove() {
     inputKey = '';
     setApiKey('', false);
-    feedbackMessage = { type: 'success', text: 'সংরক্ষিত কী সফলভাবে মুছে ফেলা হয়েছে।' };
+    feedbackMessage = { type: 'success', text: 'Saved API key has been removed.' };
   }
 </script>
 
@@ -70,6 +70,7 @@
       onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
+      tabindex="-1"
     >
       <!-- Header -->
       <div class="px-6 py-5 border-b border-slate-800 bg-slate-950/70 flex items-center justify-between">
@@ -79,7 +80,7 @@
           </div>
           <div>
             <h3 class="font-bold text-base text-white">Gemini BYOK API Manager</h3>
-            <p class="text-xs text-slate-400">Bring Your Own Key • ১০০% ফ্রি ও প্রাইভেট</p>
+            <p class="text-xs text-slate-400">Bring Your Own Key • 100% Free & Private</p>
           </div>
         </div>
 
@@ -97,17 +98,17 @@
         <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-xs space-y-2">
           <div class="flex items-center gap-2 font-bold text-emerald-300">
             <Icon name="Shield" size={15} />
-            <span>কেন নিজস্ব ফ্রি কী ব্যবহার করবেন?</span>
+            <span>Why Bring Your Own Key (BYOK)?</span>
           </div>
           <p class="text-[11px] leading-relaxed text-emerald-200/90">
-            Google AI Studio সম্পূর্ণ বিনামূল্যে প্রতিদিন ১৫০০ রিকোয়েস্টের ফ্রি কোটা প্রদান করে। আপনার কী লোকাল ব্রাউজারে AES-256 এনক্রিপ্টেড থাকে এবং প্ল্যাটফর্মের সেন্ট্রাল কোনো লিমিটেশনের ঝামেলা থাকে না।
+            Google AI Studio provides a free tier offering 1,500 daily requests at zero cost. Your API key is stored securely in your browser with AES-256 encryption, eliminating middleman token limits.
           </p>
         </div>
 
         <!-- 3-Step Guide -->
         <div class="space-y-2">
           <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400">
-            কীভাবে ফ্রি API Key পাবেন? (মাত্র ৩০ সেকেন্ড):
+            How to get your free Gemini Key (Takes 30 seconds):
           </h4>
           <ol class="space-y-2 text-xs text-slate-300 bg-slate-950 p-4 rounded-2xl border border-slate-800/80">
             <li class="flex items-start gap-2.5">
@@ -122,27 +123,28 @@
                   <span>aistudio.google.com</span>
                   <Icon name="ExternalLink" size={12} />
                 </a>
-                <span> পেজে যান এবং আপনার গুগল অ্যাকাউন্ট দিয়ে লগইন করুন।</span>
+                <span> and sign in with your Google account.</span>
               </div>
             </li>
             <li class="flex items-start gap-2.5">
               <span class="w-5 h-5 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">2</span>
-              <span><strong>"Create API Key"</strong> বাটনে ক্লিক করে একটি ফ্রি কী জেনারেট করুন।</span>
+              <span>Click <strong>"Create API Key"</strong> to generate your free secret key.</span>
             </li>
             <li class="flex items-start gap-2.5">
               <span class="w-5 h-5 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">3</span>
-              <span>কী কপি করে নিচের বক্সে পেস্ট করুন এবং "কানেকশন টেস্ট করুন" বাটনে চাপ দিন।</span>
+              <span>Paste your key into the field below and click "Test & Save Connection".</span>
             </li>
           </ol>
         </div>
 
         <!-- API Key Input Field -->
         <div class="space-y-1.5">
-          <label class="block font-semibold text-slate-200 text-xs">
-            আপনার Gemini API Key
+          <label for="gemini-key-input" class="block font-semibold text-slate-200 text-xs">
+            Your Google Gemini API Key
           </label>
           <div class="relative flex items-center">
             <input
+              id="gemini-key-input"
               type={showKey ? 'text' : 'password'}
               bind:value={inputKey}
               placeholder="AIzaSy..."
@@ -153,7 +155,7 @@
               onclick={() => (showKey = !showKey)}
               class="absolute right-3 text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded bg-slate-900 border border-slate-800"
             >
-              {showKey ? 'হাইড' : 'দেখান'}
+              {showKey ? 'Hide' : 'Show'}
             </button>
           </div>
         </div>
@@ -179,10 +181,10 @@
           >
             {#if isTesting}
               <Icon name="Loader2" size={16} class="animate-spin" />
-              <span>টেস্ট করা হচ্ছে...</span>
+              <span>Validating Key...</span>
             {:else}
               <Icon name="Check" size={16} />
-              <span>কানেকশন টেস্ট ও সেভ করুন</span>
+              <span>Test & Save Connection</span>
             {/if}
           </button>
 
@@ -190,9 +192,9 @@
             <button
               onclick={handleRemove}
               class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 font-semibold text-xs transition-colors"
-              title="কী মুছে ফেলুন"
+              title="Remove Key"
             >
-              মুছে ফেলুন
+              Remove
             </button>
           {/if}
         </div>

@@ -12,14 +12,14 @@ export interface GeneratedImageResult {
 export async function generateAiImage(userPrompt: string): Promise<GeneratedImageResult> {
   const cleanPrompt = userPrompt
     .replace(/^\/image/i, '')
-    .replace(/^ছবি বানাও/i, '')
-    .replace(/^ছবি আঁকো/i, '')
+    .replace(/^generate image/i, '')
+    .replace(/^draw/i, '')
     .trim() || 'futuristic glowing neon cityscape, 8k cinematic masterpiece';
 
   const encoded = encodeURIComponent(cleanPrompt);
   const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true`;
 
-  const caption = `🎨 *SuperAI Image Generator (Flux/Pollinations)*\n\n📌 *প্রম্পট:* "${cleanPrompt}"\n⚡ রেজোলিউশন: 1024x1024 HD\n✨ SuperAI Hub WhatsApp Assistant`;
+  const caption = `🎨 *SuperAI Image Generator (Flux/Pollinations)*\n\n📌 *Prompt:* "${cleanPrompt}"\n⚡ Resolution: 1024x1024 HD\n✨ SuperAI Hub WhatsApp Assistant`;
 
   try {
     const response = await axios.get(imageUrl, {

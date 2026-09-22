@@ -11,7 +11,7 @@ export interface GenerateResult {
 
 export async function validateGeminiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
   if (!apiKey || apiKey.trim().length < 10) {
-    return { valid: false, error: 'অনুগ্রহ করে একটি সঠিক Gemini API Key দিন' };
+    return { valid: false, error: 'Please enter a valid Gemini API Key.' };
   }
 
   try {
@@ -27,12 +27,12 @@ export async function validateGeminiKey(apiKey: string): Promise<{ valid: boolea
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       const msg = errData?.error?.message || `HTTP Error ${res.status}`;
-      return { valid: false, error: `ভুল কী অথবা পারমিশন নেই: ${msg}` };
+      return { valid: false, error: `Invalid API key or permission denied: ${msg}` };
     }
 
     return { valid: true };
   } catch (err: any) {
-    return { valid: false, error: err.message || 'নেটওয়ার্ক এরর, আবার চেষ্টা করুন' };
+    return { valid: false, error: err.message || 'Network error. Please try again.' };
   }
 }
 
@@ -44,7 +44,7 @@ export async function executeToolWithGemini(
   if (!apiKey) {
     return {
       text: '',
-      error: 'কোনো Gemini API Key পাওয়া যায়নি। দয়া করে ড্যাশবোর্ড থেকে আপনার ফ্রি কী যোগ করুন।',
+      error: 'No Gemini API Key found. Please connect your free key from the dashboard.',
       modelUsed: GEMINI_MODEL
     };
   }
@@ -85,7 +85,7 @@ export async function executeToolWithGemini(
       const msg = errData?.error?.message || `HTTP Error ${res.status}`;
       return {
         text: '',
-        error: `Gemini API এরর: ${msg}`,
+        error: `Gemini API Error: ${msg}`,
         modelUsed: GEMINI_MODEL
       };
     }
@@ -97,7 +97,7 @@ export async function executeToolWithGemini(
     if (!generatedText) {
       return {
         text: '',
-        error: 'মডেল কোনো আউটপুট দেয়নি। প্রম্পট পরিবর্তন করে পুনরায় চেষ্টা করুন।',
+        error: 'The model returned no output. Please refine your inputs and try again.',
         modelUsed: GEMINI_MODEL
       };
     }
@@ -109,7 +109,7 @@ export async function executeToolWithGemini(
   } catch (err: any) {
     return {
       text: '',
-      error: err.message || 'রিকোয়েস্ট প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করুন।',
+      error: err.message || 'Error processing request. Please check your internet connection.',
       modelUsed: GEMINI_MODEL
     };
   }

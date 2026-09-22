@@ -24,7 +24,7 @@ export class CentralBrainRouter {
     if (!query) {
       return {
         type: 'text',
-        text: 'অনুগ্রহ করে কিছু লিখুন! যেমন: "ফেসবুক অ্যাড লিখে দাও", "বসের ছুটির ইমেইল", অথবা "/image একটি রোবটের ছবি"।'
+        text: 'Please write a prompt! For example: "Write a Facebook ad for sneakers", "Draft sick leave email to my boss", or "/image a futuristic cybernetic tiger".'
       };
     }
 
@@ -54,7 +54,7 @@ export class CentralBrainRouter {
     if (!apiKey) {
       return {
         type: 'text',
-        text: `⚠️ *Gemini API Key সেট করা নেই!*\n\nদয়া করে ওয়েব ড্যাশবোর্ডে গিয়ে আপনার ফ্রি Google AI Studio API Key যুক্ত করুন অথবা WhatsApp ইঞ্জিনের \`.env\` ফাইলে \`GEMINI_API_KEY\` দিন।\n\n(কীভাবে ফ্রি কী পাবেন: https://aistudio.google.com/app/apikey)`
+        text: `⚠️ *Gemini API Key Missing!*\n\nPlease connect your free Google AI Studio API key in your SuperAI web dashboard, or configure \`GEMINI_API_KEY\` in your engine \`.env\`.\n\n(Get your free key here: https://aistudio.google.com/app/apikey)`
       };
     }
 
@@ -70,16 +70,16 @@ export class CentralBrainRouter {
     const lower = query.toLowerCase();
     return (
       lower.startsWith('/image') ||
-      lower.startsWith('ছবি বানাও') ||
-      lower.startsWith('ছবি আঁকো') ||
       lower.startsWith('generate image') ||
-      lower.startsWith('draw a ')
+      lower.startsWith('draw a ') ||
+      lower.startsWith('create photo') ||
+      lower.startsWith('generate picture')
     );
   }
 
   private isHelpIntent(query: string): boolean {
-    const clean = query.toLowerCase().replace(/[^a-z0-9বাংলা]/g, '');
-    return ['help', 'menu', 'মেনু', 'সাহায্য', 'কমান্ড', 'টুলস'].includes(clean);
+    const clean = query.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return ['help', 'menu', 'commands', 'tools', 'start'].includes(clean);
   }
 
   private findMatchingTool(query: string): ToolItem | undefined {
@@ -119,51 +119,51 @@ ${tool.systemPrompt}
 Important Formatting Guidelines for WhatsApp:
 - Use WhatsApp markdown (*bold*, _italics_, ~strike~, \`\`\`monospace\`\`\`).
 - Use appealing bullet points and emojis.
-- Write directly in natural Bengali (or professional English where appropriate).
+- Write directly in polished, high-converting English.
 - Avoid generic filler text. Jump straight into high-value actionable output.`;
       } else {
         systemContext = `You are the Central AI Brain of SuperAI Hub, assisting a user directly inside their WhatsApp self-chat.
-You have mastery over F-Commerce sales, social media growth, career communications, and technical workflows.
+You have mastery over E-Commerce sales, social media growth, career communications, and technical workflows.
 Format with clean WhatsApp markdown (*bold*, _italics_, emojis, bullet points).
-Respond in natural, persuasive, and executive-level Bengali or English matching the user's language.`;
+Respond in natural, persuasive, and executive-level English.`;
       }
 
       const prompt = `${systemContext}\n\nUser Message:\n"${userQuery}"\n\nPlease output the response now:`;
       const result = await model.generateContent(prompt);
       const text = result.response.text();
 
-      return text || 'দুঃখিত, কোনো রেসপন্স পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
+      return text || 'Sorry, no response was generated. Please try again.';
     } catch (err: any) {
       console.error('Gemini generation error:', err);
-      return `❌ *SuperAI Brain Error:* ${err.message || 'রিকোয়েস্ট প্রক্রিয়াকরণে সমস্যা হয়েছে।'}`;
+      return `❌ *SuperAI Brain Error:* ${err.message || 'Error processing request.'}`;
     }
   }
 
   private getHelpMenuText(): string {
-    return `🤖 *SuperAI Hub - ৫০+ AI পার্সোনাল অ্যাসিস্ট্যান্ট* 🚀
+    return `🤖 *SuperAI Hub - 50+ AI Personal Assistant* 🚀
 
-নিজের WhatsApp ইনবক্সেই যেকোনো মেসেজ লিখে পাঠান, আমাদের সেন্ট্রাল ব্রেন স্বয়ংক্রিয়ভাবে আপনাকে সমাধান দেবে।
+Message yourself directly in WhatsApp, and our Central Brain automatically selects the right tool to deliver instant results.
 
-📌 *জনপ্রিয় কমান্ড ও ব্যবহারের উদাহরণ:*
-1️⃣ *F-Commerce সেলস:*
-   • "টি-শার্টের একটা ভাইরাল ফেসবুক অ্যাড লিখে দাও"
-   • "কাস্টমার দাম বেশি বললে কী উত্তর দেব?"
-   • "ঈদের জন্য ২০% ছাড়ের ক্যাম্পেইন অফার বানাও"
+📌 *Popular Commands & Usage Examples:*
+1️⃣ *E-Commerce & Sales:*
+   • "Write a viral Facebook ad copy for oversized cotton T-shirts"
+   • "How to respond when customer says price is too high?"
+   • "Plan a 20% OFF flash sale campaign"
 
-2️⃣ *সোশ্যাল মিডিয়া ও কনটেন্ট:*
-   • \`/image a futuristic cybernetic tiger in dhaka street\`
-   • "ফ্রিল্যান্সিং নিয়ে ৩০ সেকেন্ডের রিলস স্ক্রিপ্ট"
-   • "ইউটিউব ভিডিও এসইও টাইটেল ও ট্যাগস দাও"
+2️⃣ *Social Media & Content:*
+   • \`/image a futuristic cybernetic tiger prowling neon city streets\`
+   • "30s viral TikTok script on time management"
+   • "YouTube SEO title and tags for SvelteKit tutorial"
 
-3️⃣ *ক্যারিয়ার ও ডেইলি লাইফ:*
-   • "বসের কাছে ছুটির প্রফেশনাল ইংরেজি ইমেইল"
-   • "বাংলা থেকে কর্পোরেট ইংলিশ: [আপনার কথা]"
-   • "IELTS Writing Task-2 এসে চেক করো"
+3️⃣ *Career & Productivity:*
+   • "Draft a professional 3-day sick leave email to my manager"
+   • "Rewrite this draft into executive corporate English: [your text]"
+   • "Evaluate this IELTS Writing Task-2 essay"
 
-4️⃣ *টেকনিক্যাল ও ফ্রিল্যান্সিং:*
-   • "এক্সেল: Column A ও B মিলিয়ে ডুপ্লিকেট খোঁজার ফর্মুলা"
-   • "আপওয়ার্কে বিড করার উইনিং কভার লেটার"
+4️⃣ *Technical & Freelancing:*
+   • "Excel: Formula to find duplicate values between Column A & B"
+   • "Winning Upwork proposal for Full-Stack Developer job"
 
-✨ *টিপস:* যেকোনো সময় নতুন ছবি তৈরি করতে \`/image [বর্ণনা]\` লিখে পাঠান!`;
+✨ *Tip:* Send \`/image [prompt]\` at any time to generate high-resolution AI art directly in chat!`;
   }
 }

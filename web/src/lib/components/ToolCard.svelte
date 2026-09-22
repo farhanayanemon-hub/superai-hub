@@ -11,12 +11,13 @@
     career: 'from-blue-500/10 via-cyan-500/5 to-transparent text-cyan-400 border-cyan-500/30',
     technical: 'from-emerald-500/10 via-teal-500/5 to-transparent text-emerald-400 border-emerald-500/30'
   };
-
-  const badgeColor = $derived(categoryColorMap[tool.category] || categoryColorMap.technical);
 </script>
 
 <div
   onclick={() => openToolDrawer(tool)}
+  onkeydown={(e) => e.key === 'Enter' && openToolDrawer(tool)}
+  role="button"
+  tabindex="0"
   class="group relative rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-emerald-500/50 p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5 cursor-pointer backdrop-blur-sm"
 >
   <div>
@@ -51,10 +52,10 @@
   <!-- Footer Action Button -->
   <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
     <span class="text-[11px] text-slate-500 flex items-center gap-1">
-      <span>{tool.inputs.length} টি ইনপুট ফিল্ড</span>
+      <span>{tool.inputs.length} input fields</span>
     </span>
     <div class="flex items-center gap-1 text-xs font-semibold text-emerald-400 group-hover:translate-x-1 transition-transform">
-      <span>ব্যবহার করুন</span>
+      <span>Launch Tool</span>
       <Icon name="ChevronRight" size={14} />
     </div>
   </div>

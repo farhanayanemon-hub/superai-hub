@@ -26,10 +26,18 @@ export interface ToolItem {
 
 let loadedTools: ToolItem[] = [];
 try {
-  const toolsPath = path.resolve(process.cwd(), '../web/src/lib/config/tools.json');
-  if (fs.existsSync(toolsPath)) {
-    const raw = fs.readFileSync(toolsPath, 'utf-8');
-    loadedTools = JSON.parse(raw);
+  const candidatePaths = [
+    path.resolve(process.cwd(), 'src/tools.json'),
+    path.resolve(process.cwd(), 'dist/tools.json'),
+    path.resolve(process.cwd(), 'tools.json'),
+    path.resolve(process.cwd(), '../web/src/lib/config/tools.json')
+  ];
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      const raw = fs.readFileSync(p, 'utf-8');
+      loadedTools = JSON.parse(raw);
+      break;
+    }
   }
 } catch (err) {
   console.warn('Could not load tools.json directly, fallback to empty list:', err);

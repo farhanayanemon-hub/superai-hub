@@ -13,13 +13,13 @@
     {
       id: '1',
       sender: 'user',
-      text: 'টি-শার্টের জন্য একটা ভাইরাল ফেসবুক অ্যাড কপি বানিয়ে দাও তো! অফার: ২০% ছাড়।',
+      text: 'Write a high-converting viral Facebook ad copy for our oversized cotton T-shirt! Offer: 20% OFF.',
       time: '10:42 PM'
     },
     {
       id: '2',
       sender: 'bot',
-      text: `🔥 *গরমের দিনে কুল লুক! প্রিমিয়াম ১০০% কম্বড কটন টি-শার্ট* 🔥\n\nগরমে ঘেমে ক্লান্ত? আর নয় অস্বস্তি! সাধারণ টি-শার্টের দিন শেষ, গায়ে জড়ান সুপার সফট ও ব্রিদেবল প্রিমিয়াম ফেব্রিকে তৈরি টি-শার্ট।\n\n✨ *কেন এটি আপনার পছন্দের শীর্ষে থাকবে?*\n• ১০০% প্রিমিয়াম সুতি কাপড়—রং নষ্ট বা ফেড হওয়ার ভয় নেই\n• আল্ট্রা কমফোর্ট ও স্টাইলিশ ফিট\n• প্রি-শ্রাঙ্ক ফেব্রিক—ধোয়ার পরও সাইজ পারফেক্ট\n\n💥 *আজকের স্পেশাল অফার:*\nফ্ল্যাট ২০% ছাড় + যেকোনো ৩টি নিলে সারাদেশে *ডেলিভারি ফ্রি!* 🚚\n\n🛍️ *অর্ডার করতে:* ইনবক্সে আপনার নাম, ঠিকানা ও ফোন নম্বর পাঠিয়ে দিন এখনই!`,
+      text: `🔥 *Beat the Heat in Style! Premium 100% Combed Cotton Oversized T-Shirt* 🔥\n\nTired of stiff, sweaty tees? Upgrade your everyday wardrobe with our ultra-breathable, cloud-soft combed cotton essentials.\n\n✨ *Why You'll Love It:*\n• 100% Ring-Spun Combed Cotton—zero shrinkage, zero color fade\n• Modern drop-shoulder relaxed fit\n• Pre-shrunk heavyweight fabric that stays crisp wash after wash\n\n💥 *Today's Exclusive Drop:*\nFlat 20% OFF + *Free Express Shipping* when you order 2 or more! 🚚\n\n🛍️ *To Order:* Reply with your Size, Delivery Address & Phone Number to claim your discount!`,
       time: '10:42 PM'
     }
   ]);
@@ -28,10 +28,10 @@
   let isTyping = $state(false);
 
   const samplePrompts = [
-    { label: '👕 টি-শার্টের ভাইরাল অ্যাড', text: 'টি-শার্টের জন্য একটি আকর্ষণীয় ফেসবুক অ্যাড লিখে দাও' },
-    { label: '📧 ছুটির প্রফেশনাল ইমেইল', text: 'বসের কাছে ৩ দিনের অসুস্থতাজনিত ছুটির প্রফেশনাল ইমেইল ড্রাফট করো' },
-    { label: '📊 এক্সেল VLOOKUP ফর্মুলা', text: 'এক্সেল: Column A এর নাম দেখে Column B এর ফোন নম্বর বের করার ফর্মুলা কী?' },
-    { label: '🎨 /image সাইবারপঙ্ক ঢাকা', text: '/image a futuristic cyberpunk Dhaka city street with neon lights in rain, 8k cinematic' }
+    { label: '👕 Viral Ad Copy', text: 'Write a high-converting viral Facebook ad copy for running sneakers' },
+    { label: '📧 Sick Leave Email', text: 'Draft a professional 3-day sick leave email to my direct manager' },
+    { label: '📊 Excel Formula', text: 'Excel: What is the formula to lookup phone numbers in Column B based on names in Column A?' },
+    { label: '🎨 /image Cyberpunk City', text: '/image a futuristic cyberpunk neon cityscape in rain, 8k cinematic lighting' }
   ];
 
   function getCurrentTime(): string {
@@ -62,16 +62,16 @@
       let botResponse = '';
       let imageUrl: string | undefined = undefined;
 
-      if (query.startsWith('/image') || query.includes('ছবি')) {
-        const cleanPrompt = query.replace('/image', '').trim() || 'futuristic futuristic city, neon, photorealistic 8k';
+      if (query.startsWith('/image') || query.toLowerCase().includes('draw') || query.toLowerCase().includes('picture')) {
+        const cleanPrompt = query.replace('/image', '').trim() || 'futuristic glowing neon cityscape, 8k cinematic masterpiece';
         imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=800&height=500&nologo=true`;
-        botResponse = `🎨 আপনার রিকোয়েস্ট অনুযায়ী AI ইমেজ রেডি করা হয়েছে:\n\n*প্রম্পট:* "${cleanPrompt}"\n\nসরাসরি WhatsApp-এ হাই-রেজ্যুলিউশনে ছবি পাঠানো হয়েছে!`;
-      } else if (query.includes('ইমেইল') || query.includes('ছুটি') || query.includes('email')) {
-        botResponse = `📄 *Subject: Sick Leave Application - [Your Name]*\n\nDear [Manager's Name],\n\nI am writing to inform you that I have suddenly fallen ill and under my doctor's advice, I need to take medical leave from [Start Date] to [End Date].\n\nI have delegated my urgent daily tasks to [Colleague's Name] to ensure workflow continuity. I will monitor critical emails intermittently as my health allows.\n\nThank you for your understanding.\n\nBest regards,\n*[Your Name]*\n*[Designation]*`;
-      } else if (query.includes('ফর্মুলা') || query.includes('excel') || query.includes('এক্সেল')) {
-        botResponse = `📊 *Excel / Google Sheets Formula:*\n\n\`\`\`excel\n=XLOOKUP(E2, A2:A100, B2:B100, "Not Found")\n\`\`\`\n\n💡 *ব্যাখ্যা:*\n• \`E2\`: আপনি যে নামটি খুঁজতে চান।\n• \`A2:A100\`: নামের কলাম রেঞ্জ।\n• \`B2:B100\`: যেখান থেকে ফোন নম্বর আউটপুট আসবে।\n• পুরানো এক্সেলে: \`=VLOOKUP(E2, A2:B100, 2, FALSE)\` ব্যবহার করতে পারেন।`;
+        botResponse = `🎨 *Your AI Image is ready:*\n\n*Prompt:* "${cleanPrompt}"\n\nHigh-resolution image dispatched directly to your WhatsApp!`;
+      } else if (query.toLowerCase().includes('email') || query.toLowerCase().includes('leave')) {
+        botResponse = `📄 *Subject: Sick Leave Application - [Your Name]*\n\nDear [Manager's Name],\n\nI am writing to inform you that I have suddenly fallen unwell and require medical leave from [Start Date] to [End Date], as advised by my physician.\n\nI have delegated my critical daily tasks to [Colleague's Name] to maintain operational flow. I will check urgent communications periodically if my health permits.\n\nThank you for your understanding.\n\nWarm regards,\n*[Your Name]*\n*[Designation]*`;
+      } else if (query.toLowerCase().includes('formula') || query.toLowerCase().includes('excel') || query.toLowerCase().includes('sheet')) {
+        botResponse = `📊 *Excel / Google Sheets Formula:*\n\n\`\`\`excel\n=XLOOKUP(E2, A2:A100, B2:B100, "Not Found")\n\`\`\`\n\n💡 *Formula Breakdown:*\n• \`E2\`: The target name to search for.\n• \`A2:A100\`: Lookup array containing all names.\n• \`B2:B100\`: Return array containing corresponding phone numbers.\n• For legacy Excel: \`=VLOOKUP(E2, A2:B100, 2, FALSE)\``;
       } else {
-        botResponse = `✅ *SuperAI Central Brain রেসপন্স:*\n\nআপনার রিকোয়েস্টটি বুঝতে পেরেছি! SuperAI Hub এর নিজস্ব Gemini 1.5 Flash ব্রেন স্বয়ংক্রিয়ভাবে সঠিক টুল সিলেক্ট করে আপনাকে নিখুঁত ফলাফল দিতে প্রস্তুত।\n\n💡 আপনি সরাসরি আপনার নিজের WhatsApp এ যেকোনো সময় বাংলায় মেসেজ পাঠালেই তাৎক্ষণিক রেজাল্ট পাবেন!`;
+        botResponse = `✅ *SuperAI Central Brain Response:*\n\nI have analyzed your prompt! SuperAI Hub\'s Gemini 1.5 Flash brain automatically selects the optimal tool from your 50+ catalog to deliver instant results.\n\n💡 Simply message your own WhatsApp number at any time to receive real-time answers and generated content!`;
       }
 
       messages = [
@@ -141,7 +141,7 @@
       <div class="text-center my-1">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 border border-slate-700/60 text-[10px] text-slate-300 rounded-full">
           <Icon name="Shield" size={11} class="text-emerald-400" />
-          <span>Strict Self-Scope Active (১০০% ব্যান-মুক্ত ও প্রাইভেট)</span>
+          <span>Strict Self-Scope Active (100% Anti-Ban & Private)</span>
         </span>
       </div>
 
@@ -183,7 +183,7 @@
               <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
               <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
             </span>
-            <span class="text-[11px] text-slate-400">SuperAI ব্রেন রেডি করছে...</span>
+            <span class="text-[11px] text-slate-400">SuperAI Brain is generating...</span>
           </div>
         </div>
       {/if}
@@ -206,7 +206,7 @@
       <input
         type="text"
         bind:value={inputText}
-        placeholder="নিজের ইনবক্সে মেসেজ লিখুন..."
+        placeholder="Type a message to yourself..."
         onkeydown={(e) => e.key === 'Enter' && handleSend()}
         class="flex-1 bg-[#2a3942] text-slate-100 placeholder-slate-400 text-xs px-3.5 py-2.5 rounded-xl border border-transparent focus:border-emerald-500/50 focus:outline-none"
       />
