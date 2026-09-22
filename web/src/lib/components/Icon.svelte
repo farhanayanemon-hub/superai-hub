@@ -10,7 +10,8 @@
     Terminal, Receipt, ShoppingBag, Share2, Briefcase, Code, Grid,
     Bot, Key, QrCode, ExternalLink, Copy, Check, Search, X,
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
-    ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2
+    ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
+    LogOut, Settings, CreditCard, User, ChevronLeft, Gift
   } from '@lucide/svelte';
 
   let { name = 'Sparkles', size = 20, class: className = '' } = $props<{
@@ -31,6 +32,7 @@
     Bot, Key, QrCode, ExternalLink, Copy, Check, Search, X,
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
+    LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
     // Aliases for social
     Youtube: Video,
     Linkedin: Share2,

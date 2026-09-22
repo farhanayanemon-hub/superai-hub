@@ -1,8 +1,7 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
-  import { isKeyValid, whatsappStatus } from '$lib/stores/userStore';
+  import { isAuthenticated, currentUser, logout } from '$lib/stores/userStore';
 
-  let { onOpenByok, onOpenQr }: { onOpenByok?: () => void; onOpenQr?: () => void } = $props();
   let mobileMenuOpen = $state(false);
 </script>
 
@@ -20,56 +19,53 @@
           <span class="font-bold text-lg text-white tracking-tight">Super<span class="text-emerald-400">AI</span> Hub</span>
           <span class="px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/30">50+ Tools</span>
         </div>
-        <p class="text-[11px] text-slate-400">Micro-SaaS & WhatsApp AI</p>
+        <p class="text-[11px] text-slate-400">ezboagents.com</p>
       </div>
     </a>
 
     <!-- Desktop Navigation Links -->
     <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-      <a href="#tools" class="hover:text-emerald-400 transition-colors">Explore Tools</a>
-      <a href="#simulator" class="hover:text-emerald-400 transition-colors">WhatsApp Simulator</a>
-      <a href="#sandbox" class="hover:text-emerald-400 transition-colors">Free Sandbox</a>
-      <a href="#pricing" class="hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+      <a href="/#tools" class="hover:text-emerald-400 transition-colors">50+ Tools</a>
+      <a href="/#features" class="hover:text-emerald-400 transition-colors">WhatsApp Engine</a>
+      <a href="/#pricing" class="hover:text-emerald-400 transition-colors flex items-center gap-1.5">
         Pricing
         <span class="px-1.5 py-0.2 text-[9px] font-bold bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">75% OFF</span>
       </a>
-      <a href="/dashboard" class="hover:text-emerald-400 transition-colors">Dashboard</a>
+      <a href="/#faq" class="hover:text-emerald-400 transition-colors">FAQ</a>
     </nav>
 
-    <!-- Status & Action CTAs -->
+    <!-- Auth & Access CTAs -->
     <div class="hidden sm:flex items-center gap-3">
-      <!-- Gemini Key Badge Button -->
-      <button
-        onclick={onOpenByok}
-        class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all {$isKeyValid ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20' : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'}"
-        title="Gemini API Key Status"
-      >
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {$isKeyValid ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 {$isKeyValid ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
-        </span>
-        <Icon name="Key" size={13} />
-        <span>{$isKeyValid ? 'Gemini Ready' : 'Set BYOK Key'}</span>
-      </button>
+      {#if $isAuthenticated && $currentUser}
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span class="font-medium text-white">{$currentUser.name}</span>
+        </div>
+        <a
+          href="/dashboard"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:from-emerald-400 hover:to-teal-400 shadow-md shadow-emerald-500/20 transition-all active:scale-95"
+        >
+          <span>Dashboard</span>
+          <Icon name="ArrowRight" size={14} />
+        </a>
+      {:else}
+        <!-- Log In Link -->
+        <a
+          href="/login"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all"
+        >
+          Log In
+        </a>
 
-      <!-- WhatsApp Status Badge Button -->
-      <button
-        onclick={onOpenQr}
-        class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all {$whatsappStatus === 'connected' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'}"
-        title="WhatsApp Connection Status"
-      >
-        <Icon name="QrCode" size={13} class={$whatsappStatus === 'connected' ? 'text-emerald-400' : 'text-slate-400'} />
-        <span>{$whatsappStatus === 'connected' ? 'WhatsApp Live' : 'Connect WhatsApp'}</span>
-      </button>
-
-      <!-- Dashboard Link -->
-      <a
-        href="/dashboard"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:from-emerald-400 hover:to-teal-400 shadow-md shadow-emerald-500/20 transition-all active:scale-95"
-      >
-        <span>Dashboard</span>
-        <Icon name="ArrowRight" size={14} />
-      </a>
+        <!-- Sign Up CTA -->
+        <a
+          href="/signup"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:from-emerald-400 hover:to-teal-400 shadow-md shadow-emerald-500/20 transition-all active:scale-95"
+        >
+          <span>Get Started Free</span>
+          <Icon name="ArrowRight" size={14} />
+        </a>
+      {/if}
     </div>
 
     <!-- Mobile Menu Button -->
@@ -77,6 +73,7 @@
       <button
         onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
         class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300"
+        aria-label="Toggle Navigation Menu"
       >
         <Icon name={mobileMenuOpen ? 'X' : 'Grid'} size={18} />
       </button>
@@ -86,27 +83,38 @@
   <!-- Mobile Dropdown Menu -->
   {#if mobileMenuOpen}
     <div class="sm:hidden border-b border-slate-800 bg-slate-950 px-4 py-4 space-y-3">
-      <a href="#tools" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">Explore Tools</a>
-      <a href="#simulator" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">WhatsApp Simulator</a>
-      <a href="#sandbox" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">Free Sandbox</a>
-      <a href="#pricing" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">Pricing (75% OFF)</a>
-      <a href="/dashboard" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-semibold text-emerald-400">Open Dashboard</a>
+      <a href="/#tools" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">50+ Tools</a>
+      <a href="/#features" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">WhatsApp Engine</a>
+      <a href="/#pricing" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">Pricing (75% OFF)</a>
+      <a href="/#faq" onclick={() => (mobileMenuOpen = false)} class="block py-1 text-sm font-medium text-slate-300 hover:text-emerald-400">FAQ</a>
 
       <div class="pt-3 border-t border-slate-800 flex flex-col gap-2">
-        <button
-          onclick={() => { mobileMenuOpen = false; onOpenByok?.(); }}
-          class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 text-slate-200"
-        >
-          <Icon name="Key" size={14} />
-          <span>{$isKeyValid ? 'Gemini Key Active' : 'Setup BYOK Key'}</span>
-        </button>
-        <button
-          onclick={() => { mobileMenuOpen = false; onOpenQr?.(); }}
-          class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium bg-emerald-500/10 border border-emerald-500/30 text-emerald-300"
-        >
-          <Icon name="QrCode" size={14} />
-          <span>Connect WhatsApp</span>
-        </button>
+        {#if $isAuthenticated && $currentUser}
+          <a
+            href="/dashboard"
+            onclick={() => (mobileMenuOpen = false)}
+            class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950"
+          >
+            <span>Open Dashboard</span>
+            <Icon name="ArrowRight" size={14} />
+          </a>
+        {:else}
+          <a
+            href="/login"
+            onclick={() => (mobileMenuOpen = false)}
+            class="w-full flex items-center justify-center py-2 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200"
+          >
+            Log In
+          </a>
+          <a
+            href="/signup"
+            onclick={() => (mobileMenuOpen = false)}
+            class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950"
+          >
+            <span>Sign Up Free</span>
+            <Icon name="ArrowRight" size={14} />
+          </a>
+        {/if}
       </div>
     </div>
   {/if}
