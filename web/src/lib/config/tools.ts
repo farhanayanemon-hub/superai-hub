@@ -1,0 +1,1039 @@
+export interface ToolInput {
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'select';
+  placeholder?: string;
+  required?: boolean;
+  options?: string[];
+  defaultValue?: string;
+}
+
+export interface AITool {
+  id: string;
+  name: string;
+  nameEn: string;
+  category: 'fcommerce' | 'social' | 'career' | 'technical';
+  categoryName: string;
+  description: string;
+  icon: string;
+  badge?: string;
+  inputs: ToolInput[];
+  systemPrompt: string;
+  keywords: string[];
+}
+
+export const CATEGORIES = [
+  { id: 'all', name: 'সব টুলস (৫০+)', icon: 'Grid', count: 50 },
+  { id: 'fcommerce', name: 'F-Commerce ও সেলস', icon: 'ShoppingBag', count: 15 },
+  { id: 'social', name: 'সোশ্যাল মিডিয়া ও কনটেন্ট', icon: 'Share2', count: 12 },
+  { id: 'career', name: 'ক্যারিয়ার ও ডেইলি লাইফ', icon: 'Briefcase', count: 12 },
+  { id: 'technical', name: 'টেকনিক্যাল ও ফ্রিল্যান্সিং', icon: 'Code', count: 11 }
+] as const;
+
+export const TOOLS: AITool[] = [
+  // ==========================================
+  // CATEGORY 1: F-COMMERCE & LOCAL SALES (15 Tools)
+  // ==========================================
+  {
+    id: 'fb_viral_ad',
+    name: 'ফেসবুক ভাইরাল অ্যাড কপি রাইটার',
+    nameEn: 'Facebook Viral Ad Copywriter',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'AIDA বা PAS ফরম্যাটে হাই-কনভার্টিং বাংলা ফেসবুক সেলস অ্যাড কপি এবং আকর্ষক হুক লাইন তৈরি করুন।',
+    icon: 'Megaphone',
+    badge: 'সেরা সেলস',
+    inputs: [
+      { name: 'productName', label: 'প্রোডাক্টের নাম ও বিবরণ', type: 'text', placeholder: 'যেমন: প্রিমিয়াম লেদার ওয়ালেট / মধু / কটন টি-শার্ট', required: true },
+      { name: 'targetAudience', label: 'টার্গেট অডিয়েন্স', type: 'text', placeholder: 'যেমন: চাকুরীজীবী পুরুষ, তরুণ ছাত্রছাত্রী, গৃহিণী' },
+      { name: 'offer', label: 'অফার বা ডিসকাউন্ট (যদি থাকে)', type: 'text', placeholder: 'যেমন: ২০% ছাড় + ফ্রি ডেলিভারি' },
+      { name: 'tone', label: 'টোন', type: 'select', options: ['আকর্ষণীয় ও ইমোশনাল', 'জরুরি ও ডিসকাউন্ট নির্ভর', 'প্রফেশনাল ও প্রিমিয়াম', 'মজার ও ট্রেন্ডি'], defaultValue: 'আকর্ষণীয় ও ইমোশনাল' }
+    ],
+    systemPrompt: `You are an elite Bangladeshi F-Commerce copywriter. Write a high-converting Facebook ad copy in Bengali (or natural Bengali with English product terms where appropriate).
+Structure the copy using proven direct-response frameworks (AIDA or PAS):
+1. **Scroll-Stopping Hook Line** (3 killer hook variations)
+2. **Body Copy** (Pain point, emotion, product solution, why it's superior)
+3. **Key Features / Bullet Points** (Using attractive emojis)
+4. **Offer & Urgency** (Stock limited, discount, cash on delivery)
+5. **Call To Action (CTA)** (Order now link, inbox message, phone number placeholder)
+Include relevant Bengali shopping hashtags. Output in clean, ready-to-post markdown.`,
+    keywords: ['ad', 'facebook ad', 'বিজ্ঞাপন', 'অ্যাড', 'fb ad', 'সেলস পোস্ট', 'ad copy']
+  },
+  {
+    id: 'customer_objection_handler',
+    name: 'কাস্টমার অবজেকশন হ্যান্ডলার',
+    nameEn: 'Customer Objection Handler',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'দাম বেশি, কোয়ালিটি কেমন, ফেক প্রোডাক্ট নাকি, ডেলিভারি চার্জ বেশি - ইত্যাদি অবজেকশনের মিষ্টি ও ট্যাক্টফুল রিপ্লাই।',
+    icon: 'ShieldAlert',
+    badge: 'ইনবক্স মাস্টার',
+    inputs: [
+      { name: 'objection', label: 'কাস্টমারের আপত্তি বা প্রশ্ন', type: 'text', placeholder: 'যেমন: ভাইয়া অন্য পেজে তো এটা ৫০০ টাকায় দিচ্ছে, আপনারা ৮০০ টাকা কেন চাচ্ছেন?', required: true },
+      { name: 'product', label: 'আপনার প্রোডাক্ট ও বিশেষত্ব', type: 'text', placeholder: 'যেমন: অরিজিনাল গ্যাবাডিন ফেব্রিক, ২ বছরের ওয়ারেন্টি' },
+      { name: 'tone', label: 'রেসপন্স স্টাইল', type: 'select', options: ['বিনয়ী কিন্তু কনভিন্সিং', 'ভ্যালু ও কোয়ালিটি ফোকাসড', 'ডিসকাউন্ট বা বোনাস অফার সহ'], defaultValue: 'বিনয়ী কিন্তু কনভিন্সিং' }
+    ],
+    systemPrompt: `You are an expert customer relations & sales closing manager for top Bangladeshi F-Commerce brands.
+A customer has raised an objection or hesitation. Write 3 alternative responses in polite, warm, persuasive Bengali:
+Option 1: Empathetic & Value-Driven (explains the quality/authenticity difference gracefully without bashing competitors)
+Option 2: Social Proof & Guarantee-Focused (highlights warranty, customer reviews, replacement policy)
+Option 3: Closing Offer (adds a subtle sweetener like free delivery, small gift, or instant confirmation incentive).`,
+    keywords: ['objection', 'দাম বেশি', 'কাস্টমার হ্যান্ডেল', 'রিপ্লাই', 'কনভিন্স']
+  },
+  {
+    id: 'discount_campaign_planner',
+    name: 'অফার ও ডিসকাউন্ট ক্যাম্পেইন প্ল্যানার',
+    nameEn: 'Discount & Campaign Planner',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'ঈদ, পূজা, পহেলা বৈশাখ, বা ফ্ল্যাশ সেলের জন্য ভাইরাল অফার স্ট্রাকচার ও ক্যাম্পেইন মেসেজ।',
+    icon: 'Percent',
+    badge: 'ক্যাম্পেইন',
+    inputs: [
+      { name: 'occasion', label: 'উপলক্ষ বা কারণ', type: 'text', placeholder: 'যেমন: ঈদ-উল-ফিতর / উইকেন্ড ফ্ল্যাশ সেল / বর্ষপূর্তি', required: true },
+      { name: 'products', label: 'প্রোডাক্ট ক্যাটাগরি', type: 'text', placeholder: 'যেমন: পাঞ্জাবি ও কুর্তি / অর্গানিক ফুড' },
+      { name: 'discountType', label: 'অফারের ধরন', type: 'select', options: ['Buy 1 Get 1 (BOGO)', 'ফ্ল্যাট পার্সেন্টেজ অফ', 'বান্ডেল অফার ও ফ্রি গিফট', 'ফ্রি ডেলিভারি + ক্যাশব্যাক'], defaultValue: 'বান্ডেল অফার ও ফ্রি গিফট' }
+    ],
+    systemPrompt: `You are a growth marketing strategist for Bangladeshi eCommerce businesses.
+Plan a complete high-converting promotional campaign in Bengali:
+1. **Campaign Catchy Name & Theme**
+2. **The Irresistible Offer Mechanics** (BOGO, bundle discount, tiers)
+3. **Urgency & Scarcity Elements** (Countdown, limited pieces)
+4. **Ready-to-Post Campaign Announcement Ad Copy** (with emojis & hashtags)
+5. **Messenger/SMS Blast Copy** to existing customers.`,
+    keywords: ['discount', 'offer', 'campaign', 'অফার', 'ছাড়', 'ক্যাম্পেইন']
+  },
+  {
+    id: 'product_description_pro',
+    name: 'আকর্ষণীয় প্রোডাক্ট ডেসক্রিপশন',
+    nameEn: 'Compelling Product Description',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'ওয়েবসাইট বা ফেসবুক পোস্টের জন্য প্রোডাক্টের ফিচার, বেনিফিট এবং স্পেসিফিকেশন দিয়ে আকর্ষণীয় বিবরণ।',
+    icon: 'FileText',
+    inputs: [
+      { name: 'productName', label: 'প্রোডাক্টের নাম', type: 'text', placeholder: 'যেমন: আল্ট্রা স্লিম ওয়্যারলেস ব্লুটুথ এয়ারবাডস', required: true },
+      { name: 'features', label: 'প্রধান বৈশিষ্ট্য বা ম্যাটেরিয়াল', type: 'textarea', placeholder: 'যেমন: ৩০ ঘণ্টা ব্যাকআপ, ওয়াটারপ্রুফ, ডিপ বাস, ১ বছর রিপ্লেসমেন্ট গ্যারান্টি', required: true },
+      { name: 'price', label: 'মূল্য (ঐচ্ছিক)', type: 'text', placeholder: 'যেমন: ৳১,২৯৯ (পূর্বের মূল্য ৳১,৯৯৯)' }
+    ],
+    systemPrompt: `You are an elite product copywriter. Write a detailed, compelling, and benefit-focused product description in Bengali:
+- **Attention Grabbing Tagline**
+- **Emotional Story / Why You Need It**
+- **Bullet Points of Key Specs & Benefits** (Translate technical specs into real-life benefits)
+- **What's Inside The Box**
+- **Pricing, Delivery & Return Guarantee**
+Make it clean, aesthetic, and scannable.`,
+    keywords: ['description', 'product description', 'প্রোডাক্ট বিবরণ', 'বিবরণ']
+  },
+  {
+    id: 'cod_confirmation_msg',
+    name: 'ক্যাশ অন ডেলিভারি ও ট্র্যাকিং মেসেজ',
+    nameEn: 'Cash on Delivery Confirmation SMS',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'অর্ডার রিটার্ন বা ক্যান্সেলেশন কমাতে কাস্টমারকে পাঠানোর মতো অর্ডার কনফার্মেশন ও ট্র্যাকিং মেসেজ।',
+    icon: 'Truck',
+    inputs: [
+      { name: 'customerName', label: 'কাস্টমারের নাম', type: 'text', placeholder: 'যেমন: জনাব আরিফুল ইসলাম' },
+      { name: 'orderDetails', label: 'অর্ডারের বিবরণ ও মূল্য', type: 'text', placeholder: 'যেমন: ১ জোড়া স্নিকার্স (সাইজ ৪২) - মোট ৳১,৫৫০ (ক্যাশ অন ডেলিভারি)', required: true },
+      { name: 'deliveryTime', label: 'আনুমানিক ডেলিভারি সময়', type: 'text', placeholder: 'যেমন: ২-৩ কার্যদিবসের মধ্যে (Steadfast / Pathao কুরিয়ার)' }
+    ],
+    systemPrompt: `You are an eCommerce operations manager. Write 3 professional, polite WhatsApp/SMS templates in Bengali:
+1. **Order Confirmation Message**: Confirms address, item, amount to keep ready for the delivery rider, polite note on checking parcel.
+2. **Parcel Dispatched Notification**: Notifies tracking code and expected delivery date.
+3. **Delivery Follow-up & Review Request**: Sent after delivery asking if everything arrived safely.`,
+    keywords: ['cod', 'order confirmation', 'ক্যাশ অন ডেলিভারি', 'অর্ডার কনফার্ম']
+  },
+  {
+    id: 'refund_exchange_policy',
+    name: 'রিটার্ন ও রিফান্ড পলিসি রাইটার',
+    nameEn: 'Return & Refund Policy Writer',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'আপনার পেজ বা ওয়েবসাইটের জন্য আইনসম্মত, সুস্পষ্ট এবং কাস্টমার-বান্ধব রিটার্ন ও রিফান্ড নীতিমালা।',
+    icon: 'RotateCcw',
+    inputs: [
+      { name: 'businessName', label: 'ব্যবসা / পেজের নাম', type: 'text', placeholder: 'যেমন: ফ্যাব্রিকেশন বিডি', required: true },
+      { name: 'returnDays', label: 'রিটার্ন সময়সীমা', type: 'text', placeholder: 'যেমন: ৩ দিন / ৭ দিন', defaultValue: '৭ দিন' },
+      { name: 'conditions', label: 'শর্তাবলী', type: 'textarea', placeholder: 'যেমন: ডেলিভারি ম্যান থাকা অবস্থায় চেক করতে হবে, ট্যাগ ও ইনভয়েস অক্ষত থাকতে হবে' }
+    ],
+    systemPrompt: `Write a clear, professional, customer-friendly Return, Exchange & Refund Policy in Bengali.
+Include:
+- Eligibility criteria
+- Step-by-step process for raising a return request
+- Delivery charge responsibilities during return/exchange
+- Refund processing timelines (bKash/Nagad within X days)
+- Non-returnable items disclaimer.`,
+    keywords: ['refund', 'return policy', 'রিটার্ন', 'রিফান্ড পলিসি']
+  },
+  {
+    id: 'inbox_sales_closer',
+    name: 'ইনবক্স সেলস ক্লোজার',
+    nameEn: 'Inbox Sales Closer',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'মেসেঞ্জারে কাস্টমার "দাম কত?" লিখে উধাও হয়ে গেলে বা ইতস্তত করলে অর্ডার কনফার্ম করানোর চ্যাট স্ক্রিপ্ট।',
+    icon: 'MessageSquareCheck',
+    badge: 'কনভার্সন বুস্টার',
+    inputs: [
+      { name: 'chatContext', label: 'কাস্টমার কী বলেছে বা চ্যাট পরিস্থিতি', type: 'textarea', placeholder: 'যেমন: কাস্টমার দাম জেনেছে, সাইজ জিজ্ঞাসা করেছে, এরপর আর রিপ্লাই দিচ্ছে না', required: true },
+      { name: 'specialOffer', label: 'ক্লোজিং মিষ্টি অফার (ঐচ্ছিক)', type: 'text', placeholder: 'যেমন: আজ কনফার্ম করলে ফ্রি গিফট / আজকেই লাস্ট স্টক' }
+    ],
+    systemPrompt: `You are an expert WhatsApp & Messenger sales closer in Bangladesh.
+Provide 3 psychological re-engagement chat scripts in polite Bengali:
+Script 1: Friendly Follow-Up (Asking if they need help choosing size/color)
+Script 2: Gentle Urgency / Scarcity (Notifying that stock in this size is running out fast)
+Script 3: Irresistible Direct Order Form (Asking for Name, Address, Phone with a one-click response style).`,
+    keywords: ['closer', 'sales closer', 'ইনবক্স সেলস', 'অর্ডার ক্লোজ']
+  },
+  {
+    id: 'customer_review_replier',
+    name: 'কাস্টমার রিভিউ রিপ্লাই মেকার',
+    nameEn: 'Customer Review Replier',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'পজিটিভ রিভিউতে ধন্যবাদ জানানো এবং নেগেটিভ রিভিউ ট্যাক্টফুলি সমাধান করার পেশাদার উত্তর।',
+    icon: 'Star',
+    inputs: [
+      { name: 'reviewType', label: 'রিভিউ এর ধরন', type: 'select', options: ['৫-স্টার পজিটিভ রিভিউ', '১ বা ২-স্টার নেগেটিভ / অভিযোগ', 'সাধারণ প্রশ্ন / নিরপেক্ষ রিভিউ'], defaultValue: '৫-স্টার পজিটিভ রিভিউ' },
+      { name: 'reviewText', label: 'কাস্টমারের দেওয়া রিভিউ', type: 'textarea', placeholder: 'যেমন: প্রোডাক্ট ভালো, কিন্তু ডেলিভারি দিতে ৪ দিন দেরি করেছে...', required: true }
+    ],
+    systemPrompt: `You are a social media reputation manager for top brands.
+Craft 2 polished, warm, and brand-building replies in Bengali:
+- For Positive Reviews: Express genuine gratitude, mention repeat customer perks or welcoming them back.
+- For Negative Reviews: Acknowledge the pain point sincerely, apologize gracefully without being defensive, and invite them to inbox with their order ID to resolve or replace the item immediately.`,
+    keywords: ['review', 'feedback', 'রিভিউ', 'ফিডব্যাক']
+  },
+  {
+    id: 'viral_slogan_maker',
+    name: 'ভাইরাল প্রোডাক্ট ও ব্র্যান্ড স্লোগান মেকার',
+    nameEn: 'Viral Product & Brand Slogan Generator',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'আপনার পেজ, ব্র্যান্ড বা নতুন প্রোডাক্টের জন্য ক্যাচি, ছন্দময় বাংলা ও ইংরেজি স্লোগান।',
+    icon: 'Sparkles',
+    inputs: [
+      { name: 'brandName', label: 'ব্র্যান্ড বা প্রোডাক্টের নাম', type: 'text', placeholder: 'যেমন: খাসফুড / স্টাইলিশ জোন', required: true },
+      { name: 'usp', label: 'মূল বিশেষত্ব (USP)', type: 'text', placeholder: 'যেমন: খাঁটি ঘানি ভাঙা সরিষার তেল / ১০০% প্রিমিয়াম সুতি কাপড়', required: true }
+    ],
+    systemPrompt: `Generate 15 punchy, memorable, and creative slogans for a Bangladeshi brand:
+- 5 Catchy Bengali Rhyming Slogans (ছন্দময় বাংলা স্লোগান)
+- 5 Modern Bilingual / Banglish Slogans
+- 5 Premium Minimalist English Slogans
+Each slogan should be memorable and instantly stick in customer minds.`,
+    keywords: ['slogan', 'tagline', 'স্লোগান', 'ট্যাগলাইন']
+  },
+  {
+    id: 'delivery_delay_apology',
+    name: 'ডেলিভারি লেট অ্যাপোলজি মেসেজ',
+    nameEn: 'Delivery Delay Apology Message',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'কুরিয়ার জ্যাম বা বৃষ্টির কারণে ডেলিভারি বিলম্ব হলে কাস্টমারের রাগ প্রশমিত করার টেক্সট।',
+    icon: 'Clock',
+    inputs: [
+      { name: 'delayReason', label: 'দেরির কারণ', type: 'text', placeholder: 'যেমন: ঈদের চাপ / কুরিয়ার নেটওয়ার্ক সমস্যা / দুর্যোগপূর্ণ আবহাওয়া', required: true },
+      { name: 'customerName', label: 'কাস্টমারের নাম', type: 'text', placeholder: 'যেমন: আপু / ভাইয়া' }
+    ],
+    systemPrompt: `Write 3 heartfelt, respectful, and reassuring delivery delay apology messages in Bengali for WhatsApp/SMS:
+Tone: Respectful, transparent, taking ownership rather than blaming external parties.
+Include: Reason for delay, exact revised ETA, and a small compensation or apology token (like discount coupon on next purchase).`,
+    keywords: ['delay', 'ডেলিভারি লেট', 'দেরি', 'ক্ষমা']
+  },
+  {
+    id: 'vip_loyalty_pitch',
+    name: 'পুরাতন কাস্টমারদের VIP অফার পিচ',
+    nameEn: 'VIP Loyalty Retention Offer Pitch',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'আগের কেনাকাটা করা কাস্টমারদের পুনরায় অর্ডার করাতে স্পেশাল সিক্রেট ভিআইপি ডিসকাউন্ট মেসেজ।',
+    icon: 'Crown',
+    inputs: [
+      { name: 'offerDiscount', label: 'অফার বা সুবিধা', type: 'text', placeholder: 'যেমন: গোপন ১৫% ফ্ল্যাট ছাড় + একটি সারপ্রাইজ গিফট', required: true },
+      { name: 'newArrivals', label: 'নতুন কালেকশন', type: 'text', placeholder: 'যেমন: প্রিমিয়াম প্রি-উইন্টার কালেকশন' }
+    ],
+    systemPrompt: `Write an exclusive VIP loyalty retention message in Bengali for repeat customers:
+Make the customer feel valued, recognized, and privileged.
+Include: A VIP secret coupon code, a private preview link to new arrivals, and a warm tone acknowledging their past support.`,
+    keywords: ['vip', 'loyalty', 'রিটেনশন', 'লয়াল্টি']
+  },
+  {
+    id: 'stock_clearance_pitch',
+    name: 'স্টক ক্লিয়ারেন্স ও লাস্ট চান্স পিচ',
+    nameEn: 'Stock Clearance & Urgency Pitch',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'পুরাতন স্টক দ্রুত ক্লিয়ার করতে "আর মাত্র কয়েকটি বাকি" ভিত্তিক আরজেন্সি কপি।',
+    icon: 'Flame',
+    inputs: [
+      { name: 'product', label: 'প্রোডাক্টের নাম ও ছাড়', type: 'text', placeholder: 'যেমন: লাস্ট ৫০ পিস শীতের হুডি - ৫০% পর্যন্ত ছাড়', required: true },
+      { name: 'urgency', label: 'সময়সীমা', type: 'text', placeholder: 'যেমন: আগামী ২৪ ঘণ্টা বা স্টক থাকা পর্যন্ত' }
+    ],
+    systemPrompt: `Write a high-urgency Stock Clearance Sale post in Bengali.
+Employ FOMO (Fear Of Missing Out) principles:
+- Bold headline emphasizing "Stock Clearance" and "Biggest Price Drop"
+- Reasons why it's on clearance (making room for next season)
+- Emphasize that once sold out, these will not be restocked
+- Strong immediate call to action with quick order instructions.`,
+    keywords: ['stock clearance', 'ক্লিয়ারেন্স', 'সেল', 'লাস্ট চান্স']
+  },
+  {
+    id: 'upsell_cross_sell',
+    name: 'আপসেল ও ক্রস-সেল অফার প্ল্যানার',
+    nameEn: 'Upsell & Cross-Sell Bundle Planner',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'কাস্টমার একটি জিনিস কেনার পর তার সাথে কম্বো বা বান্ডেল আইটেম যোগ করে অর্ডার ভ্যালু বাড়ানোর পিচ।',
+    icon: 'Layers',
+    inputs: [
+      { name: 'mainProduct', label: 'মূল প্রোডাক্ট', type: 'text', placeholder: 'যেমন: মেনস ফরমাল শার্ট', required: true },
+      { name: 'addOnProduct', label: 'কম্বো / অ্যাড-অন প্রোডাক্ট', type: 'text', placeholder: 'যেমন: ম্যাচিং সিল্ক টাই ও লেদার বেল্ট', required: true },
+      { name: 'bundleDiscount', label: 'বান্ডেল সেভিংস', type: 'text', placeholder: 'যেমন: আলাদা কিনলে ৳২,৫০০, একসাথে নিলে মাত্র ৳১,৯৫০' }
+    ],
+    systemPrompt: `Write 2 high-converting upsell / cross-sell pitches in Bengali:
+1. **Messenger Closing Script**: To pitch right when the customer is confirming the first item.
+2. **Post/Story Announcement**: Presenting the bundle as a complete makeover package with savings calculation.`,
+    keywords: ['upsell', 'cross-sell', 'বান্ডেল', 'কম্বো']
+  },
+  {
+    id: 'fb_live_sales_script',
+    name: 'ফেসবুক লাইভ সেলস স্ক্রিপ্ট',
+    nameEn: 'Facebook Live Selling Script',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: '২০-৩০ মিনিটের ফেসবুক লাইভে দর্শক ধরে রাখা এবং লাইভে কমেন্ট করিয়ে অর্ডার করানোর টাইমলাইন স্ক্রিপ্ট।',
+    icon: 'Video',
+    inputs: [
+      { name: 'products', label: 'লাইভে যা যা দেখানো হবে', type: 'textarea', placeholder: 'যেমন: ৫টি নতুন ডিজাইনের জামদানি শাড়ি ও ম্যাচিং জুয়েলারি', required: true },
+      { name: 'liveOffer', label: 'লাইভ চলাকালীন স্পেশাল অফার', type: 'text', placeholder: 'যেমন: লাইভ শেয়ার করলে ফ্রি ডেলিভারি + লাইভ কোড কমেন্ট করলে অতিরিক্ত ২০০ টাকা ছাড়' }
+    ],
+    systemPrompt: `Create a step-by-step 20-minute Facebook Live Selling script for a host in Bengali:
+- **Minute 0-3**: Opening Hook, welcoming early viewers, share contest announcement.
+- **Minute 4-10**: Showcase Product 1 & 2 with close-up fabric/feature details, price reveal, and calling for specific comment keywords (e.g. "Order 101").
+- **Minute 11-16**: Rapid Q&A, trying on/demoing, addressing live comments and FOMO stock updates.
+- **Minute 17-20**: Final countdown, urgency push, order confirmation recap, and closing greetings.`,
+    keywords: ['live', 'facebook live', 'লাইভ স্ক্রিপ্ট', 'লাইভ সেল']
+  },
+  {
+    id: 'fcommerce_faq_builder',
+    name: 'ইনবক্স অটোমেশন FAQ বিল্ডার',
+    nameEn: 'Inbox Automation & FAQ Builder',
+    category: 'fcommerce',
+    categoryName: 'F-Commerce ও সেলস',
+    description: 'ফেসবুক পেজের অটোমেটেড মেসেজিং এবং সচরাচর জিজ্ঞাসিত ১০টি প্রশ্নের স্ট্যান্ডার্ড উত্তর।',
+    icon: 'HelpCircle',
+    inputs: [
+      { name: 'businessDetails', label: 'ব্যবসার বিবরণ ও পলিসি', type: 'textarea', placeholder: 'যেমন: ডেলিভারি চার্জ ঢাকার মধ্যে ৮০ টাকা, বাইরে ১৫০ টাকা। ৩ দিনে ডেলিভারি। ক্যাশ অন ডেলিভারি প্রযোজ্য।', required: true }
+    ],
+    systemPrompt: `Generate 8 essential FAQ questions and their standardized polite Bengali responses for a Facebook page automated greeting / quick replies:
+1. প্রোডাক্ট অরিজিনাল কিনা?
+2. ডেলিভারি চার্জ কত এবং কতদিন সময় লাগে?
+3. অর্ডার করার নিয়ম কী?
+4. রিটার্ন বা সাইজ পরিবর্তন পলিসি কী?
+5. পেমেন্ট মেথড কী কী?
+6. শোরুম বা ফিজিক্যাল শপ আছে কিনা?
+7. সাইজ চার্ট বা পরিমাপ কীভাবে পাব?
+8. হোলসেল বা পাইকারি নেওয়া যাবে কিনা?
+Provide crisp, emoji-rich, ready-to-paste answers.`,
+    keywords: ['faq', 'automated message', 'অটো রিপ্লাই', 'প্রশ্নোত্তর']
+  },
+
+  // ==========================================
+  // CATEGORY 2: SOCIAL MEDIA & CONTENT (12 Tools)
+  // ==========================================
+  {
+    id: 'ai_image_generator',
+    name: 'AI ইমেজ জেনারেটর (টেক্সট-টু-ফটো)',
+    nameEn: 'AI Image Generator',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'যেকোনো বর্ণনা লিখলেই Pollinations.ai / Flux এর মাধ্যমে সেকেন্ডে রিয়েলিস্টিক ছবি বা ব্যানার জেনারেট করুন।',
+    icon: 'Image',
+    badge: 'ম্যাজিক টুল',
+    inputs: [
+      { name: 'imagePrompt', label: 'ছবির বর্ণনা (বাংলা বা ইংরেজিতে)', type: 'textarea', placeholder: 'যেমন: A futuristic cybernetic tiger prowling through a neon Dhaka city street at night, 8k cinematic lighting', required: true },
+      { name: 'style', label: 'স্টাইল', type: 'select', options: ['Photorealistic 8K', 'Digital Art / Anime', 'Product Photography Studio', 'Cinematic Movie Shot', 'Minimalist Flat Vector'], defaultValue: 'Photorealistic 8K' }
+    ],
+    systemPrompt: `You are an expert AI prompt engineer for image synthesis models (Flux / Midjourney).
+Translate the user's concept into an extraordinary, ultra-detailed English prompt with photographic keywords:
+lighting (volumetric, golden hour, neon), camera lens (85mm f/1.4), resolution (8k, photorealistic, intricate details), and aspect ratio.
+Also output the direct ready-to-load Pollinations URL:
+https://image.pollinations.ai/prompt/{encoded_english_prompt}?width=1024&height=1024&nologo=true`,
+    keywords: ['image', 'ছবি', 'photo', 'drawing', '/image', 'ছবি বানাও', 'পিকচার']
+  },
+  {
+    id: 'midjourney_prompt_enhancer',
+    name: 'মিডজার্নি ও ফ্লাক্স প্রম্পট এনহ্যান্সার',
+    nameEn: 'Midjourney & Flux Prompt Enhancer',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'সাধারণ এক লাইনের ধারণাকে হাইপার-ডিটেইলড মাস্টারপিস প্রম্পট এবং প্যারামিটারে রূপান্তর করুন।',
+    icon: 'Wand2',
+    inputs: [
+      { name: 'basicIdea', label: 'আপনার মূল আইডিয়া', type: 'text', placeholder: 'যেমন: একটি লাল রঙের স্পোর্টস কার বৃষ্টিতে দাঁড়িয়ে আছে', required: true },
+      { name: 'aspectRatio', label: 'অ্যাসপেক্ট রেশিও', type: 'select', options: ['16:9 (Landscape / YouTube)', '9:16 (Story / Reel)', '1:1 (Square / Feed)', '4:5 (Instagram Portrait)'], defaultValue: '16:9 (Landscape / YouTube)' }
+    ],
+    systemPrompt: `You are a world-class prompt engineer for Midjourney v6 and Flux 1.0.
+Convert the user's basic concept into 3 distinct, high-impact English prompts:
+1. **Ultra-Realistic Cinematic Photography**: with camera gear, depth of field, natural lighting, and color grading parameters.
+2. **Stylized 3D / Concept Art**: with Unreal Engine 5, Octane render, and dramatic textures.
+3. **Editorial & Commercial Fashion / Product Aesthetic**: with studio lighting and minimalist composition.
+Include appropriate Midjourney parameters (--ar, --v 6.0, --style raw, --q 2).`,
+    keywords: ['prompt', 'midjourney', 'flux', 'প্রম্পট', 'ইমেজ প্রম্পট']
+  },
+  {
+    id: 'tiktok_reels_script',
+    name: 'টিকটক ও রিলস ৩০-সেকেন্ড স্ক্রিপ্ট',
+    nameEn: 'TikTok & Reels 30s Viral Script',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'প্রথম ৩ সেকেন্ডের হুক, স্ক্রিন টেক্সট এবং কথা বলার স্ক্রিপ্ট সহ ভাইরাল শর্ট-ফর্ম ভিডিও স্ক্রিপ্ট।',
+    icon: 'Smartphone',
+    badge: 'ভাইরাল হিট',
+    inputs: [
+      { name: 'topic', label: 'ভিডিওর বিষয়বস্তু বা টিপস', type: 'text', placeholder: 'যেমন: ৩টি ফ্রি এআই টুল যা সবার জানা উচিত / সকালে ঘুম থেকে ওঠার সাইকোলজিক্যাল হ্যাক', required: true },
+      { name: 'style', label: 'ভিডিও ধরন', type: 'select', options: ['ফেসক্যাম টিউটোরিয়াল ও টিপস', 'স্টোরিটেলিং ও মোটিভেশন', 'POV / কমেডি রিলেটেবল', 'প্রোডাক্ট শোকেস ও আনবক্সিং'], defaultValue: 'ফেসক্যাম টিউটোরিয়াল ও টিপস' }
+    ],
+    systemPrompt: `Write a high-retention 30-45 second short video script (Reels/TikTok/Shorts) in engaging conversational Bengali:
+- **Hook (0-3 sec)**: Visual cue + Killer opening line that stops thumbs immediately.
+- **Problem & Curiosity Build (3-10 sec)**: Address why this matters.
+- **The 3 Golden Nuggets / Action Points (10-30 sec)**: Fast-paced, dynamic value points with exact [Screen Text] cues.
+- **Call-To-Action (30-35 sec)**: Follow for part 2 / Save this reel / Comment your thought.
+Format in a 3-column table: [Timestamp] | [Visual / On-Screen Text] | [Audio / What You Say].`,
+    keywords: ['tiktok', 'reels', 'shorts', 'রিলস', 'টিকটক', 'শর্টস']
+  },
+  {
+    id: 'youtube_seo_tags',
+    name: 'ইউটিউব এসইও টাইটেল ও ট্যাগস',
+    nameEn: 'YouTube SEO Title, Description & Tags',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'সার্চে সবার আগে র‍্যাঙ্ক করার মতো কিওয়ার্ড-অপটিমাইজড টাইটেল, ডেসক্রিপশন ও ৫০০ অক্ষরের ট্যাগস।',
+    icon: 'Youtube',
+    inputs: [
+      { name: 'videoTopic', label: 'ভিডিওর মূল বিষয়বস্তু', type: 'text', placeholder: 'যেমন: কীভাবে ফ্রিল্যান্সিং শুরু করবেন ২০২৬ সালে', required: true },
+      { name: 'targetKeywords', label: 'টার্গেট কিওয়ার্ড (ঐচ্ছিক)', type: 'text', placeholder: 'যেমন: freelancing bangla tutorial, upwork, fiverr' }
+    ],
+    systemPrompt: `You are a top YouTube SEO growth consultant. Provide an all-in-one SEO optimization pack:
+1. **5 High-CTR Clickable Titles** (Mix of Curiosity-driven, How-To, and High-Search Intent)
+2. **SEO Optimized Description** (First 2 lines hook, brief summary, timestamp outline structure, relevant social links placeholder)
+3. **Comma-Separated Tags String** (High volume long-tail keywords ready to copy-paste directly into YouTube Studio's 500-char limit)
+4. **Hashtags** (Top 5 trending hashtags).`,
+    keywords: ['youtube', 'seo', 'youtube tags', 'ইউটিউব', 'ট্যাগ']
+  },
+  {
+    id: 'yt_clickbait_thumbnail_ideas',
+    name: 'ইউটিউব থাম্বনেইল আইডিয়া ও টেক্সট',
+    nameEn: 'YouTube Click-Worthy Thumbnail Concepts',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'ভিউ বুস্ট করার জন্য হাই-সিটিআর থাম্বনেইল ডিজাইন কনসেপ্ট, ব্যাকগ্রাউন্ড কালার ও ২-৪ শব্দের টেক্সট হুক।',
+    icon: 'Layout',
+    inputs: [
+      { name: 'title', label: 'আপনার ভিডিওর টাইটেল', type: 'text', placeholder: 'যেমন: মাত্র ৩ মাসে কোটিপতি হওয়ার গোপন ফাঁদ ফাঁস!', required: true }
+    ],
+    systemPrompt: `You are a creative thumbnail director for top creators like MrBeast.
+Generate 5 high-CTR thumbnail concepts:
+For each concept provide:
+- **Big Bold Thumbnail Text** (Maximum 2-4 punchy words, NOT repeating the title)
+- **Facial Expression / Subject Action** (e.g., Shocked, pointing, whispering, crying)
+- **Visual Elements & Background** (Colors, high contrast objects, arrows, blur)
+- **Why It Works (Psychological Trigger)**: Curiosity gap, FOMO, extreme contrast.`,
+    keywords: ['thumbnail', 'থাম্বনেইল', 'ইউটিউব ব্যানার']
+  },
+  {
+    id: 'linkedin_story_post',
+    name: 'লিঙ্কডইন ভাইরাল স্টোরিটেলিং পোস্ট',
+    nameEn: 'LinkedIn Viral Storytelling Post',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'ব্যক্তিগত অভিজ্ঞতা, ক্যারিয়ার লেসন বা অর্জন দিয়ে লিঙ্কডইনে রিচ ও কানেকশন বাড়ানোর পোস্ট।',
+    icon: 'Linkedin',
+    inputs: [
+      { name: 'storyIdea', label: 'ঘটনা বা শিক্ষণীয় বিষয়', type: 'textarea', placeholder: 'যেমন: ৩ বছর আগে প্রথম জবের ইন্টারভিউতে রিজেক্ট হয়েছিলাম, কিন্তু আজ সেই কোম্পানিতেই কনসালট্যান্ট হিসেবে জয়েন করলাম...', required: true },
+      { name: 'lesson', label: 'মূল টেকঅ্যাওয়ে বা মেসেজ', type: 'text', placeholder: 'যেমন: ব্যর্থতাই সেরা শিক্ষক, কখনো হাল ছাড়বেন না' }
+    ],
+    systemPrompt: `You are a LinkedIn Top Voice ghostwriter.
+Transform the user's idea into a viral, beautifully formatted LinkedIn post:
+- **1-Line Broetry Opening Hook** (Forces readers to click "...see more")
+- **The Conflict / Low Point** (Vulnerable, authentic struggle)
+- **The Turning Point & Hard Work** (Actionable steps taken)
+- **The Climax & Achievement**
+- **3 Key Lessons for Professionals** (Bullet points)
+- **Closing Question to spark comments**
+Include 3-4 professional hashtags.`,
+    keywords: ['linkedin', 'লিঙ্কডইন', 'ক্যারিয়ার পোস্ট', 'storytelling']
+  },
+  {
+    id: 'fb_weekly_content_calendar',
+    name: 'ফেসবুক পেজ সাপ্তাহিক কনটেন্ট ক্যালেন্ডার',
+    nameEn: 'Weekly Facebook Page Content Calendar',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'রবিবার থেকে শনিবার পর্যন্ত আপনার পেজের ৭ দিনের পোস্ট আইডিয়া, ফরম্যাট এবং ক্যাপশন প্ল্যান।',
+    icon: 'Calendar',
+    inputs: [
+      { name: 'niche', label: 'পেজের ক্যাটাগরি বা বিষয়', type: 'text', placeholder: 'যেমন: ফিটনেস ও স্বাস্থ্য সচেতনতা / স্কিনকেয়ার প্রোডাক্ট', required: true },
+      { name: 'goal', label: 'মূল লক্ষ্য', type: 'select', options: ['অডিয়েন্স এনগেজমেন্ট ও ফলোয়ার বৃদ্ধি', 'ডিরেক্ট প্রোডাক্ট সেলস', 'ব্র্যান্ড ট্রাস্ট ও শিক্ষণীয় কনটেন্ট'], defaultValue: 'অডিয়েন্স এনগেজমেন্ট ও ফলোয়ার বৃদ্ধি' }
+    ],
+    systemPrompt: `You are a social media content strategist. Design a 7-day Facebook content calendar in Bengali:
+For each day (Saturday through Friday):
+- **Day & Post Type** (e.g., Saturday: Educational Infographic, Sunday: Behind The Scenes Video, Monday: Customer Social Proof, etc.)
+- **Content Theme & Hook**
+- **Format** (Single image, Carousel, Short Video, Text Story)
+- **Call-To-Action (CTA)** designed for maximum comments and shares.`,
+    keywords: ['calendar', 'content plan', 'ক্যালেন্ডার', 'কনটেন্ট প্ল্যান']
+  },
+  {
+    id: 'instagram_carousel_maker',
+    name: 'ইনস্টাগ্রাম মাল্টি-স্লাইড ক্যারোজেল',
+    nameEn: 'Instagram Carousel Slide Outline',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: '৫ থেকে ৮ স্লাইডের তথ্যবহুল ক্যারোজেল পোস্টের প্রতিটি স্লাইডের শিরোনাম, টেক্সট এবং ভিজ্যুয়াল গাইড।',
+    icon: 'Layers',
+    inputs: [
+      { name: 'topic', label: 'ক্যারোজেলের বিষয়বস্তু', type: 'text', placeholder: 'যেমন: ৫টি এআই ওয়েবসাইট যা আপনার কাজের গতি ১০ গুণ বাড়াবে', required: true },
+      { name: 'slidesCount', label: 'স্লাইড সংখ্যা', type: 'select', options: ['৫ স্লাইড', '৭ স্লাইড', '১০ স্লাইড'], defaultValue: '৭ স্লাইড' }
+    ],
+    systemPrompt: `Create a step-by-step Instagram Carousel Slide outline:
+- **Slide 1 (Cover)**: Big bold curiosity-sparking title + swipe indicator prompt.
+- **Slides 2 to (N-1) (Value Delivery)**: One clear point per slide with punchy headline, 2-3 short bullet lines, and design/icon suggestion.
+- **Last Slide (Outro)**: Summary + Save this for later / Share with a friend CTA.
+Provide full caption with hashtags ready for posting.`,
+    keywords: ['carousel', 'instagram carousel', 'ক্যারোজেল', 'ইনস্টাগ্রাম']
+  },
+  {
+    id: 'catchy_hooks_generator',
+    name: '১০টি ক্যাচি ভিডিও ও পোস্ট হুক',
+    nameEn: 'Viral Video & Post Hooks Generator',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'ভিডিওর প্রথম ৩ সেকেন্ডে অডিয়েন্স আটকে রাখার মতো মনস্তাত্ত্বিক ১০টি ভাইরাল হুক লাইন।',
+    icon: 'Zap',
+    inputs: [
+      { name: 'topic', label: 'টপিক বা প্রোডাক্ট', type: 'text', placeholder: 'যেমন: সময় নষ্ট বন্ধ করে পড়াশোনায় মনোযোগ দেওয়ার উপায়', required: true }
+    ],
+    systemPrompt: `Generate 10 insanely catchy video opening hooks in Bengali categorized by psychological triggers:
+1. **Curiosity Gap** (2 hooks)
+2. **Contrarian / Controversial** (2 hooks - "Everything you know about X is wrong")
+3. **Negative Consequence / Fear** (2 hooks - "Stop doing this before you lose...")
+4. **Secret / Insider Hack** (2 hooks)
+5. **Direct Transformation / Story** (2 hooks).
+Make them punchy, energetic, and natural in spoken Bengali.`,
+    keywords: ['hook', 'hooks', 'হুক', 'ক্যাচি হুক']
+  },
+  {
+    id: 'twitter_thread_creator',
+    name: 'টুইটার / এক্স ভাইরাল থ্রেড রাইটার',
+    nameEn: 'Twitter/X Viral Thread Creator',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'একটি বিষয়ের গভীর অন্তর্দৃষ্টি নিয়ে ৭-১০টি টুইটের আকর্ষণীয় ও এনগেজিং থ্রেড।',
+    icon: 'Twitter',
+    inputs: [
+      { name: 'coreTopic', label: 'থ্রেডের মূল বিষয়বস্তু', type: 'text', placeholder: 'যেমন: ChatGPT ব্যবহার করে প্যাসিভ ইনকাম শুরু করার রোডম্যাপ', required: true }
+    ],
+    systemPrompt: `Write an engaging 8-tweet viral thread in concise, punchy style (Bilingual / English / Bangla):
+- **Tweet 1 (Hook)**: Bold claim with high retweet potential + "A thread 🧵"
+- **Tweets 2-7**: Actionable, bite-sized lessons with clear takeaways and spacing.
+- **Tweet 8 (Conclusion)**: Summary of thread + CTA to follow and retweet the first tweet.`,
+    keywords: ['twitter', 'thread', 'টুইট', 'থ্রেড']
+  },
+  {
+    id: 'meme_caption_creator',
+    name: 'ট্রেন্ডি মিম আইডিয়া ও ক্যাপশন',
+    nameEn: 'Meme Concept & Viral Caption Creator',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'ফেসবুক পেজের রিচ বাড়ানোর জন্য ট্রেন্ডিং মিম ফরম্যাট এবং হাসিখুশি বাংলা ক্যাপশন।',
+    icon: 'Smile',
+    inputs: [
+      { name: 'situation', label: 'পরিস্থিতি বা রিলেটেবল মুহূর্ত', type: 'text', placeholder: 'যেমন: মাসের শেষ সপ্তাহে পকেটের অবস্থা / ক্লায়েন্টের কাজ শেষ করার পর আনলিমিটেড রিভিশন চাওয়া', required: true }
+    ],
+    systemPrompt: `Generate 5 creative, relatable, and funny meme concepts in Bengali:
+For each concept:
+- **Meme Template / Visual Description** (e.g. Drake approval, Distracted Boyfriend, Crying Cat)
+- **Top Text & Bottom Text**
+- **Witty Post Caption** with emojis to boost organic sharing.`,
+    keywords: ['meme', 'মিম', 'ফান', 'ক্যাপশন']
+  },
+  {
+    id: 'podcast_episode_script',
+    name: 'পডকাস্ট এপিসোড আউটলাইন ও প্রশ্নাবলি',
+    nameEn: 'Podcast Episode Outline & Host Questions',
+    category: 'social',
+    categoryName: 'সোশ্যাল মিডিয়া ও কনটেন্ট',
+    description: 'যেকোনো গেস্ট বা একক পডকাস্টের জন্য আকর্ষক ইন্ট্রো, সেগমেন্ট ব্রেকডাউন এবং ১০টি ডিপ প্রশ্ন।',
+    icon: 'Mic',
+    inputs: [
+      { name: 'guestOrTopic', label: 'গেস্টের প্রোফাইল বা এপিসোডের বিষয়', type: 'text', placeholder: 'যেমন: একজন সফল ড্রপশিপার যিনি মাসে ১০ লাখ টাকা সেল করছেন', required: true },
+      { name: 'duration', label: 'এপিসোড দৈর্ঘ্য', type: 'select', options: ['১৫ মিনিট (কুইক বাইট)', '৩০-৪৫ মিনিট (স্ট্যান্ডার্ড)', '১ ঘণ্টা+ (ডিপ ডাইভ)'], defaultValue: '৩০-৪৫ মিনিট (স্ট্যান্ডার্ড)' }
+    ],
+    systemPrompt: `Generate a comprehensive podcast episode plan in Bengali:
+1. **Catchy Host Intro & Teaser Hook**
+2. **Ice-Breaker Questions** (Guest background & early struggles)
+3. **Core Topic Deep Dive Questions** (Strategies, numbers, practical mistakes)
+4. **Rapid-Fire Round (5 fun quick questions)**
+5. **Golden Advice for Beginners & Outro Wrap-up**.`,
+    keywords: ['podcast', 'পডকাস্ট', 'ইন্টারভিউ', 'স্ক্রিপ্ট']
+  },
+
+  // ==========================================
+  // CATEGORY 3: CAREER & DAILY LIFE (12 Tools)
+  // ==========================================
+  {
+    id: 'bangla_to_corporate_en',
+    name: 'বাংলা টু প্রফেশনাল করপোরেট ইংরেজি',
+    nameEn: 'Bangla to Professional Corporate English',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'আপনার সাধারণ বাংলা কথা বা এলোমেলো ভাবনায় লেখা মেসেজকে দারুণ প্রফেশনাল করপোরেট ইংলিশে রূপান্তর করুন।',
+    icon: 'Languages',
+    badge: 'অফিস মাস্টার',
+    inputs: [
+      { name: 'rawBanglaText', label: 'আপনার বাংলা টেক্সট বা খসড়া', type: 'textarea', placeholder: 'যেমন: বস আমি কাল আসতে পারব না, আমার একটু শরীর খারাপ আর ডাক্তারের অ্যাপয়েন্টমেন্ট আছে। ফাইলটা রফিককে দিয়ে গেছি।', required: true },
+      { name: 'formality', label: 'ফরম্যালিটির মাত্রা', type: 'select', options: ['Executive Formal (উচ্চপদস্থ ও ক্লায়েন্টের জন্য)', 'Polite Professional (সহকর্মীর জন্য)', 'Assertive / Confident (প্রজেক্ট লিডের জন্য)'], defaultValue: 'Executive Formal (উচ্চপদস্থ ও ক্লায়েন্টের জন্য)' }
+    ],
+    systemPrompt: `You are an elite corporate communications coach.
+Translate the user's raw Bengali/Banglish thoughts into polished, diplomatic, and executive-level corporate English:
+Provide 2-3 polished variations:
+1. **Standard Professional Version**
+2. **Diplomatic / Polite Version**
+3. **Concise Slack/Teams Message Version**
+Also briefly explain why specific phrases or power verbs were chosen.`,
+    keywords: ['translate', 'corporate english', 'ইংরেজি', 'অনুবাদ', 'bangla to english']
+  },
+  {
+    id: 'pro_email_drafter',
+    name: 'প্রফেশনাল ইমেইল ড্রাফটার',
+    nameEn: 'Professional Email Drafter',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'ছুটির আবেদন, মিটিং রিকোয়েস্ট, ক্লায়েন্ট প্রজেক্ট আপডেট বা বকেয়া পেমেন্ট তাগাদার নিখুঁত অফিসিয়াল ইমেইল।',
+    icon: 'Mail',
+    inputs: [
+      { name: 'emailPurpose', label: 'ইমেইলের উদ্দেশ্য ও বিবরণ', type: 'textarea', placeholder: 'যেমন: গত মাসের ইনভয়েসের পেমেন্ট এখনও আসেনি, অ্যাকাউন্টস টিমকে ভদ্রভাবে মনে করিয়ে দেওয়ার জন্য', required: true },
+      { name: 'recipient', label: 'প্রাপক', type: 'text', placeholder: 'যেমন: এইচআর ম্যানেজার / বিদেশী ক্লায়েন্ট / সিনিয়র কলিগ' }
+    ],
+    systemPrompt: `Write a polished, professional email in English (or Bengali if specified):
+- **Compelling Subject Line** (Actionable & clear)
+- **Appropriate Salutation**
+- **Context & Core Message** (Stated clearly without fluff)
+- **Call-to-Action / Next Steps**
+- **Professional Sign-off**.`,
+    keywords: ['email', 'ইমেইল', 'ছুটির দরখাস্ত', 'চিঠি', 'মেইল']
+  },
+  {
+    id: 'cv_resume_optimizer',
+    name: 'সিভি ও কভার লেটার অপটিমাইজার',
+    nameEn: 'ATS Resume & Cover Letter Optimizer',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'নির্দিষ্ট জবের সার্কুলার অনুযায়ী রেজুমে বুলেট পয়েন্ট এবং কনভিন্সিং কভার লেটার তৈরি করুন।',
+    icon: 'Award',
+    badge: 'ক্যারিয়ার গ্রোথ',
+    inputs: [
+      { name: 'jobRole', label: 'কাঙ্ক্ষিত পদ ও কোম্পানি', type: 'text', placeholder: 'যেমন: সিনিয়র ডিজিটাল মার্কেটার, ব্র্যাক ব্যাংক', required: true },
+      { name: 'experience', label: 'আপনার বর্তমান অভিজ্ঞতা ও স্কিলস', type: 'textarea', placeholder: 'যেমন: ৩ বছর ফেসবুক ও গুগল অ্যাডস ম্যানেজমেন্ট করেছি, মোট ৫০ লাখ টাকার বাজেট হ্যান্ডেল করেছি', required: true }
+    ],
+    systemPrompt: `You are a Fortune 500 executive recruiter.
+Provide an ATS-optimized career package:
+1. **3 High-Impact Resume Bullet Points** using the Google X-Y-Z formula ("Accomplished [X] as measured by [Y], by doing [Z]").
+2. **Professional Summary Statement** tailored for the role.
+3. **Tailored 3-Paragraph Cover Letter** demonstrating passion, cultural fit, and proven ROI.`,
+    keywords: ['cv', 'resume', 'cover letter', 'সিভি', 'রেজুমে']
+  },
+  {
+    id: 'job_interview_coach',
+    name: 'জব ইন্টারভিউ মক কোচ',
+    nameEn: 'Job Interview Mock Coach & Answers',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: '"Tell me about yourself", "What is your weakness" ইত্যাদি ট্রিকি ইন্টারভিউ প্রশ্নের স্মার্ট উত্তর।',
+    icon: 'UserCheck',
+    inputs: [
+      { name: 'question', label: 'ইন্টারভিউ প্রশ্ন', type: 'text', placeholder: 'যেমন: Where do you see yourself in 5 years? / Why should we hire you?', required: true },
+      { name: 'yourBackground', label: 'আপনার ব্যাকগ্রাউন্ড', type: 'text', placeholder: 'যেমন: ফ্রেশ সিএসই গ্র্যাজুয়েট / ৫ বছরের সেলস ম্যানেজার' }
+    ],
+    systemPrompt: `You are a career coach preparing candidates for rigorous interviews.
+Provide a high-scoring answer using the STAR method (Situation, Task, Action, Result) where applicable:
+- **The Strategy Behind This Question** (What the interviewer is really testing)
+- **Model Answer in English** (Natural, confident, authentic)
+- **Bangla Explanation & Tips** on body language, tone, and what common traps to avoid.`,
+    keywords: ['interview', 'ইন্টারভিউ', 'মক ইন্টারভিউ', 'চাকরি']
+  },
+  {
+    id: 'ielts_writing_evaluator',
+    name: 'আইইএলটিএস রাইটিং টাস্ক-২ ইভ্যালুয়েটর',
+    nameEn: 'IELTS Writing Task 2 Evaluator & Scorer',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'আপনার লেখা এসে (Essay) ইনপুট দিলে আনুমানিক ব্যান্ড স্কোর, ভুল সংশোধন এবং ৭.৫+ ব্যান্ডের উন্নত ভার্সন।',
+    icon: 'GraduationCap',
+    inputs: [
+      { name: 'essayPrompt', label: 'এসে টপিক / প্রশ্ন', type: 'text', placeholder: 'যেমন: Some people think universities should provide graduates with knowledge and skills for their careers...', required: true },
+      { name: 'studentEssay', label: 'আপনার লেখা রচনা (Essay)', type: 'textarea', placeholder: 'Paste your full essay here...', required: true }
+    ],
+    systemPrompt: `You are a certified senior IELTS examiner. Evaluate the submitted Task 2 essay based on the 4 official criteria:
+1. **Task Achievement & Coherence** (Score & Feedback)
+2. **Lexical Resource** (Score & Vocabulary feedback)
+3. **Grammatical Range & Accuracy** (Score & Specific corrections)
+4. **Estimated Overall Band Score** (e.g. 6.0, 6.5)
+5. **Band 8.0 Rewritten Model Version** of the same essay showcasing advanced vocabulary, discourse markers, and complex sentence structures.`,
+    keywords: ['ielts', 'writing', 'আইইএলটিএস', 'ব্যান্ড স্কোর']
+  },
+  {
+    id: 'medical_test_simplifier',
+    name: 'প্রেসক্রিপশন ও মেডিকেল রিপোর্ট সিম্প্লিফায়ার',
+    nameEn: 'Medical Prescription & Lab Report Simplifier',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'রক্তের টেস্ট, সিবিসি, লিপিড প্রোফাইল বা জটিল ডাক্তারী টার্ম সহজ বাংলায় বোঝার সহায়িকা।',
+    icon: 'HeartPulse',
+    inputs: [
+      { name: 'reportText', label: 'মেডিকেল টেস্টের নাম ও ফলাফল', type: 'textarea', placeholder: 'যেমন: Hemoglobin 10.2 g/dL, Total Cholesterol 240 mg/dL, Fasting Glucose 6.8 mmol/L', required: true }
+    ],
+    systemPrompt: `You are a compassionate medical educator.
+Explain the medical test parameters in simple, reassuring Bengali:
+- What each test measures
+- Normal reference ranges vs user's result
+- What high/low might generally indicate in everyday language
+- Lifestyle & dietary tips
+- **Clear Disclaimer**: "এটি কোনো চূড়ান্ত মেডিকেল ডায়াগনোসিস নয়, প্রেসক্রিপশন পরিবর্তন বা যেকোনো সিদ্ধান্তের জন্য অবশ্যই রেজিস্টার্ড চিকিৎসকের পরামর্শ নিন।"`,
+    keywords: ['medical', 'prescription', 'প্রেসক্রিপশন', 'ডাক্তার', 'রিপোর্ট']
+  },
+  {
+    id: 'daily_meal_planner',
+    name: 'দেশি খাবারের সুষম ডায়েট ও মিল প্ল্যানার',
+    nameEn: 'Desi Balanced Diet & Daily Meal Planner',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'ওজন কমানো বা নিয়ন্ত্রণে রাখতে সহজলভ্য দেশি খাবার দিয়ে সকাল, দুপুর ও রাতের সুষম ডায়েট চার্ট।',
+    icon: 'Utensils',
+    inputs: [
+      { name: 'goal', label: 'আপনার লক্ষ্য', type: 'select', options: ['ওজন কমানো (Fat Loss)', 'ওজন ও পেশি বৃদ্ধি (Muscle Gain)', 'ডায়াবেটিস ফ্রেন্ডলি ব্যালেন্সড ডায়েট', 'বাজেট-ফ্রেন্ডলি সুষম খাবার'], defaultValue: 'ওজন কমানো (Fat Loss)' },
+      { name: 'preferences', label: 'বয়স, লিঙ্গ বা পছন্দ', type: 'text', placeholder: 'যেমন: বয়স ২৮, পুরুষ, ভাত ছাড়া থাকতে পারি না, বাজেট সীমিত' }
+    ],
+    systemPrompt: `You are a nutritionist specializing in Bangladeshi dietary habits.
+Design a practical, affordable 1-day meal plan using local Bangladeshi foods:
+- **Breakfast, Mid-morning snack, Lunch, Afternoon tea/snack, Dinner**
+- Realistic portion sizes (e.g. ১ কাপ লাল চালের ভাত, ১ বাটি ডাল, শাকসবজি)
+- Approximate calorie and protein breakdown
+- Hydration and practical healthy habit tips.`,
+    keywords: ['diet', 'meal plan', 'খাবার রুটিন', 'ডায়েট', 'ওজন কমানো']
+  },
+  {
+    id: 'long_text_summarizer',
+    name: 'লম্বা লেখার সারাংশ ও বুলেট নোট মেকার',
+    nameEn: 'Executive Summary & Bullet Notes Maker',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'যেকোনো বড় আর্টিকেল, মিটিং নোট বা রিসার্চ পেপারের এক্সিকিউটিভ সারাংশ এবং মূল ৩টি টেকঅ্যাওয়ে।',
+    icon: 'AlignLeft',
+    inputs: [
+      { name: 'longText', label: 'বড় টেক্সটটি এখানে পেস্ট করুন', type: 'textarea', placeholder: 'Paste your long text, article, or transcript here...', required: true },
+      { name: 'format', label: 'আউটপুট ফরম্যাট', type: 'select', options: ['বুলেট পয়েন্ট সারাংশ', '১-প্যারাগ্রাফ এক্সিকিউটিভ সামারি', 'প্রশ্নোত্তর ফরম্যাটে মূল পয়েন্ট'], defaultValue: 'বুলেট পয়েন্ট সারাংশ' }
+    ],
+    systemPrompt: `Read the provided text carefully and generate a high-clarity executive summary:
+1. **TL;DR (1-2 sentence core message)**
+2. **Key Highlights & Main Arguments** (Organized into clear bullet points)
+3. **Actionable Insights / Next Steps**
+Ensure zero fluff, maintaining maximum density of useful information.`,
+    keywords: ['summary', 'সারাংশ', 'সামারি', 'নোট']
+  },
+  {
+    id: 'budget_expense_planner',
+    name: 'মাসিক বাজেট ও সেভিংস প্ল্যানার',
+    nameEn: 'Monthly Budget & Savings Planner',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'আপনার মাসিক ইনকাম অনুযায়ী ৫০/৩০/২০ নিয়মে বাড়িভাড়া, খরচ এবং জমার সুনির্দিষ্ট গাইড।',
+    icon: 'PiggyBank',
+    inputs: [
+      { name: 'monthlyIncome', label: 'মাসিক মোট আয় (টাকা)', type: 'text', placeholder: 'যেমন: ৳৪৫,০০০', required: true },
+      { name: 'fixedExpenses', label: 'ফিক্সড খরচ (বাড়িভাড়া, বিল ইত্যাদি)', type: 'text', placeholder: 'যেমন: বাড়িভাড়া ৳১৫,০০০, বিল ও বাজার ৳১৫,০০০' }
+    ],
+    systemPrompt: `You are a certified personal financial planner.
+Create a smart, practical monthly budget in Bengali based on the 50/30/20 rule:
+- **Essentials (50%)**: Housing, utilities, groceries, transportation.
+- **Wants / Lifestyle (30%)**: Entertainment, shopping, dining out.
+- **Savings & Emergency Fund (20%)**: High-interest savings, DPS, debt reduction.
+Provide specific monthly targets in BDT and 3 actionable tips to reduce unnecessary expenses.`,
+    keywords: ['budget', 'বাজেট', 'টাকা জমানো', 'সেভিংস']
+  },
+  {
+    id: 'polite_rejection_drafter',
+    name: 'ভদ্রভাবে "না" বলার আর্ট',
+    nameEn: 'Polite Refusal & Graceful Rejection Drafter',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'বন্ধু, আত্মীয় বা ক্লায়েন্টের কোনো প্রস্তাব বা ধার চাওয়ার অনুরোধ সম্পর্ক নষ্ট না করে মিষ্টি করে ফিরিয়ে দেওয়ার মেসেজ।',
+    icon: 'UserX',
+    inputs: [
+      { name: 'requestContext', label: 'কী অনুরোধ করা হয়েছে', type: 'text', placeholder: 'যেমন: এক পরিচিত ব্যক্তি বড় অঙ্কের টাকা ধার চেয়েছে / ক্লায়েন্ট অতিরিক্ত ফ্রিতে কাজ চাইছে', required: true }
+    ],
+    systemPrompt: `Craft 3 diplomatic, respectful, yet firm refusal messages in Bengali:
+1. **Gentle & Compassionate** (For close friends or relatives without causing hard feelings)
+2. **Strictly Professional** (For business partners, bosses, or clients)
+3. **Short & Decisive WhatsApp Message** (Direct, polite, closing further debate).`,
+    keywords: ['reject', 'না বলা', 'রিফিউজ', 'polite no']
+  },
+  {
+    id: 'motivation_habit_tracker',
+    name: '২১ দিনের হ্যাবিট ট্র্যাকিং ও মোটিভেশন গাইড',
+    nameEn: '21-Day Habit Transformation Guide',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'আলসেমি দূর করে প্রতিদিনের নতুন অভ্যাস গড়ে তোলার বিজ্ঞানসম্মত ২১ দিনের একশন প্ল্যান।',
+    icon: 'Target',
+    inputs: [
+      { name: 'habitToBuild', label: 'কোন অভ্যাস গড়তে চান', type: 'text', placeholder: 'যেমন: প্রতিদিন সকালে ৩০ মিনিট বই পড়া / ব্যায়াম করা / কোডিং শেখা', required: true }
+    ],
+    systemPrompt: `You are a behavioral psychology and habit coach (inspired by Atomic Habits).
+Create a 21-day micro-habit transformation blueprint in Bengali:
+- **The 2-Minute Rule**: How to start so small that it's impossible to fail.
+- **Habit Stacking & Cue-Routine-Reward Loop**.
+- **Week 1 (Foundation)**: Overcoming initial friction.
+- **Week 2 (Momentum)**: Dealing with resistance.
+- **Week 3 (Identity Shift)**: Solidifying the routine permanently.
+- **Emergency Rescue Plan**: What to do if you miss a single day.`,
+    keywords: ['habit', 'অভ্যাস', 'মোটিভেশন', 'রুটিন']
+  },
+  {
+    id: 'book_summary_insights',
+    name: 'বইয়ের মূল শিক্ষা ও প্র্যাকটিক্যাল টেকঅ্যাওয়ে',
+    nameEn: 'Book Summary & Practical Takeaways',
+    category: 'career',
+    categoryName: 'ক্যারিয়ার ও ডেইলি লাইফ',
+    description: 'জনপ্রিয় যেকোনো নন-ফিকশন বেস্টসেলার বইয়ের মূল ৩টি শিক্ষা এবং কীভাবে জীবনে প্রয়োগ করবেন।',
+    icon: 'BookOpen',
+    inputs: [
+      { name: 'bookTitle', label: 'বইয়ের নাম ও লেখক', type: 'text', placeholder: 'যেমন: Atomic Habits by James Clear / Rich Dad Poor Dad', required: true }
+    ],
+    systemPrompt: `You are an avid intellectual and book summarizer.
+Provide a transformative 5-minute summary of the requested book in Bengali:
+1. **The Core Thesis of the Book** (What makes it unique)
+2. **Top 3 Life-Changing Insights / Lessons** (Explained with real-world examples)
+3. **3 Actionable Steps to Implement Today**
+4. **Favorite Quote & Why It Matters**.`,
+    keywords: ['book', 'বই', 'বইয়ের সারাংশ', 'বুক সামারি']
+  },
+
+  // ==========================================
+  // CATEGORY 4: TECHNICAL & FREELANCING (11 Tools)
+  // ==========================================
+  {
+    id: 'excel_sheets_formula',
+    name: 'এক্সেল ও গুগল শিট ফর্মুলা জেনারেটর',
+    nameEn: 'Excel & Google Sheets Formula Wizard',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'সহজ ভাষায় লিখে দিন আপনি কী হিসাব করতে চান, নিমেষেই VLOOKUP, INDEX-MATCH বা জটিল ফর্মুলা পেয়ে যান।',
+    icon: 'Table',
+    badge: 'প্রোডাক্টিভিটি',
+    inputs: [
+      { name: 'problem', label: 'আপনি কী হিসাব বা ডাটা বের করতে চান', type: 'textarea', placeholder: 'যেমন: Column A তে প্রোডাক্ট নাম আর Column B তে দাম আছে। Column D তে থাকা প্রোডাক্টের দাম Column E তে অটোমেটিক আনতে চাই।', required: true },
+      { name: 'platform', label: 'প্ল্যাটফর্ম', type: 'select', options: ['Google Sheets', 'Microsoft Excel (New 365)', 'Microsoft Excel (Older versions)'], defaultValue: 'Google Sheets' }
+    ],
+    systemPrompt: `You are an expert Excel & Google Sheets data engineer.
+Provide the exact formula to solve the user's spreadsheet challenge:
+1. **The Exact Ready-to-Copy Formula** (Formatted in a code block)
+2. **Step-by-Step Breakdown** of how each argument works
+3. **Alternative Formula** (e.g. XLOOKUP vs INDEX/MATCH)
+4. **Troubleshooting Tip** (Common error cases like #N/A or #VALUE!).`,
+    keywords: ['excel', 'formula', 'google sheets', 'এক্সেল', 'ফর্মুলা']
+  },
+  {
+    id: 'upwork_fiverr_proposal',
+    name: 'আপওয়ার্ক ও ফাইভার বিডিং প্রপোজাল',
+    nameEn: 'Winning Upwork & Fiverr Proposal Writer',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'ক্লায়েন্টের জব ডেসক্রিপশন হুবহু পেস্ট করুন এবং প্রথম ২ লাইনেই ইন্টারভিউ নিশ্চিত করার মতো কভার লেটার নিন।',
+    icon: 'BriefcaseBusiness',
+    badge: 'ক্লায়েন্ট উইনার',
+    inputs: [
+      { name: 'jobPost', label: 'ক্লায়েন্টের জব পোস্ট', type: 'textarea', placeholder: 'Paste client job posting here...', required: true },
+      { name: 'relevantSkill', label: 'আপনার মূল স্কিল ও পূর্ব কাজের লিঙ্ক/পোর্টফোলিও', type: 'text', placeholder: 'যেমন: ৫ বছর ওয়ার্ডপ্রেস ও শপিফাই এক্সপার্ট, ৩টি লাইভ সাইট তৈরি করেছি' }
+    ],
+    systemPrompt: `You are a top-rated Upwork freelancer who has generated $100k+ in client contracts.
+Write an irresistible, customized Upwork cover letter in English:
+- **First 2 Lines**: Directly acknowledge the client's core pain point (No generic greetings like "Dear Hiring Manager, I am a passionate...")
+- **The Solution**: Explain the exact technical approach to solve their issue in 2-3 bullet points
+- **Relevant Social Proof & Portfolio Question**: Ask an insightful technical question that compels them to reply
+- **No-Risk Call To Action**.`,
+    keywords: ['upwork', 'fiverr', 'proposal', 'বিড', 'কভার লেটার', 'ফ্রিল্যান্সিং']
+  },
+  {
+    id: 'error_bug_fixer',
+    name: 'কোডিং এরর মেসেজ এক্সপ্লেনার ও ফিক্সার',
+    nameEn: 'Error Message Explainer & Bug Fixer',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'যেকোনো কোড ও লাল এরর মেসেজ পেস্ট করুন; কারণ জানুন এবং কাজ করা সংশোধিত কোড পান।',
+    icon: 'Bug',
+    inputs: [
+      { name: 'errorMessage', label: 'লাল এরর মেসেজ বা স্ট্যাকট্রেস', type: 'textarea', placeholder: 'যেমন: TypeError: Cannot read properties of undefined (reading "map") at Component.svelte:42', required: true },
+      { name: 'codeSnippet', label: 'সম্পর্কিত কোড (যদি থাকে)', type: 'textarea', placeholder: 'Paste relevant snippet here...' }
+    ],
+    systemPrompt: `You are a senior full-stack debugging architect.
+Analyze the error stack and code:
+1. **Plain-English Explanation**: What went wrong and why it triggered.
+2. **The Exact Fix**: Clean, corrected code snippet with comments explaining changes.
+3. **Prevention Advice**: How to defensively program to prevent this bug in the future.`,
+    keywords: ['error', 'bug', 'কোড', 'এরর', 'ফিক্স']
+  },
+  {
+    id: 'landing_page_copywriter',
+    name: 'ল্যান্ডিং পেজ সেকশন কপিরাইটার',
+    nameEn: 'High-Converting Landing Page Copywriter',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'হিরো সেকশন, ফিচার গ্রিড, টেস্টিমোনিয়াল এবং কল-টু-অ্যাকশন বাটনের হাই-কনভার্টিং কপি।',
+    icon: 'Globe',
+    inputs: [
+      { name: 'productService', label: 'প্রোডাক্ট বা সার্ভিসের নাম ও সুবিধা', type: 'textarea', placeholder: 'যেমন: একটি অটোমেটেড হোয়াটসঅ্যাপ মার্কেটিং বট যা ছোট ব্যবসার সেলস দ্বিগুণ করে', required: true },
+      { name: 'targetUser', label: 'টার্গেট ভিজিটর', type: 'text', placeholder: 'যেমন: ই-কমার্স ওনার, ডিজিটাল মার্কেটার' }
+    ],
+    systemPrompt: `You are a high-conversion landing page copywriter.
+Generate a complete wireframe copy in Bengali or English:
+- **Hero Section**: H1 Headline, Subhead, Primary CTA text, Social proof badge
+- **Problem vs Solution Section**: 3 pain points vs 3 direct answers
+- **Key Features Grid**: 3-4 feature cards with benefit-driven headings
+- **Objection-Busting FAQ**: 3 questions
+- **Final Sticky CTA Section**.`,
+    keywords: ['landing page', 'ল্যান্ডিং পেজ', 'ওয়েবসাইট কপি', 'hero copy']
+  },
+  {
+    id: 'regex_builder',
+    name: 'রেগুলার এক্সপ্রেশন (Regex) বিল্ডার',
+    nameEn: 'Regex Pattern Generator & Tester',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'ইমেইল, বিডি ফোন নম্বর, পাসওয়ার্ড বা ইউআরএল ভ্যালিডেশনের রেগুলার এক্সপ্রেশন এবং ব্যাখ্যা।',
+    icon: 'CodeXml',
+    inputs: [
+      { name: 'requirement', label: 'কী প্যাটার্ন ম্যাচ করতে চান', type: 'text', placeholder: 'যেমন: বাংলাদেশী ভ্যালিড মোবাইল নম্বর (+88017..., 017... ইত্যাদি) ম্যাচ করতে হবে', required: true }
+    ],
+    systemPrompt: `You are a regular expression specialist.
+Provide:
+1. **The Regular Expression Pattern** (in a code block)
+2. **Breakdown of Each Token** (Anchors, groups, quantifiers explained)
+3. **Passing Test Cases & Failing Test Cases**
+4. **Code Example** in JavaScript/TypeScript and Python.`,
+    keywords: ['regex', 'regular expression', 'রেজেক্স', 'প্যাটার্ন']
+  },
+  {
+    id: 'sql_query_writer',
+    name: 'ডাটাবেজ SQL কোয়েরি রাইটার',
+    nameEn: 'Database SQL Query Builder & Optimizer',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'বাংলায় বলুন কী ডাটা চান; PostgreSQL, MySQL বা Supabase এর জন্য পারফেক্ট অপ্টিমাইজড কুয়েরি তৈরি হবে।',
+    icon: 'Database',
+    inputs: [
+      { name: 'schemaAndTask', label: 'টেবিল স্ট্রাকচার ও আপনার রিকোয়ারমেন্ট', type: 'textarea', placeholder: 'যেমন: users এবং orders টেবিল আছে। গত ৩০ দিনে যারা অন্তত ৩টি অর্ডার করেছে তাদের নাম ও টোটাল খরচ বের করতে হবে।', required: true },
+      { name: 'dialect', label: 'ডাটাবেজ সিস্টেম', type: 'select', options: ['PostgreSQL / Supabase', 'MySQL', 'SQLite', 'MS SQL Server'], defaultValue: 'PostgreSQL / Supabase' }
+    ],
+    systemPrompt: `You are a database administrator and SQL performance tuning expert.
+Write clean, performant SQL for the specified database:
+1. **The Optimized SQL Query** (Formatted in a code block with appropriate JOINs, aggregations, and WHERE clauses)
+2. **Query Explanation**: How it operates.
+3. **Indexing Recommendation**: Columns to index to ensure sub-millisecond execution.`,
+    keywords: ['sql', 'database', 'কোয়েরি', 'ডাটাবেজ', 'কুয়েরি']
+  },
+  {
+    id: 'json_api_formatter',
+    name: 'JSON ডাটা ভ্যালিডেটর ও টাইপ জেনারেটর',
+    nameEn: 'JSON Validator & TypeScript Interface Generator',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'যেকোনো কাঁচা JSON থেকে পরিষ্কার টাইপস্ক্রিপ্ট ইন্টারফেস, ফরম্যাটেড ভ্যালিড JSON এবং ডামি মক ডাটা তৈরি করুন।',
+    icon: 'FileJson',
+    inputs: [
+      { name: 'rawJson', label: 'আপনার কাঁচা JSON ডাটা', type: 'textarea', placeholder: 'Paste raw JSON payload here...', required: true }
+    ],
+    systemPrompt: `You are a full-stack TypeScript engineer.
+Inspect the provided JSON:
+1. **Clean & Formatted Validated JSON**
+2. **TypeScript Types/Interfaces** matching the structure perfectly with optional field guards and strict types.
+3. **Zod Validation Schema** for runtime safety.`,
+    keywords: ['json', 'typescript', 'interface', 'জেসন']
+  },
+  {
+    id: 'git_troubleshooter',
+    name: 'গিট কমান্ড অ্যাসিস্ট্যান্ট ও কনফ্লিক্ট সলভার',
+    nameEn: 'Git Commands & Merge Conflict Troubleshooter',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'ভুল ব্রাঞ্চে কমিট করে ফেলেছেন? মার্জ কনফ্লিক্ট বা রিবেস ঝামেলায় আটকেছেন? নিরাপদ সমাধান জেনে নিন।',
+    icon: 'GitBranch',
+    inputs: [
+      { name: 'gitProblem', label: 'গিট সমস্যা বা পরিস্থিতি', type: 'textarea', placeholder: 'যেমন: আমি মেইন ব্রাঞ্চে সরাসরি কিছু কমিট করে ফেলেছি কিন্তু পুশ করিনি। এগুলোকে একটি নতুন ব্রাঞ্চে সরাতে চাই।', required: true }
+    ],
+    systemPrompt: `You are a version control expert.
+Provide the safest, step-by-step terminal Git commands:
+1. **The Exact Commands** to run in sequence
+2. **What Each Command Does** and how to verify the git tree state
+3. **Safety Guarantee**: Highlight any command that could cause data loss (e.g. git reset --hard) with clear warnings.`,
+    keywords: ['git', 'github', 'মার্জ কনফ্লিক্ট', 'গিট']
+  },
+  {
+    id: 'tailwind_ui_component',
+    name: 'Tailwind CSS + HTML UI কম্পোনেন্ট মেকার',
+    nameEn: 'Tailwind CSS UI Component Builder',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'প্রয়োজনীয় কম্পোনেন্টের বিবরণ দিন; রেডিমেড কপি-পেস্ট উপযোগী সুন্দর Tailwind CSS কোড নিন।',
+    icon: 'Palette',
+    inputs: [
+      { name: 'componentDesc', label: 'কম্পোনেন্টের বিবরণ', type: 'textarea', placeholder: 'যেমন: একটি প্রিমিয়াম ডার্ক মোড প্রাইসিং কার্ড যাতে ব্যাজ, মান্থলি/ইয়ার্লি টগল এবং ফিচার চেকলিস্ট থাকবে', required: true }
+    ],
+    systemPrompt: `You are a modern frontend UI/UX designer and Tailwind CSS master.
+Generate accessible, modern, responsive HTML with Tailwind CSS classes:
+- Use clean modern aesthetic (subtle borders, refined gradients, smooth transitions, mobile-first design)
+- Ready to paste into any HTML/Svelte/React project
+- Clean, semantic markup.`,
+    keywords: ['tailwind', 'css', 'ui component', 'টেইলউইন্ড']
+  },
+  {
+    id: 'script_generator',
+    name: 'Bash ও PowerShell স্ক্রিপ্ট বিল্ডার',
+    nameEn: 'Bash & PowerShell Automation Script Generator',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'ফাইল ব্যাকআপ, সার্ভার ডিপ্লয়মেন্ট বা বাল্ক রিনেমের অটোমেশন স্ক্রিপ্ট তৈরি করুন।',
+    icon: 'Terminal',
+    inputs: [
+      { name: 'task', label: 'অটোমেশন কাজের বিবরণ', type: 'textarea', placeholder: 'যেমন: নির্দিষ্ট ফোল্ডারের সব ইমেজ কম্প্রেস করা অথবা ডাটাবেজের প্রতিদিন রাত ১২টায় অটো ব্যাকআপ নেওয়া', required: true },
+      { name: 'shell', label: 'শেল পরিবেশ', type: 'select', options: ['Linux / macOS Bash', 'Windows PowerShell', 'Node.js Script'], defaultValue: 'Linux / macOS Bash' }
+    ],
+    systemPrompt: `Write an automation script with error handling, progress logging, and clear comments.
+Include:
+- The complete runnable script in a code block
+- Execution permissions instructions (e.g. chmod +x)
+- How to test run safely before putting into production.`,
+    keywords: ['script', 'bash', 'powershell', 'স্ক্রিপ্ট', 'অটোমেশন']
+  },
+  {
+    id: 'freelance_invoice_contract',
+    name: 'ফ্রিল্যান্সার ইনভয়েস ও চুক্তি ড্রাফটার',
+    nameEn: 'Freelance Scope of Work & Invoice Drafter',
+    category: 'technical',
+    categoryName: 'টেকনিক্যাল ও ফ্রিল্যান্সিং',
+    description: 'ক্লায়েন্টের সাথে কাজের স্কোপ, পেমেন্ট মাইলস্টোন এবং পেশাদার ইনভয়েসের স্ট্যান্ডার্ড ড্রাফট।',
+    icon: 'Receipt',
+    inputs: [
+      { name: 'scopeDetails', label: 'কাজের বিবরণ ও পেমেন্ট শর্তাবলী', type: 'textarea', placeholder: 'যেমন: একটি ই-কমার্স ওয়েবসাইট তৈরি। মোট পারিশ্রমিক $৮০০। ৫০% অগ্রিম এবং ৫০% লাইভ হওয়ার পর। ২ সপ্তাহের ডেলিভারি।', required: true },
+      { name: 'clientName', label: 'ক্লায়েন্ট বা কোম্পানির নাম', type: 'text', placeholder: 'যেমন: Nexa Digital LLC' }
+    ],
+    systemPrompt: `You are a professional freelance business manager.
+Generate a comprehensive Scope of Work (SOW) agreement and matching Invoice template in English:
+1. **Project Scope & Deliverables Checklist**
+2. **Payment Milestones & Payment Terms (Net 7 / 50% upfront)**
+3. **Revision Limits & Out-of-Scope Clause** (Protects against scope creep)
+4. **Professional Invoice Format** with itemized breakdown.`,
+    keywords: ['invoice', 'contract', 'ইনভয়েস', 'চুক্তি', 'ফ্রিল্যান্স']
+  }
+];
