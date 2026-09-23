@@ -42,9 +42,8 @@
           outputText = result.text;
         }
       } else {
-        // Fallback simulation when no key is entered yet
-        await new Promise((r) => setTimeout(r, 1400));
-        outputText = `⚠️ **[Demo Mode - Gemini API Key Not Connected]**\n\nHere is a preview output based on your inputs:\n\n✨ **${$activeTool.name} Output:**\n\n1. The AI model has prepared a draft based on your parameters.\n2. For unlimited, real-time generation, click **"Set BYOK Key"** at the top and plug in your free Google AI Studio API key.\n\n💡 No credit card required, 100% free forever!`;
+        // When user has not yet entered their BYOK key
+        outputText = `⚠️ **[Gemini API Key Required]**\n\nPlease navigate to the **Gemini BYOK Key** tab in your dashboard sidebar to add your free Google AI Studio API key.\n\n👉 Get your free key instantly here (zero cost, no credit card): https://aistudio.google.com/app/apikey`;
       }
     } catch (err: any) {
       errorMessage = err.message || 'An unexpected error occurred. Please try again.';
@@ -134,7 +133,7 @@
 
         {#each $activeTool.inputs as input}
           <div class="space-y-1.5">
-            <label class="block text-xs font-medium text-slate-300">
+            <label for={'input-' + input.name} class="block text-xs font-medium text-slate-300">
               {input.label}
               {#if input.required}
                 <span class="text-rose-400">*</span>
@@ -143,6 +142,7 @@
 
             {#if input.type === 'textarea'}
               <textarea
+                id={'input-' + input.name}
                 bind:value={formValues[input.name]}
                 rows={4}
                 placeholder={input.placeholder}
@@ -150,6 +150,7 @@
               ></textarea>
             {:else if input.type === 'select'}
               <select
+                id={'input-' + input.name}
                 bind:value={formValues[input.name]}
                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-emerald-500/80"
               >
@@ -159,6 +160,7 @@
               </select>
             {:else}
               <input
+                id={'input-' + input.name}
                 type="text"
                 bind:value={formValues[input.name]}
                 placeholder={input.placeholder}

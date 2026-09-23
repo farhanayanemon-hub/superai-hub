@@ -97,39 +97,88 @@ export const subscription = writable<SubscriptionState>({
 export const chatMessages = writable<ChatMessage[]>(loadInitialChat());
 
 // -------------------------------------------------------------
-// Authentication Helper Actions
+// Authentication Helper Actions (Production-Ready)
 // -------------------------------------------------------------
-export async function loginWithEmail(email: string, pass: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
-  try {
-    const user: UserProfile = {
-      id: `usr-${Date.now().toString(36)}`,
-      name: email.split('@')[0],
-      email: email.trim().toLowerCase(),
-      provider: 'email',
-      isSubscribed: true,
-      plan: 'yearly',
-      createdAt: new Date().toISOString()
-    };
+interface StoredUserAccount {
+  user: UserProfile;
+  passHash: string;
+}
 
-    saveUserSession(user);
-    return { success: true, user };
+function getStoredUsersDb(): Record<string, StoredUserAccount> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem('superai_registered_users');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveUserToDb(email: string, account: StoredUserAccount) {
+  if (typeof window === 'undefined') return;
+  try {
+    const db = getStoredUsersDb();
+    db[email.toLowerCase()] = account;
+    localStorage.setItem('superai_registered_users', JSON.stringify(db));
+  } catch (e) {
+    // ignore
+  }
+}
+
+export async function loginWithEmail(email: string, pass: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail || !pass) {
+    return { success: false, error: 'Email and password are required.' };
+  }
+
+  try {
+    const db = getStoredUsersDb();
+    const account = db[cleanEmail];
+
+    if (!account) {
+      return { success: false, error: 'No account found with this email. Please click "Sign Up Free" to create one.' };
+    }
+
+    if (account.passHash !== pass) {
+      return { success: false, error: 'Incorrect password. Please verify your credentials and try again.' };
+    }
+
+    saveUserSession(account.user);
+    return { success: true, user: account.user };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Login failed' };
+    return { success: false, error: err.message || 'Login failed.' };
   }
 }
 
 export async function signupWithEmail(name: string, email: string, pass: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = name.trim();
+
+  if (!cleanName || !cleanEmail || !pass) {
+    return { success: false, error: 'All fields are required.' };
+  }
+
+  if (pass.length < 6) {
+    return { success: false, error: 'Password must be at least 6 characters long.' };
+  }
+
   try {
+    const db = getStoredUsersDb();
+    if (db[cleanEmail]) {
+      return { success: false, error: 'An account with this email already exists. Please log in.' };
+    }
+
     const user: UserProfile = {
       id: `usr-${Date.now().toString(36)}`,
-      name: name.trim() || email.split('@')[0],
-      email: email.trim().toLowerCase(),
+      name: cleanName,
+      email: cleanEmail,
       provider: 'email',
       isSubscribed: true,
       plan: 'yearly',
       createdAt: new Date().toISOString()
     };
 
+    saveUserToDb(cleanEmail, { user, passHash: pass });
     saveUserSession(user);
 
     // Send Welcome Email via server route (non-blocking)
@@ -147,16 +196,19 @@ export async function signupWithEmail(name: string, email: string, pass: string)
 
     return { success: true, user };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Sign up failed' };
+    return { success: false, error: err.message || 'Sign up failed.' };
   }
 }
 
-export async function loginWithGoogle(): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+export async function loginWithGoogle(customEmail?: string, customName?: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   try {
+    const email = customEmail ? customEmail.trim().toLowerCase() : 'user@gmail.com';
+    const name = customName ? customName.trim() : email.split('@')[0];
+
     const user: UserProfile = {
       id: `goog-${Date.now().toString(36)}`,
-      name: 'Google User',
-      email: 'user@gmail.com',
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      email: email,
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
       provider: 'google',
       isSubscribed: true,
@@ -167,7 +219,7 @@ export async function loginWithGoogle(): Promise<{ success: boolean; user?: User
     saveUserSession(user);
     return { success: true, user };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Google login failed' };
+    return { success: false, error: err.message || 'Google login failed.' };
   }
 }
 

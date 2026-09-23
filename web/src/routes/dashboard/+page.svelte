@@ -44,18 +44,10 @@
   let emailSavedMsg = $state('');
 
   onMount(() => {
-    // If not authenticated, initialize demo user so user can test seamlessly
+    // Production Auth Protection: Redirect unauthenticated visitors to login
     if (!$isAuthenticated || !$currentUser) {
-      currentUser.set({
-        id: 'usr-vip-demo',
-        name: 'VIP User',
-        email: 'user@ezboagents.com',
-        provider: 'email',
-        isSubscribed: true,
-        plan: 'yearly',
-        createdAt: new Date().toISOString()
-      });
-      isAuthenticated.set(true);
+      goto('/login');
+      return;
     }
 
     // Start WhatsApp live SSE stream

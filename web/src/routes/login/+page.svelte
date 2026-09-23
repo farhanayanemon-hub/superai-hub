@@ -55,14 +55,6 @@
       isLoading = false;
     }
   }
-
-  function handleDemoLogin() {
-    email = 'demo@ezboagents.com';
-    password = 'demopassword123';
-    loginWithEmail(email, password).then(() => {
-      goto('/dashboard');
-    });
-  }
 </script>
 
 <svelte:head>
@@ -169,18 +161,6 @@
         {/if}
       </button>
     </form>
-
-    <!-- One-click Demo Access -->
-    <div class="mt-4 pt-4 border-t border-slate-800/80 text-center">
-      <button
-        type="button"
-        onclick={handleDemoLogin}
-        class="text-xs text-slate-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1 cursor-pointer"
-      >
-        <Icon name="Zap" size={13} class="text-amber-400" />
-        <span>One-click Instant Demo Login</span>
-      </button>
-    </div>
 
     <!-- Sign Up Link -->
     <p class="text-xs text-slate-400 text-center mt-6">
