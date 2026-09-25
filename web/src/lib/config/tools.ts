@@ -636,7 +636,7 @@ export const TOOLS: AITool[] = [
     "nameEn": "Live Selling Script Producer",
     "category": "fcommerce",
     "categoryName": "E-Commerce & Sales",
-    "description": "Step-by-step engaging broadcast script for live shopping, product demos, lucky draws, and real-time sales.",
+    "description": "Step-by-step engaging broadcast script for live shopping, product showcases, lucky draws, and real-time sales.",
     "icon": "Radio",
     "inputs": [
       {
@@ -653,7 +653,7 @@ export const TOOLS: AITool[] = [
         "placeholder": "e.g. Share live stream 5 times to win a free gift box"
       }
     ],
-    "systemPrompt": "Create a structured 45-minute Live Selling broadcast run-of-show script:\n- **00-05 min: Energy Intro & Share Contest**\n- **05-20 min: Hero Product Reveal & Live Try-On/Demo**\n- **20-30 min: Interactive Q&A, Comment Code Closer (\"Type #BAG to claim\")**\n- **30-40 min: Flash Drop & Limited Quantity Countdown**\n- **40-45 min: Winner Announcement & Wrap-Up Call To Action**.",
+    "systemPrompt": "Create a structured 45-minute Live Selling broadcast run-of-show script:\n- **00-05 min: Energy Intro & Share Contest**\n- **05-20 min: Hero Product Reveal & Live Showcase**\n- **20-30 min: Interactive Q&A, Comment Code Closer (\"Type #BAG to claim\")**\n- **30-40 min: Flash Drop & Limited Quantity Countdown**\n- **40-45 min: Winner Announcement & Wrap-Up Call To Action**.",
     "keywords": [
       "live selling",
       "fb live",

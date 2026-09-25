@@ -105,29 +105,12 @@ interface StoredUserAccount {
 }
 
 function getStoredUsersDb(): Record<string, StoredUserAccount> {
-  const defaultDemo: Record<string, StoredUserAccount> = {
-    'demo@ezboagents.com': {
-      user: {
-        id: 'usr-demo',
-        name: 'Demo Entrepreneur',
-        email: 'demo@ezboagents.com',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
-        provider: 'email',
-        isSubscribed: true,
-        plan: 'yearly',
-        createdAt: '2025-01-01T00:00:00.000Z'
-      },
-      passHash: 'password123'
-    }
-  };
-
-  if (typeof window === 'undefined') return defaultDemo;
+  if (typeof window === 'undefined') return {};
   try {
     const raw = localStorage.getItem('superai_registered_users');
-    const existing = raw ? JSON.parse(raw) : {};
-    return { ...defaultDemo, ...existing };
+    return raw ? JSON.parse(raw) : {};
   } catch (e) {
-    return defaultDemo;
+    return {};
   }
 }
 
@@ -153,7 +136,7 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ suc
     const account = db[cleanEmail];
 
     if (!account) {
-      return { success: false, error: 'No account found with this email. Click "Demo Login" to try out immediately, or "Sign Up Free" to create your account.' };
+      return { success: false, error: 'No account found with this email. Please check your credentials or click "Sign Up Free" to create your account.' };
     }
 
     if (account.passHash !== pass) {

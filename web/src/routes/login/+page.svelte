@@ -142,25 +142,6 @@
     isGoogleModalOpen = true;
   }
 
-  async function fillAndSubmitDemo() {
-    email = 'demo@ezboagents.com';
-    password = 'password123';
-    isLoading = true;
-    errorMessage = '';
-
-    try {
-      const res = await loginWithEmail(email, password);
-      if (res.success) {
-        goto('/dashboard');
-      } else {
-        errorMessage = res.error || 'Demo login failed.';
-      }
-    } catch (err: any) {
-      errorMessage = err.message || 'Demo login failed.';
-    } finally {
-      isLoading = false;
-    }
-  }
 
   async function handleResetPassword(e: Event) {
     e.preventDefault();
@@ -324,18 +305,7 @@
         {/if}
       </button>
 
-      <!-- 1-Click Demo Login Helper -->
-      <div class="pt-2">
-        <button
-          type="button"
-          onclick={fillAndSubmitDemo}
-          disabled={isLoading}
-          class="w-full py-2 px-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-emerald-400 hover:text-emerald-300 font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <Icon name="Zap" size={14} />
-          <span>1-Click Demo Login (demo@ezboagents.com)</span>
-        </button>
-      </div>
+
     </form>
 
     <!-- Sign Up Link -->
