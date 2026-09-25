@@ -81,17 +81,22 @@
     <!-- Drawer Header -->
     <div class="px-6 py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-          <Icon name={$activeTool.icon} size={20} />
+        <div class="relative w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 p-1 shrink-0">
+          <img
+            src={$activeTool.agentAvatar}
+            alt={$activeTool.agentName}
+            class="w-full h-full object-contain rounded-xl"
+          />
+          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="font-bold text-base text-white">{$activeTool.name}</h2>
-            <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-800 text-slate-300 rounded-full border border-slate-700">
-              {$activeTool.categoryName}
+            <h2 class="font-extrabold text-base text-white">{$activeTool.agentName}</h2>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/30">
+              {$activeTool.agentRole}
             </span>
           </div>
-          <p class="text-xs text-slate-400">{$activeTool.nameEn}</p>
+          <p class="text-xs text-slate-400">{$activeTool.name} • {$activeTool.categoryName}</p>
         </div>
       </div>
 

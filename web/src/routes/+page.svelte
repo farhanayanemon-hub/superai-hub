@@ -67,6 +67,45 @@
       samples: ['Excel Duplicate Match Formula', 'Upwork Winning Cover Letter', 'Tailwind Responsive Navbar']
     }
   ];
+
+  const featuredAgents = [
+    {
+      name: 'Cody',
+      role: 'The Viral Ad Wordsmith',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Cody&backgroundColor=0f172a',
+      tagline: 'Your personal direct-response ad specialist. Crafts high-converting ad copy for Facebook & Instagram. Writer\'s block? Not on Cody\'s watch.'
+    },
+    {
+      name: 'Zara',
+      role: 'E-Commerce Storyteller',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Zara&backgroundColor=0f172a',
+      tagline: 'Transforms plain product specs into benefit-packed, sensory product pages with SEO keyword power.'
+    },
+    {
+      name: 'Emmi',
+      role: 'Spreadsheet Wizard',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Emmi&backgroundColor=0f172a',
+      tagline: 'Turns complex data into clean formulas. INDEX/MATCH, VLOOKUP, and automated Sheets are her superpower.'
+    },
+    {
+      name: 'Arto',
+      role: 'Visionary Concept Artist',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Arto&backgroundColor=0f172a',
+      tagline: 'Generates photorealistic 8K art, branding mockups, and illustrations with instant /image synthesis.'
+    },
+    {
+      name: 'Marcus',
+      role: 'Master Closer & Negotiator',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Marcus&backgroundColor=0f172a',
+      tagline: 'Turns "price is too high" and customer hesitation into immediate checkout confirmations.'
+    },
+    {
+      name: 'Logan',
+      role: 'Top-Rated Freelance Pitcher',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Logan&backgroundColor=0f172a',
+      tagline: 'Writes client-focused proposals that address specific pain points and close lucrative freelance contracts.'
+    }
+  ];
 </script>
 
 <svelte:head>
@@ -263,6 +302,45 @@
               </div>
             </div>
           {/each}
+        </div>
+
+        <!-- Featured AI Specialist Agents Spotlight (Darius Lukas Style) -->
+        <div class="mt-20">
+          <div class="text-center max-w-2xl mx-auto mb-10 space-y-2">
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Meet Your New AI-Powered Workforce
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-400">
+              Pick the right AI specialist for the right job. From viral ad copy to financial formulas, our 50-agent squad has you covered:
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {#each featuredAgents as agent}
+              <div class="rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 p-5 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5 group">
+                <div class="flex items-start gap-3.5 mb-3">
+                  <div class="relative w-14 h-14 rounded-2xl bg-slate-950 border border-slate-700/80 p-1 group-hover:border-emerald-500/50 transition-all shadow-md shrink-0">
+                    <img
+                      src={agent.avatar}
+                      alt={agent.name}
+                      class="w-full h-full object-contain rounded-xl"
+                      loading="lazy"
+                    />
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-lg text-white group-hover:text-emerald-300 transition-colors">
+                      {agent.name}
+                    </h4>
+                    <p class="text-xs font-semibold text-emerald-400">{agent.role}</p>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  {agent.tagline}
+                </p>
+              </div>
+            {/each}
+          </div>
         </div>
 
         <!-- Dashboard Unlock Banner -->

@@ -20,12 +20,16 @@ export interface AITool {
   inputs: ToolInput[];
   systemPrompt: string;
   keywords: string[];
+  agentName: string;
+  agentRole: string;
+  agentTagline: string;
+  agentAvatar: string;
 }
 
 export const CATEGORIES = [
   {
     "id": "all",
-    "name": "All Tools (50+)",
+    "name": "All AI Agents (50)",
     "icon": "Grid",
     "count": 50
   },
@@ -107,7 +111,11 @@ export const TOOLS: AITool[] = [
       "ad copy",
       "sales post",
       "instagram ad"
-    ]
+    ],
+    "agentName": "Cody",
+    "agentRole": "The Viral Ad Wordsmith",
+    "agentTagline": "Your personal direct-response ad specialist. Writer’s block? Not on Cody’s watch.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Cody&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "customer_objection_handler",
@@ -153,7 +161,11 @@ export const TOOLS: AITool[] = [
       "price objection",
       "customer trust",
       "close deal"
-    ]
+    ],
+    "agentName": "Marcus",
+    "agentRole": "The Objection Closer & Negotiator",
+    "agentTagline": "Turns \"price is too high\" and customer skepticism into immediate checkout confirmations.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Marcus&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "discount_campaign_planner",
@@ -202,7 +214,11 @@ export const TOOLS: AITool[] = [
       "black friday",
       "bogo",
       "offer"
-    ]
+    ],
+    "agentName": "Blaze",
+    "agentRole": "Flash Sale & Urgency Architect",
+    "agentTagline": "Engineers irresistible countdown promotions, tiered bundles, and limited-time offer frenzy.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Blaze&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "product_description_pro",
@@ -241,7 +257,11 @@ export const TOOLS: AITool[] = [
       "shopify description",
       "amazon listing",
       "seo description"
-    ]
+    ],
+    "agentName": "Zara",
+    "agentRole": "E-Commerce Sensory Storyteller",
+    "agentTagline": "Transforms plain product specs into benefit-packed, high-converting product pages with SEO power.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Zara&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "cod_confirmation_msg",
@@ -279,7 +299,11 @@ export const TOOLS: AITool[] = [
       "shipping sms",
       "courier message",
       "tracking update"
-    ]
+    ],
+    "agentName": "Niko",
+    "agentRole": "Order Verification & Anti-Return Guard",
+    "agentTagline": "Reduces costly return rates (RTO) by up to 40% with high-urgency, friendly confirmation copy.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Niko&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "refund_exchange_policy",
@@ -318,7 +342,11 @@ export const TOOLS: AITool[] = [
       "exchange policy",
       "store terms",
       "ecom policy"
-    ]
+    ],
+    "agentName": "Justice",
+    "agentRole": "E-Commerce Policy & Trust Drafter",
+    "agentTagline": "Builds customer trust and eliminates checkout friction with crystal-clear return & warranty policies.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Justice&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "inbox_sales_closer",
@@ -351,7 +379,11 @@ export const TOOLS: AITool[] = [
       "messenger closer",
       "whatsapp sales",
       "cart recovery"
-    ]
+    ],
+    "agentName": "Chloe",
+    "agentRole": "WhatsApp & DM Sales Closer",
+    "agentTagline": "Guides hesitant chat leads into paying buyers with consultative, high-trust messaging scripts.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Chloe&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "customer_review_replier",
@@ -389,7 +421,11 @@ export const TOOLS: AITool[] = [
       "feedback response",
       "negative review",
       "reputation"
-    ]
+    ],
+    "agentName": "Amara",
+    "agentRole": "Brand Reputation & Review Manager",
+    "agentTagline": "Deftly transforms negative 1-star complaints into loyal brand advocates and amplifies 5-star praise.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Amara&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "viral_slogan_maker",
@@ -422,7 +458,11 @@ export const TOOLS: AITool[] = [
       "brand motto",
       "branding",
       "brand identity"
-    ]
+    ],
+    "agentName": "Vance",
+    "agentRole": "Brand Identity & Tagline Wordsmith",
+    "agentTagline": "Molds punchy, memorable 3-to-5 word slogans that stick in your customers’ minds forever.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Vance&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "delivery_delay_apology",
@@ -466,7 +506,11 @@ export const TOOLS: AITool[] = [
       "shipping delay",
       "retention sms",
       "customer service"
-    ]
+    ],
+    "agentName": "Pax",
+    "agentRole": "Crisis & Retention Diplomat",
+    "agentTagline": "Calms angry customers during logistics delays with genuine empathy, accountability, and goodwill perks.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Pax&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "vip_loyalty_pitch",
@@ -505,7 +549,11 @@ export const TOOLS: AITool[] = [
       "repeat buyer",
       "retention",
       "customer appreciation"
-    ]
+    ],
+    "agentName": "Sterling",
+    "agentRole": "VIP Retention & LTV Strategist",
+    "agentTagline": "Creates elite tier clubs, exclusive drops, and VIP retention campaigns that skyrocket customer lifetime value.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Sterling&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "stock_clearance_pitch",
@@ -539,7 +587,11 @@ export const TOOLS: AITool[] = [
       "stock clearance",
       "flash discount",
       "urgent sale"
-    ]
+    ],
+    "agentName": "Dash",
+    "agentRole": "Inventory Liquidation Specialist",
+    "agentTagline": "Generates urgent cash flow by clearing out excess warehouse stock with irresistible fire-sale offers.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Dash&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "upsell_cross_sell",
@@ -572,7 +624,11 @@ export const TOOLS: AITool[] = [
       "aov",
       "bundle offer",
       "checkout addon"
-    ]
+    ],
+    "agentName": "Max",
+    "agentRole": "Average Order Value (AOV) Booster",
+    "agentTagline": "Extracts 25-40% more revenue from every checkout with seamless order bumps and post-purchase offers.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Max&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "fb_live_sales_script",
@@ -604,7 +660,11 @@ export const TOOLS: AITool[] = [
       "tiktok live",
       "live script",
       "live commerce"
-    ]
+    ],
+    "agentName": "Rio",
+    "agentRole": "Live Shopping Broadcast Director",
+    "agentTagline": "Orchestrates high-energy, timed broadcast scripts for Facebook & TikTok live sales events that sell out stock.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Rio&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "fcommerce_faq_builder",
@@ -630,7 +690,11 @@ export const TOOLS: AITool[] = [
       "chatbot matrix",
       "messenger bot",
       "store questions"
-    ]
+    ],
+    "agentName": "Ada",
+    "agentRole": "Customer Support Knowledge Architect",
+    "agentTagline": "Builds comprehensive FAQ matrices that resolve 90% of routine buyer questions on autopilot.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Ada&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "ai_image_generator",
@@ -683,7 +747,11 @@ export const TOOLS: AITool[] = [
       "ai photo",
       "generate picture",
       "ai art"
-    ]
+    ],
+    "agentName": "Arto",
+    "agentRole": "Visionary AI Concept Artist",
+    "agentTagline": "Brings your wildest visual imaginations to life in photorealistic 8K with instant /image synthesis.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Arto&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "midjourney_prompt_enhancer",
@@ -723,7 +791,11 @@ export const TOOLS: AITool[] = [
       "flux prompt",
       "ai art prompt",
       "image formula"
-    ]
+    ],
+    "agentName": "Pixel",
+    "agentRole": "Master Prompt Engineer",
+    "agentTagline": "Upgrades basic text into intricate Midjourney & Flux prompts with camera lenses, lighting, and aspect ratios.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Pixel&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "tiktok_reels_script",
@@ -763,7 +835,11 @@ export const TOOLS: AITool[] = [
       "viral video",
       "short video script",
       "instagram reels"
-    ]
+    ],
+    "agentName": "Nova",
+    "agentRole": "Short-Form Viral Creator",
+    "agentTagline": "Engineers 3-second visual hooks and high-retention 30s TikTok, Reels, and Shorts scripts designed to trend.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Nova&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "youtube_seo_tags",
@@ -795,7 +871,11 @@ export const TOOLS: AITool[] = [
       "video tags",
       "youtube description",
       "metadata"
-    ]
+    ],
+    "agentName": "Sloan",
+    "agentRole": "YouTube Algorithm Strategist",
+    "agentTagline": "Dominates search rankings with high-CTR video titles, keyword-rich descriptions, and viral tags.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Sloan&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "yt_clickbait_thumbnail_ideas",
@@ -821,7 +901,11 @@ export const TOOLS: AITool[] = [
       "clickbait thumbnail",
       "thumbnail text",
       "ctr booster"
-    ]
+    ],
+    "agentName": "Flash",
+    "agentRole": "High-CTR Visual Concept Designer",
+    "agentTagline": "Creates psychological thumbnail concepts and punchy 3-word overlays that demand clicks on YouTube.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Flash&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "linkedin_story_post",
@@ -860,7 +944,11 @@ export const TOOLS: AITool[] = [
       "personal branding",
       "thought leadership",
       "viral linkedin"
-    ]
+    ],
+    "agentName": "Arthur",
+    "agentRole": "LinkedIn Thought Leadership Architect",
+    "agentTagline": "Writes authentic, engagement-heavy executive stories that build authority, followers, and B2B inbound leads.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Arthur&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "fb_weekly_content_calendar",
@@ -898,7 +986,11 @@ export const TOOLS: AITool[] = [
       "content calendar",
       "weekly plan",
       "social strategy"
-    ]
+    ],
+    "agentName": "Serena",
+    "agentRole": "Omni-Channel Content Director",
+    "agentTagline": "Builds balanced 7-day multi-platform calendars with themes, hook angles, and zero creative burnout.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Serena&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "instagram_carousel_maker",
@@ -935,7 +1027,11 @@ export const TOOLS: AITool[] = [
       "slides",
       "infographic",
       "insta post"
-    ]
+    ],
+    "agentName": "Maya",
+    "agentRole": "Educational Carousel Designer",
+    "agentTagline": "Crafts 5-to-10 slide micro-guides that generate massive saves, profile visits, and DM conversations.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Maya&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "catchy_hooks_generator",
@@ -962,7 +1058,11 @@ export const TOOLS: AITool[] = [
       "viral hook",
       "opening line",
       "attention grabber"
-    ]
+    ],
+    "agentName": "Hunter",
+    "agentRole": "Viral Hook Hunter",
+    "agentTagline": "Generates 10 pattern-interrupting opening hooks proven to freeze the user’s thumb in under 1.5 seconds.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Hunter&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "twitter_thread_creator",
@@ -988,7 +1088,11 @@ export const TOOLS: AITool[] = [
       "x thread",
       "tweet thread",
       "viral tweet"
-    ]
+    ],
+    "agentName": "Orion",
+    "agentRole": "X / Twitter Thread Architect",
+    "agentTagline": "Crafts viral, bite-sized value threads that explode engagement, retweets, and follower growth.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Orion&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "meme_caption_creator",
@@ -1021,7 +1125,11 @@ export const TOOLS: AITool[] = [
       "humor",
       "pop culture",
       "relatable"
-    ]
+    ],
+    "agentName": "Jester",
+    "agentRole": "Viral Meme & Pop-Culture Wit",
+    "agentTagline": "Blends trending internet humor with brand messaging to create effortlessly shareable viral cultural moments.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Jester&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "podcast_episode_script",
@@ -1053,7 +1161,11 @@ export const TOOLS: AITool[] = [
       "interview questions",
       "audio show",
       "episode outline"
-    ]
+    ],
+    "agentName": "Echo",
+    "agentRole": "Audio Show & Podcast Producer",
+    "agentTagline": "Plans compelling interview questions, episode narrative structures, and captivating episode intros.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Echo&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "bangla_to_corporate_en",
@@ -1092,7 +1204,11 @@ export const TOOLS: AITool[] = [
       "professional english",
       "email tone",
       "executive writing"
-    ]
+    ],
+    "agentName": "Edward",
+    "agentRole": "Executive Corporate English Polisher",
+    "agentTagline": "Elevates casual thoughts into articulate, boardroom-ready Fortune 500 corporate communication.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Edward&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "pro_email_drafter",
@@ -1132,7 +1248,11 @@ export const TOOLS: AITool[] = [
       "leave application",
       "resignation email",
       "followup email"
-    ]
+    ],
+    "agentName": "Claire",
+    "agentRole": "Executive Correspondence Secretary",
+    "agentTagline": "Drafts diplomatic leave requests, tough client updates, follow-ups, and negotiation emails in seconds.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Claire&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "cv_resume_optimizer",
@@ -1167,7 +1287,11 @@ export const TOOLS: AITool[] = [
       "cover letter",
       "job application",
       "linkedin cv"
-    ]
+    ],
+    "agentName": "Harvey",
+    "agentRole": "ATS Resume & Career Strategist",
+    "agentTagline": "Tailors resumes to match exact job descriptions, beat ATS software filters, and quantify impact metrics.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Harvey&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "job_interview_coach",
@@ -1200,7 +1324,11 @@ export const TOOLS: AITool[] = [
       "star method",
       "job interview",
       "interview questions"
-    ]
+    ],
+    "agentName": "Diana",
+    "agentRole": "STAR Method Interview Coach",
+    "agentTagline": "Conducts rigorous behavioral mock interviews and crafts winning answers to tough hiring questions.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Diana&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "ielts_writing_evaluator",
@@ -1233,7 +1361,11 @@ export const TOOLS: AITool[] = [
       "band score",
       "essay evaluation",
       "grammar check"
-    ]
+    ],
+    "agentName": "Winston",
+    "agentRole": "IELTS Band 8.5+ Examiner",
+    "agentTagline": "Provides deep paragraph-by-paragraph essay grading across Cohesion, Lexical Resource, and Grammar.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Winston&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "medical_test_simplifier",
@@ -1260,7 +1392,11 @@ export const TOOLS: AITool[] = [
       "lab report",
       "blood test",
       "doctor notes"
-    ]
+    ],
+    "agentName": "Dr. Elena",
+    "agentRole": "Clinical Report Simplifier",
+    "agentTagline": "Decodes confusing blood tests, lab markers, and prescriptions into clear, comforting layman English.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Elena&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "daily_meal_planner",
@@ -1299,7 +1435,11 @@ export const TOOLS: AITool[] = [
       "weight loss",
       "calorie counter",
       "healthy food"
-    ]
+    ],
+    "agentName": "Oliver",
+    "agentRole": "Nutritional Meal & Macro Planner",
+    "agentTagline": "Plans delicious, balanced daily meals tailored to your caloric goals, dietary preferences, and budget.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Oliver&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "long_text_summarizer",
@@ -1336,7 +1476,11 @@ export const TOOLS: AITool[] = [
       "tldr",
       "condense text",
       "article summary"
-    ]
+    ],
+    "agentName": "Sage",
+    "agentRole": "Executive Briefing Analyst",
+    "agentTagline": "Condenses dense 50-page PDFs, transcripts, and articles into actionable 3-minute executive summaries.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Sage&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "budget_expense_planner",
@@ -1368,7 +1512,11 @@ export const TOOLS: AITool[] = [
       "personal finance",
       "savings",
       "50 30 20 budget"
-    ]
+    ],
+    "agentName": "Warren",
+    "agentRole": "Personal Wealth & Budgeting Strategist",
+    "agentTagline": "Applies the 50/30/20 financial framework to optimize cash flow, eliminate debt, and build emergency savings.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Warren&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "polite_rejection_drafter",
@@ -1406,7 +1554,11 @@ export const TOOLS: AITool[] = [
       "boundary",
       "polite refusal",
       "workplace boundaries"
-    ]
+    ],
+    "agentName": "Grace",
+    "agentRole": "Diplomatic Boundary Setter",
+    "agentTagline": "Says \"No\" firmly and gracefully without guilt, awkwardness, or damaging valuable relationships.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Grace&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "motivation_habit_tracker",
@@ -1432,7 +1584,11 @@ export const TOOLS: AITool[] = [
       "productivity",
       "motivation",
       "21 day habit"
-    ]
+    ],
+    "agentName": "Titan",
+    "agentRole": "High-Performance Accountability Coach",
+    "agentTagline": "Builds unbreakable 21-day micro-habits, breaks procrastination loops, and tracks daily momentum.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Titan&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "book_summary_insights",
@@ -1458,7 +1614,11 @@ export const TOOLS: AITool[] = [
       "mental models",
       "key insights",
       "book review"
-    ]
+    ],
+    "agentName": "Socrates",
+    "agentRole": "Mental Models & Wisdom Curator",
+    "agentTagline": "Distills the world’s greatest non-fiction books into 3 high-impact mental models you can apply today.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Socrates&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "excel_sheets_formula",
@@ -1498,7 +1658,11 @@ export const TOOLS: AITool[] = [
       "vlookup",
       "xlookup",
       "spreadsheet"
-    ]
+    ],
+    "agentName": "Emmi",
+    "agentRole": "The Spreadsheet & Data Wizard",
+    "agentTagline": "Turns complex calculations into clean Excel & Google Sheets formulas. Spreadsheets are now your superpower.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Emmi&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "upwork_fiverr_proposal",
@@ -1533,7 +1697,11 @@ export const TOOLS: AITool[] = [
       "freelancing",
       "cover letter bid",
       "freelance job"
-    ]
+    ],
+    "agentName": "Logan",
+    "agentRole": "Top-Rated Freelance Pitcher",
+    "agentTagline": "Writes client-focused proposals that identify exact pain points and close lucrative freelance contracts.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Logan&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "error_bug_fixer",
@@ -1574,7 +1742,11 @@ export const TOOLS: AITool[] = [
       "fix code",
       "exception",
       "syntax error"
-    ]
+    ],
+    "agentName": "Cipher",
+    "agentRole": "Full-Stack Code Debugger",
+    "agentTagline": "Diagnoses cryptic compiler errors, memory leaks, and stacktraces across all major programming languages.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Cipher&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "landing_page_copywriter",
@@ -1614,7 +1786,11 @@ export const TOOLS: AITool[] = [
       "website copy",
       "saas copy",
       "conversion"
-    ]
+    ],
+    "agentName": "Apollo",
+    "agentRole": "SaaS Conversion Copywriter",
+    "agentTagline": "Crafts high-converting SaaS hero banners, value propositions, and objection-crushing feature sections.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Apollo&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "regex_builder",
@@ -1652,7 +1828,11 @@ export const TOOLS: AITool[] = [
       "regex pattern",
       "string matching",
       "validate string"
-    ]
+    ],
+    "agentName": "Lex",
+    "agentRole": "Regular Expression (Regex) Architect",
+    "agentTagline": "Builds complex regex patterns with token-by-token breakdowns and verified edge-case test suites.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Lex&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "sql_query_writer",
@@ -1698,7 +1878,11 @@ export const TOOLS: AITool[] = [
       "mysql",
       "join",
       "database query"
-    ]
+    ],
+    "agentName": "Atlas",
+    "agentRole": "Database Query & Index Optimizer",
+    "agentTagline": "Writes lightning-fast SQL joins, CTEs, aggregations, and window functions that scale effortlessly.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Atlas&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "json_api_formatter",
@@ -1736,7 +1920,11 @@ export const TOOLS: AITool[] = [
       "type interface",
       "api schema",
       "json to ts"
-    ]
+    ],
+    "agentName": "Byte",
+    "agentRole": "TypeScript Contract & API Engineer",
+    "agentTagline": "Converts raw JSON payloads into clean TypeScript types, Zod validation schemas, and API documentation.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Byte&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "git_troubleshooter",
@@ -1763,7 +1951,11 @@ export const TOOLS: AITool[] = [
       "undo commit",
       "git revert",
       "git stash"
-    ]
+    ],
+    "agentName": "Octo",
+    "agentRole": "Git Version Control Guru",
+    "agentTagline": "Safely resolves scary merge conflicts, detached HEAD states, rebase issues, and accidental commits.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Octo&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "tailwind_ui_component",
@@ -1804,7 +1996,11 @@ export const TOOLS: AITool[] = [
       "frontend",
       "html css",
       "responsive design"
-    ]
+    ],
+    "agentName": "Vibe",
+    "agentRole": "Tailwind CSS Modern UI Builder",
+    "agentTagline": "Generates responsive, accessible HTML and Tailwind CSS UI components with sleek dark-mode styling.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Vibe&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "script_generator",
@@ -1843,7 +2039,11 @@ export const TOOLS: AITool[] = [
       "automation",
       "cli script",
       "terminal"
-    ]
+    ],
+    "agentName": "Forge",
+    "agentRole": "DevOps & Shell Automation Engineer",
+    "agentTagline": "Automates repetitive dev workflows, cron jobs, database backups, and server maintenance in Bash and PowerShell.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Forge&backgroundColor=0f172a,1e293b"
   },
   {
     "id": "freelance_invoice_contract",
@@ -1883,6 +2083,10 @@ export const TOOLS: AITool[] = [
       "scope of work",
       "freelance invoice",
       "client agreement"
-    ]
+    ],
+    "agentName": "Baron",
+    "agentRole": "Freelance Scope & Milestone Architect",
+    "agentTagline": "Drafts professional scopes of work (SOW), project milestones, payment schedules, and clean invoices.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Baron&backgroundColor=0f172a,1e293b"
   }
 ];
