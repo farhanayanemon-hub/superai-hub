@@ -1,7 +1,13 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import GoogleAuthModal from '$lib/components/GoogleAuthModal.svelte';
-  import { signupWithEmail, loginWithGoogle, isAuthenticated } from '$lib/stores/userStore';
+  import {
+    signupWithEmail,
+    loginWithGoogle,
+    loginOrCreateWithGoogle,
+    checkUserExists,
+    isAuthenticated
+  } from '$lib/stores/userStore';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
 
@@ -73,6 +79,24 @@
 
   async function handleGoogleSignup() {
     errorMessage = '';
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Direct Login optimization: If user already entered an existing email, log in directly!
+    if (cleanEmail && cleanEmail.includes('@') && checkUserExists(cleanEmail)) {
+      isLoading = true;
+      try {
+        const res = await loginOrCreateWithGoogle({ email: cleanEmail });
+        if (res.success) {
+          goto('/dashboard');
+          return;
+        }
+      } catch (err: any) {
+        errorMessage = err.message || 'Direct login failed.';
+      } finally {
+        isLoading = false;
+      }
+    }
+
     const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
 
     if (clientId && typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
@@ -83,7 +107,7 @@
           scope: 'email profile openid',
           callback: async (tokenResponse: any) => {
             if (tokenResponse.error) {
-              errorMessage = 'Google authorization was cancelled or failed.';
+              errorMessage = 'Google authorization was cancelled.';
               isLoading = false;
               return;
             }
@@ -92,7 +116,7 @@
                 headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
               });
               const data = await userInfoRes.json();
-              const res = await loginWithGoogle({
+              const res = await loginOrCreateWithGoogle({
                 email: data.email,
                 name: data.name || data.given_name,
                 avatar: data.picture,
@@ -113,7 +137,6 @@
         tokenClient.requestAccessToken();
         return;
       } catch (e) {
-        console.warn('Google GIS token client failed, opening fallback dialog:', e);
         isLoading = false;
       }
     }
@@ -291,8 +314,9 @@
   </div>
 </div>
 
-<!-- Google Sign In Fallback Modal -->
+<!-- Google Sign In Modal -->
 <GoogleAuthModal
   bind:isOpen={isGoogleModalOpen}
+  initialEmail={email}
   onSuccess={() => goto('/dashboard')}
 />

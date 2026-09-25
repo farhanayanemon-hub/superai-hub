@@ -242,10 +242,25 @@ export async function resetPassword(email: string, newPass: string): Promise<{ s
   }
 }
 
+export function checkUserExists(email: string): boolean {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return false;
+  const db = getStoredUsersDb();
+  return !!db[cleanEmail];
+}
+
+export function getUserAccount(email: string): UserProfile | null {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return null;
+  const db = getStoredUsersDb();
+  return db[cleanEmail]?.user || null;
+}
+
 export interface GoogleAuthPayload {
   email: string;
-  name: string;
+  name?: string;
   avatar?: string;
+  password?: string;
   sub?: string;
 }
 
@@ -272,20 +287,35 @@ export function decodeGoogleJwt(token: string): GoogleAuthPayload | null {
   }
 }
 
-export async function loginWithGoogle(profile?: GoogleAuthPayload): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+export async function loginOrCreateWithGoogle(payload: GoogleAuthPayload): Promise<{ success: boolean; isNewUser: boolean; user?: UserProfile; error?: string }> {
   try {
-    if (!profile || !profile.email) {
-      return { success: false, error: 'Valid Google profile information is required.' };
+    if (!payload || !payload.email || !payload.email.includes('@')) {
+      return { success: false, isNewUser: false, error: 'A valid Google/Gmail address is required.' };
     }
 
-    const email = profile.email.trim().toLowerCase();
-    const name = profile.name ? profile.name.trim() : email.split('@')[0];
-    const avatar = profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=10b981&color=022c22`;
+    const cleanEmail = payload.email.trim().toLowerCase();
+    const db = getStoredUsersDb();
+    const existing = db[cleanEmail];
 
-    const user: UserProfile = {
-      id: profile.sub ? `goog-${profile.sub}` : `goog-${Date.now().toString(36)}`,
-      name: name,
-      email: email,
+    // If user already exists: direct login immediately!
+    if (existing) {
+      if (payload.password && payload.password.length >= 6) {
+        existing.passHash = payload.password;
+        saveUserToDb(cleanEmail, existing);
+      }
+      saveUserSession(existing.user);
+      return { success: true, isNewUser: false, user: existing.user };
+    }
+
+    // If user is brand new: create account with optional password
+    const derivedName = payload.name?.trim() || cleanEmail.split('@')[0];
+    const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+    const avatar = payload.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=4285F4&color=fff`;
+
+    const newUser: UserProfile = {
+      id: payload.sub ? `goog-${payload.sub}` : `usr-${Date.now().toString(36)}`,
+      name: formattedName,
+      email: cleanEmail,
       avatar: avatar,
       provider: 'google',
       isSubscribed: true,
@@ -293,11 +323,36 @@ export async function loginWithGoogle(profile?: GoogleAuthPayload): Promise<{ su
       createdAt: new Date().toISOString()
     };
 
-    saveUserSession(user);
-    return { success: true, user };
+    saveUserToDb(cleanEmail, {
+      user: newUser,
+      passHash: payload.password || ''
+    });
+
+    saveUserSession(newUser);
+
+    // Send Welcome Email in background
+    if (typeof window !== 'undefined') {
+      fetch('/api/auth/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: newUser.email,
+          name: newUser.name,
+          type: 'welcome'
+        })
+      }).catch((e) => console.warn('Welcome email trigger:', e));
+    }
+
+    return { success: true, isNewUser: true, user: newUser };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Google login failed.' };
+    return { success: false, isNewUser: false, error: err.message || 'Google login failed.' };
   }
+}
+
+export async function loginWithGoogle(profile?: GoogleAuthPayload): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  if (!profile) return { success: false, error: 'Google profile is required.' };
+  const res = await loginOrCreateWithGoogle(profile);
+  return { success: res.success, user: res.user, error: res.error };
 }
 
 export function logout() {

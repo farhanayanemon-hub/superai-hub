@@ -1,26 +1,57 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
-  import { loginWithGoogle, type GoogleAuthPayload } from '$lib/stores/userStore';
+  import { loginOrCreateWithGoogle, checkUserExists } from '$lib/stores/userStore';
 
-  let { isOpen = $bindable(false), onSuccess } = $props<{
+  let { isOpen = $bindable(false), initialEmail = '', onSuccess } = $props<{
     isOpen: boolean;
+    initialEmail?: string;
     onSuccess: () => void;
   }>();
 
   let googleEmail = $state('');
   let googleName = $state('');
+  let password = $state('');
+  let showPassword = $state(false);
+  let isExistingUser = $state(false);
   let isSubmitting = $state(false);
   let error = $state('');
+
+  $effect(() => {
+    if (isOpen) {
+      googleEmail = initialEmail || googleEmail;
+      checkEmailState();
+    }
+  });
+
+  function checkEmailState() {
+    error = '';
+    const clean = googleEmail.trim().toLowerCase();
+    if (clean && clean.includes('@')) {
+      isExistingUser = checkUserExists(clean);
+      if (!googleName) {
+        googleName = clean.split('@')[0];
+      }
+    } else {
+      isExistingUser = false;
+    }
+  }
 
   function handleClose() {
     isOpen = false;
     error = '';
+    password = '';
   }
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!googleEmail || !googleEmail.includes('@')) {
-      error = 'Please enter a valid Google email address.';
+    const cleanEmail = googleEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      error = 'Please enter a valid Gmail address.';
+      return;
+    }
+
+    if (!isExistingUser && password && password.length < 6) {
+      error = 'Password must be at least 6 characters long.';
       return;
     }
 
@@ -28,14 +59,13 @@
     error = '';
 
     try {
-      const derivedName = googleName.trim() || googleEmail.split('@')[0];
-      const payload: GoogleAuthPayload = {
-        email: googleEmail.trim().toLowerCase(),
+      const derivedName = googleName.trim() || cleanEmail.split('@')[0];
+      const res = await loginOrCreateWithGoogle({
+        email: cleanEmail,
         name: derivedName.charAt(0).toUpperCase() + derivedName.slice(1),
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(derivedName)}&background=4285F4&color=fff`
-      };
+        password: password || undefined
+      });
 
-      const res = await loginWithGoogle(payload);
       if (res.success) {
         isOpen = false;
         onSuccess();
@@ -52,7 +82,7 @@
 
 {#if isOpen}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-    <!-- Modal Dialog -->
+    <!-- Modal Card -->
     <div
       class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-left"
       role="dialog"
@@ -67,10 +97,10 @@
         <Icon name="X" size={18} />
       </button>
 
-      <!-- Google Branding Header -->
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md">
-          <svg class="w-6 h-6" viewBox="0 0 24 24">
+      <!-- Google Header -->
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -78,20 +108,9 @@
           </svg>
         </div>
         <div>
-          <h3 class="text-base font-bold text-white">Continue with Google</h3>
-          <p class="text-xs text-slate-400">Sign in with your Google account</p>
+          <h3 class="text-base font-bold text-white">Sign In with Google</h3>
+          <p class="text-xs text-slate-400">Direct instant access with your Gmail</p>
         </div>
-      </div>
-
-      <!-- Developer Info Banner -->
-      <div class="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs">
-        <p class="font-semibold mb-1 flex items-center gap-1.5">
-          <Icon name="Sparkles" size={14} />
-          <span>Google OAuth Setup Notice:</span>
-        </p>
-        <p class="text-slate-300 leading-relaxed text-[11px]">
-          To enable the automatic Google pop-up picker, configure <code class="bg-blue-950/60 px-1 py-0.5 rounded text-blue-200">PUBLIC_GOOGLE_CLIENT_ID</code> in <code class="bg-blue-950/60 px-1 py-0.5 rounded text-blue-200">web/.env</code>.
-        </p>
       </div>
 
       {#if error}
@@ -101,30 +120,82 @@
         </div>
       {/if}
 
-      <!-- Form for Google Sign In -->
-      <form onsubmit={handleSubmit} class="space-y-3.5">
+      <!-- Form for Google Sign In / Account Setup -->
+      <form onsubmit={handleSubmit} class="space-y-4">
         <div>
-          <label for="google-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Your Google Account Email</label>
+          <label for="google-modal-email" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            Your Gmail Address
+          </label>
           <input
-            id="google-email"
+            id="google-modal-email"
             type="email"
             bind:value={googleEmail}
+            oninput={checkEmailState}
             required
-            placeholder="your.name@gmail.com"
-            class="w-full bg-slate-950/70 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            placeholder="you@gmail.com"
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
           />
         </div>
 
-        <div>
-          <label for="google-name" class="block text-xs font-semibold text-slate-300 mb-1.5">Your Name (Optional)</label>
-          <input
-            id="google-name"
-            type="text"
-            bind:value={googleName}
-            placeholder="e.g. Farhan Ayan"
-            class="w-full bg-slate-950/70 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
-          />
-        </div>
+        {#if googleEmail && googleEmail.includes('@')}
+          {#if isExistingUser}
+            <!-- Existing Account Detected: Direct 1-Click Login -->
+            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs flex items-center gap-2">
+              <Icon name="CheckCircle2" size={16} class="shrink-0" />
+              <span>Welcome back! Account found for this Gmail. Click below for direct login.</span>
+            </div>
+          {:else}
+            <!-- New User: Option to set a password -->
+            <div class="space-y-3.5 pt-1 border-t border-slate-800/60">
+              <div class="flex items-center gap-2 text-xs text-emerald-400 font-semibold">
+                <Icon name="Sparkles" size={14} />
+                <span>New Account Creation</span>
+              </div>
+
+              <div>
+                <label for="google-modal-name" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Your Full Name
+                </label>
+                <input
+                  id="google-modal-name"
+                  type="text"
+                  bind:value={googleName}
+                  placeholder="e.g. Farhan Ayan"
+                  class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="google-modal-password" class="block text-xs font-semibold text-slate-300">
+                    Set a Password <span class="text-slate-400 font-normal">(Optional / Recommended)</span>
+                  </label>
+                </div>
+                <div class="relative">
+                  <input
+                    id="google-modal-password"
+                    type={showPassword ? 'text' : 'password'}
+                    bind:value={password}
+                    minlength="6"
+                    placeholder="Create a password (min 6 characters)"
+                    class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onclick={() => (showPassword = !showPassword)}
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
+                  </button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">
+                  Setting a password allows you to log in with both Google and email/password anytime.
+                </p>
+              </div>
+            </div>
+          {/if}
+        {/if}
 
         <div class="pt-2 flex items-center gap-3">
           <button
@@ -134,16 +205,17 @@
           >
             Cancel
           </button>
+
           <button
             type="submit"
             disabled={isSubmitting}
-            class="w-2/3 py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+            class="w-2/3 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
           >
             {#if isSubmitting}
-              <div class="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+              <div class="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
               <span>Connecting...</span>
             {:else}
-              <span>Sign In with Google</span>
+              <span>{isExistingUser ? 'Direct Login with Google' : (password ? 'Create Account & Save Password' : 'Continue to Dashboard')}</span>
               <Icon name="ArrowRight" size={14} />
             {/if}
           </button>
