@@ -1,17 +1,41 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
-  import { loginWithEmail, loginWithGoogle, isAuthenticated } from '$lib/stores/userStore';
+  import GoogleAuthModal from '$lib/components/GoogleAuthModal.svelte';
+  import { loginWithEmail, loginWithGoogle, resetPassword, decodeGoogleJwt, isAuthenticated } from '$lib/stores/userStore';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
 
   let email = $state('');
   let password = $state('');
+  let showPassword = $state(false);
   let isLoading = $state(false);
   let errorMessage = $state('');
+  let successMessage = $state('');
+
+  // Google Modal State
+  let isGoogleModalOpen = $state(false);
+
+  // Forgot Password Modal State
+  let isForgotModalOpen = $state(false);
+  let forgotEmail = $state('');
+  let newPassword = $state('');
+  let forgotLoading = $state(false);
+  let forgotError = $state('');
+  let forgotSuccess = $state('');
 
   onMount(() => {
     if ($isAuthenticated) {
       goto('/dashboard');
+    }
+
+    // Attempt to load Google Identity Services script in background if client ID is configured
+    const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+    if (clientId && typeof window !== 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
     }
   });
 
@@ -24,6 +48,7 @@
 
     isLoading = true;
     errorMessage = '';
+    successMessage = '';
 
     try {
       const res = await loginWithEmail(email, password);
@@ -40,19 +65,111 @@
   }
 
   async function handleGoogleLogin() {
+    errorMessage = '';
+    const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+
+    // Check if Google Client ID is configured and GIS is available
+    if (clientId && typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
+      try {
+        isLoading = true;
+        const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'email profile openid',
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse.error) {
+              errorMessage = 'Google authorization was cancelled or failed.';
+              isLoading = false;
+              return;
+            }
+            try {
+              // Fetch user info with access token
+              const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+              });
+              const data = await userInfoRes.json();
+              const res = await loginWithGoogle({
+                email: data.email,
+                name: data.name || data.given_name,
+                avatar: data.picture,
+                sub: data.sub
+              });
+              if (res.success) {
+                goto('/dashboard');
+              } else {
+                errorMessage = res.error || 'Google login failed.';
+              }
+            } catch (err: any) {
+              errorMessage = err.message || 'Failed to retrieve Google profile.';
+            } finally {
+              isLoading = false;
+            }
+          }
+        });
+        tokenClient.requestAccessToken();
+        return;
+      } catch (e) {
+        console.warn('Google GIS token client failed, opening fallback dialog:', e);
+        isLoading = false;
+      }
+    }
+
+    // Fallback: Open helpful Google Sign-In dialog explaining setup & allowing direct email login
+    isGoogleModalOpen = true;
+  }
+
+  async function fillAndSubmitDemo() {
+    email = 'demo@ezboagents.com';
+    password = 'password123';
     isLoading = true;
     errorMessage = '';
+
     try {
-      const res = await loginWithGoogle();
+      const res = await loginWithEmail(email, password);
       if (res.success) {
         goto('/dashboard');
       } else {
-        errorMessage = res.error || 'Google login failed.';
+        errorMessage = res.error || 'Demo login failed.';
       }
     } catch (err: any) {
-      errorMessage = err.message || 'An unexpected error occurred.';
+      errorMessage = err.message || 'Demo login failed.';
     } finally {
       isLoading = false;
+    }
+  }
+
+  async function handleResetPassword(e: Event) {
+    e.preventDefault();
+    if (!forgotEmail || !newPassword) {
+      forgotError = 'Please provide your email and a new password.';
+      return;
+    }
+    if (newPassword.length < 6) {
+      forgotError = 'New password must be at least 6 characters.';
+      return;
+    }
+
+    forgotLoading = true;
+    forgotError = '';
+    forgotSuccess = '';
+
+    try {
+      const res = await resetPassword(forgotEmail, newPassword);
+      if (res.success) {
+        forgotSuccess = 'Password updated successfully! You can now log in.';
+        email = forgotEmail;
+        password = newPassword;
+        setTimeout(() => {
+          isForgotModalOpen = false;
+          forgotSuccess = '';
+          successMessage = 'Password reset complete! Click Sign In below.';
+        }, 1200);
+      } else {
+        forgotError = res.error || 'Failed to reset password.';
+      }
+    } catch (err: any) {
+      forgotError = err.message || 'An error occurred during password reset.';
+    } finally {
+      forgotLoading = false;
     }
   }
 </script>
@@ -89,6 +206,13 @@
       <div class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
         <Icon name="AlertCircle" size={16} />
         <span>{errorMessage}</span>
+      </div>
+    {/if}
+
+    {#if successMessage}
+      <div class="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+        <Icon name="CheckCircle2" size={16} />
+        <span>{successMessage}</span>
       </div>
     {/if}
 
@@ -133,17 +257,31 @@
       <div>
         <div class="flex items-center justify-between mb-1.5">
           <label for="login-password" class="block text-xs font-semibold text-slate-300">Password</label>
-          <a href="#forgot" class="text-[11px] text-emerald-400 hover:underline">Forgot password?</a>
+          <button
+            type="button"
+            onclick={() => { isForgotModalOpen = true; forgotEmail = email; }}
+            class="text-[11px] text-emerald-400 hover:underline cursor-pointer bg-transparent border-0 p-0"
+          >
+            Forgot password?
+          </button>
         </div>
         <div class="relative">
           <input
             id="login-password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             bind:value={password}
             required
             placeholder="••••••••"
-            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
           />
+          <button
+            type="button"
+            onclick={() => (showPassword = !showPassword)}
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
+          </button>
         </div>
       </div>
 
@@ -160,6 +298,19 @@
           <Icon name="ArrowRight" size={16} />
         {/if}
       </button>
+
+      <!-- 1-Click Demo Login Helper -->
+      <div class="pt-2">
+        <button
+          type="button"
+          onclick={fillAndSubmitDemo}
+          disabled={isLoading}
+          class="w-full py-2 px-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-emerald-400 hover:text-emerald-300 font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+        >
+          <Icon name="Zap" size={14} />
+          <span>1-Click Demo Login (demo@ezboagents.com)</span>
+        </button>
+      </div>
     </form>
 
     <!-- Sign Up Link -->
@@ -177,3 +328,102 @@
     </a>
   </div>
 </div>
+
+<!-- Google Sign In Fallback Modal -->
+<GoogleAuthModal
+  bind:isOpen={isGoogleModalOpen}
+  onSuccess={() => goto('/dashboard')}
+/>
+
+<!-- Forgot Password Modal -->
+{#if isForgotModalOpen}
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-left"
+      role="dialog"
+      aria-modal="true"
+    >
+      <button
+        onclick={() => (isForgotModalOpen = false)}
+        class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        aria-label="Close dialog"
+      >
+        <Icon name="X" size={18} />
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <Icon name="Key" size={20} />
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Reset Your Password</h3>
+          <p class="text-xs text-slate-400">Enter your email and set a new password</p>
+        </div>
+      </div>
+
+      {#if forgotError}
+        <div class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+          <Icon name="AlertCircle" size={16} />
+          <span>{forgotError}</span>
+        </div>
+      {/if}
+
+      {#if forgotSuccess}
+        <div class="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+          <Icon name="CheckCircle2" size={16} />
+          <span>{forgotSuccess}</span>
+        </div>
+      {/if}
+
+      <form onsubmit={handleResetPassword} class="space-y-3.5">
+        <div>
+          <label for="forgot-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Registered Email</label>
+          <input
+            id="forgot-email"
+            type="email"
+            bind:value={forgotEmail}
+            required
+            placeholder="you@domain.com"
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+          />
+        </div>
+
+        <div>
+          <label for="new-password" class="block text-xs font-semibold text-slate-300 mb-1.5">New Password</label>
+          <input
+            id="new-password"
+            type="password"
+            bind:value={newPassword}
+            required
+            minlength="6"
+            placeholder="At least 6 characters"
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+          />
+        </div>
+
+        <div class="pt-2 flex items-center gap-3">
+          <button
+            type="button"
+            onclick={() => (isForgotModalOpen = false)}
+            class="w-1/3 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={forgotLoading}
+            class="w-2/3 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+          >
+            {#if forgotLoading}
+              <div class="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+              <span>Updating...</span>
+            {:else}
+              <span>Save New Password</span>
+              <Icon name="ArrowRight" size={14} />
+            {/if}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}

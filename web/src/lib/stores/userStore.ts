@@ -105,12 +105,29 @@ interface StoredUserAccount {
 }
 
 function getStoredUsersDb(): Record<string, StoredUserAccount> {
-  if (typeof window === 'undefined') return {};
+  const defaultDemo: Record<string, StoredUserAccount> = {
+    'demo@ezboagents.com': {
+      user: {
+        id: 'usr-demo',
+        name: 'Demo Entrepreneur',
+        email: 'demo@ezboagents.com',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+        provider: 'email',
+        isSubscribed: true,
+        plan: 'yearly',
+        createdAt: '2025-01-01T00:00:00.000Z'
+      },
+      passHash: 'password123'
+    }
+  };
+
+  if (typeof window === 'undefined') return defaultDemo;
   try {
     const raw = localStorage.getItem('superai_registered_users');
-    return raw ? JSON.parse(raw) : {};
+    const existing = raw ? JSON.parse(raw) : {};
+    return { ...defaultDemo, ...existing };
   } catch (e) {
-    return {};
+    return defaultDemo;
   }
 }
 
@@ -136,11 +153,11 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ suc
     const account = db[cleanEmail];
 
     if (!account) {
-      return { success: false, error: 'No account found with this email. Please click "Sign Up Free" to create one.' };
+      return { success: false, error: 'No account found with this email. Click "Demo Login" to try out immediately, or "Sign Up Free" to create your account.' };
     }
 
     if (account.passHash !== pass) {
-      return { success: false, error: 'Incorrect password. Please verify your credentials and try again.' };
+      return { success: false, error: 'Incorrect password. Click "Forgot password?" if you need to reset it.' };
     }
 
     saveUserSession(account.user);
@@ -165,13 +182,14 @@ export async function signupWithEmail(name: string, email: string, pass: string)
   try {
     const db = getStoredUsersDb();
     if (db[cleanEmail]) {
-      return { success: false, error: 'An account with this email already exists. Please log in.' };
+      return { success: false, error: 'An account with this email already exists. Please log in directly.' };
     }
 
     const user: UserProfile = {
       id: `usr-${Date.now().toString(36)}`,
       name: cleanName,
       email: cleanEmail,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=10b981&color=022c22`,
       provider: 'email',
       isSubscribed: true,
       plan: 'yearly',
@@ -200,16 +218,75 @@ export async function signupWithEmail(name: string, email: string, pass: string)
   }
 }
 
-export async function loginWithGoogle(customEmail?: string, customName?: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+export async function resetPassword(email: string, newPass: string): Promise<{ success: boolean; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail || !newPass) {
+    return { success: false, error: 'Email and new password are required.' };
+  }
+  if (newPass.length < 6) {
+    return { success: false, error: 'New password must be at least 6 characters long.' };
+  }
+
   try {
-    const email = customEmail ? customEmail.trim().toLowerCase() : 'user@gmail.com';
-    const name = customName ? customName.trim() : email.split('@')[0];
+    const db = getStoredUsersDb();
+    const account = db[cleanEmail];
+    if (!account) {
+      return { success: false, error: 'No account registered with this email address.' };
+    }
+
+    account.passHash = newPass;
+    saveUserToDb(cleanEmail, account);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to reset password.' };
+  }
+}
+
+export interface GoogleAuthPayload {
+  email: string;
+  name: string;
+  avatar?: string;
+  sub?: string;
+}
+
+export function decodeGoogleJwt(token: string): GoogleAuthPayload | null {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const data = JSON.parse(jsonPayload);
+    return {
+      email: data.email,
+      name: data.name || data.given_name || data.email?.split('@')[0],
+      avatar: data.picture,
+      sub: data.sub
+    };
+  } catch (e) {
+    console.error('Failed to decode Google JWT token:', e);
+    return null;
+  }
+}
+
+export async function loginWithGoogle(profile?: GoogleAuthPayload): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  try {
+    if (!profile || !profile.email) {
+      return { success: false, error: 'Valid Google profile information is required.' };
+    }
+
+    const email = profile.email.trim().toLowerCase();
+    const name = profile.name ? profile.name.trim() : email.split('@')[0];
+    const avatar = profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=10b981&color=022c22`;
 
     const user: UserProfile = {
-      id: `goog-${Date.now().toString(36)}`,
-      name: name.charAt(0).toUpperCase() + name.slice(1),
+      id: profile.sub ? `goog-${profile.sub}` : `goog-${Date.now().toString(36)}`,
+      name: name,
       email: email,
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+      avatar: avatar,
       provider: 'google',
       isSubscribed: true,
       plan: 'yearly',

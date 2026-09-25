@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
+  import GoogleAuthModal from '$lib/components/GoogleAuthModal.svelte';
   import { signupWithEmail, loginWithGoogle, isAuthenticated } from '$lib/stores/userStore';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -7,25 +8,49 @@
   let name = $state('');
   let email = $state('');
   let password = $state('');
+  let confirmPassword = $state('');
+  let showPassword = $state(false);
   let agreeTerms = $state(true);
   let isLoading = $state(false);
   let errorMessage = $state('');
+
+  // Google Modal State
+  let isGoogleModalOpen = $state(false);
 
   onMount(() => {
     if ($isAuthenticated) {
       goto('/dashboard');
     }
+
+    const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+    if (clientId && typeof window !== 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
   });
 
   async function handleEmailSignup(e: Event) {
     e.preventDefault();
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !confirmPassword) {
       errorMessage = 'Please fill out all fields.';
       return;
     }
 
+    if (password.length < 6) {
+      errorMessage = 'Password must be at least 6 characters long.';
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      errorMessage = 'Passwords do not match. Please verify both entries.';
+      return;
+    }
+
     if (!agreeTerms) {
-      errorMessage = 'Please accept the terms and conditions.';
+      errorMessage = 'Please accept the terms and conditions to proceed.';
       return;
     }
 
@@ -47,20 +72,53 @@
   }
 
   async function handleGoogleSignup() {
-    isLoading = true;
     errorMessage = '';
-    try {
-      const res = await loginWithGoogle();
-      if (res.success) {
-        goto('/dashboard');
-      } else {
-        errorMessage = res.error || 'Google signup failed.';
+    const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (clientId && typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
+      try {
+        isLoading = true;
+        const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'email profile openid',
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse.error) {
+              errorMessage = 'Google authorization was cancelled or failed.';
+              isLoading = false;
+              return;
+            }
+            try {
+              const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+              });
+              const data = await userInfoRes.json();
+              const res = await loginWithGoogle({
+                email: data.email,
+                name: data.name || data.given_name,
+                avatar: data.picture,
+                sub: data.sub
+              });
+              if (res.success) {
+                goto('/dashboard');
+              } else {
+                errorMessage = res.error || 'Google signup failed.';
+              }
+            } catch (err: any) {
+              errorMessage = err.message || 'Failed to retrieve Google profile.';
+            } finally {
+              isLoading = false;
+            }
+          }
+        });
+        tokenClient.requestAccessToken();
+        return;
+      } catch (e) {
+        console.warn('Google GIS token client failed, opening fallback dialog:', e);
+        isLoading = false;
       }
-    } catch (err: any) {
-      errorMessage = err.message || 'An unexpected error occurred.';
-    } finally {
-      isLoading = false;
     }
+
+    isGoogleModalOpen = true;
   }
 </script>
 
@@ -154,15 +212,40 @@
 
       <div>
         <label for="signup-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
-        <input
-          id="signup-password"
-          type="password"
-          bind:value={password}
-          required
-          minlength="6"
-          placeholder="At least 6 characters"
-          class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
-        />
+        <div class="relative">
+          <input
+            id="signup-password"
+            type={showPassword ? 'text' : 'password'}
+            bind:value={password}
+            required
+            minlength="6"
+            placeholder="At least 6 characters"
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
+          />
+          <button
+            type="button"
+            onclick={() => (showPassword = !showPassword)}
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label for="signup-confirm-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Confirm Password</label>
+        <div class="relative">
+          <input
+            id="signup-confirm-password"
+            type={showPassword ? 'text' : 'password'}
+            bind:value={confirmPassword}
+            required
+            minlength="6"
+            placeholder="Repeat password"
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+          />
+        </div>
       </div>
 
       <div class="flex items-start gap-2 pt-1">
@@ -207,3 +290,9 @@
     </a>
   </div>
 </div>
+
+<!-- Google Sign In Fallback Modal -->
+<GoogleAuthModal
+  bind:isOpen={isGoogleModalOpen}
+  onSuccess={() => goto('/dashboard')}
+/>

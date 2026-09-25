@@ -11,7 +11,8 @@
     Bot, Key, QrCode, ExternalLink, Copy, Check, Search, X,
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
-    LogOut, Settings, CreditCard, User, ChevronLeft, Gift
+    LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
+    Eye, EyeOff, Lock
   } from '@lucide/svelte';
 
   let { name = 'Sparkles', size = 20, class: className = '' } = $props<{
@@ -33,6 +34,7 @@
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
+    Eye, EyeOff, Lock,
     // Aliases for social
     Youtube: Video,
     Linkedin: Share2,
