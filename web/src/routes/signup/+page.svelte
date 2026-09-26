@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
-  import GoogleAuthModal from '$lib/components/GoogleAuthModal.svelte';
   import {
     signupWithEmail,
     loginWithGoogle,
@@ -19,9 +18,6 @@
   let agreeTerms = $state(true);
   let isLoading = $state(false);
   let errorMessage = $state('');
-
-  // Google Modal State
-  let isGoogleModalOpen = $state(false);
 
   onMount(() => {
     if ($isAuthenticated) {
@@ -79,69 +75,57 @@
 
   async function handleGoogleSignup() {
     errorMessage = '';
-    const cleanEmail = email.trim().toLowerCase();
-
-    // Direct Login optimization: If user already entered an existing email, log in directly!
-    if (cleanEmail && cleanEmail.includes('@') && checkUserExists(cleanEmail)) {
-      isLoading = true;
-      try {
-        const res = await loginOrCreateWithGoogle({ email: cleanEmail });
-        if (res.success) {
-          goto('/dashboard');
-          return;
-        }
-      } catch (err: any) {
-        errorMessage = err.message || 'Direct login failed.';
-      } finally {
-        isLoading = false;
-      }
-    }
-
     const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
 
-    if (clientId && typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
-      try {
-        isLoading = true;
-        const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
-          client_id: clientId,
-          scope: 'email profile openid',
-          callback: async (tokenResponse: any) => {
-            if (tokenResponse.error) {
-              errorMessage = 'Google authorization was cancelled.';
-              isLoading = false;
-              return;
-            }
-            try {
-              const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-              });
-              const data = await userInfoRes.json();
-              const res = await loginOrCreateWithGoogle({
-                email: data.email,
-                name: data.name || data.given_name,
-                avatar: data.picture,
-                sub: data.sub
-              });
-              if (res.success) {
-                goto('/dashboard');
-              } else {
-                errorMessage = res.error || 'Google signup failed.';
-              }
-            } catch (err: any) {
-              errorMessage = err.message || 'Failed to retrieve Google profile.';
-            } finally {
-              isLoading = false;
-            }
-          }
-        });
-        tokenClient.requestAccessToken();
-        return;
-      } catch (e) {
-        isLoading = false;
-      }
+    if (!clientId) {
+      errorMessage = 'Google OAuth is not configured yet. Please register with your email & password below, or configure a Google OAuth Client ID.';
+      return;
     }
 
-    isGoogleModalOpen = true;
+    if (typeof window === 'undefined' || !(window as any).google?.accounts?.oauth2) {
+      errorMessage = 'Google Sign-In library is loading. Please refresh and try again.';
+      return;
+    }
+
+    try {
+      isLoading = true;
+      const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'email profile openid',
+        callback: async (tokenResponse: any) => {
+          if (tokenResponse.error) {
+            errorMessage = 'Google authorization was cancelled.';
+            isLoading = false;
+            return;
+          }
+          try {
+            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+            });
+            const data = await userInfoRes.json();
+            const res = await loginOrCreateWithGoogle({
+              email: data.email,
+              name: data.name || data.given_name,
+              avatar: data.picture,
+              sub: data.sub
+            });
+            if (res.success) {
+              goto('/dashboard');
+            } else {
+              errorMessage = res.error || 'Google signup failed.';
+            }
+          } catch (err: any) {
+            errorMessage = err.message || 'Failed to retrieve Google profile.';
+          } finally {
+            isLoading = false;
+          }
+        }
+      });
+      tokenClient.requestAccessToken();
+    } catch (e: any) {
+      isLoading = false;
+      errorMessage = e.message || 'Google Sign-Up error.';
+    }
   }
 </script>
 
@@ -314,9 +298,4 @@
   </div>
 </div>
 
-<!-- Google Sign In Modal -->
-<GoogleAuthModal
-  bind:isOpen={isGoogleModalOpen}
-  initialEmail={email}
-  onSuccess={() => goto('/dashboard')}
-/>
+
