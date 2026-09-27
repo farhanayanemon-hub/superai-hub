@@ -22,6 +22,9 @@
     activeCategory,
     searchQuery,
     subscription,
+    cancelSubscription,
+    reactivateSubscription,
+    switchPlan,
     type DashboardTab
   } from '$lib/stores/userStore';
 
@@ -38,6 +41,9 @@
   // Billing Tab state
   let billingSubmitted = $state(false);
   let txnId = $state('');
+  let isCancelModalOpen = $state(false);
+  let cancelReason = $state('too_expensive');
+  let billingNotice = $state('');
 
   // Settings Tab state
   let smtpEmailNotifications = $state(true);
@@ -521,76 +527,477 @@
       <!-- TAB 5: BILLING & SUBSCRIPTION -->
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'billing'}
-        <div class="h-full overflow-y-auto max-w-4xl mx-auto space-y-6">
+        <div class="h-full overflow-y-auto max-w-5xl mx-auto space-y-6 pb-12">
+          
+          <!-- Notification Alert if action performed -->
+          {#if billingNotice}
+            <div class="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in">
+              <div class="flex items-center gap-2.5">
+                <Icon name="CheckCircle2" size={18} class="text-emerald-400" />
+                <span>{billingNotice}</span>
+              </div>
+              <button 
+                onclick={() => billingNotice = ''} 
+                class="p-1 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors"
+                aria-label="Dismiss notice"
+              >
+                <Icon name="X" size={14} />
+              </button>
+            </div>
+          {/if}
+
+          <!-- Cancelled Subscription Notice (if cancelled) -->
+          {#if $subscription.status === 'cancelled'}
+            <div class="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-start gap-3">
+                <Icon name="AlertCircle" size={20} class="text-amber-400 mt-0.5 shrink-0" />
+                <div>
+                  <p class="font-bold text-amber-300 text-sm">Subscription Auto-Renewal Cancelled</p>
+                  <p class="text-slate-300 mt-0.5">
+                    Your VIP privileges & 24/7 WhatsApp Bot access remain fully active until 
+                    <strong class="text-white">{new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
+                    You will not be billed again.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onclick={() => { reactivateSubscription(); billingNotice = 'Welcome back! Your VIP Subscription has been reactivated.'; }}
+                class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition-colors cursor-pointer"
+              >
+                Reactivate Subscription
+              </button>
+            </div>
+          {/if}
+
+          <!-- Current Subscription Overview Card -->
           <div class="p-6 sm:p-8 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div>
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
                   <Icon name="Crown" size={22} class="text-amber-400" />
-                  <span>Subscription & Billing</span>
+                  <span>Current Membership & Billing</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">Manage your active membership and payment details.</p>
+                <p class="text-xs text-slate-400 mt-1">Manage your active tier, renew, switch plans, or cancel anytime.</p>
               </div>
 
-              <div class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Plan: Yearly VIP Special (Active)</span>
-              </div>
-            </div>
-
-            <!-- Current Plan Overview Card -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase">Current Rate</p>
-                <p class="text-xl font-black text-white mt-1">BDT 1,499 <span class="text-xs text-slate-400 font-normal">/ 1st yr</span></p>
-                <p class="text-[10px] text-emerald-400 mt-1">75% OFF Launch Discount Applied</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase">Renewal Date</p>
-                <p class="text-sm font-bold text-white mt-1">
-                  {new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-                <p class="text-[10px] text-slate-400 mt-1">3-day grace period included</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase">VIP Support Access</p>
-                <p class="text-sm font-bold text-emerald-400 mt-1">Enabled (24/7 Priority)</p>
-                <p class="text-[10px] text-slate-400 mt-1">support@ezboagents.com</p>
-              </div>
-            </div>
-
-            <!-- Manual Payment Submission Form -->
-            <div class="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-4">
-              <h3 class="text-sm font-bold text-white">Need to verify a payment or enter a Transaction ID?</h3>
-              <p class="text-xs text-slate-400">If you paid via bKash, Nagad, Rocket, or Bank Transfer, enter your Transaction ID (TrxID) below for instant automated confirmation.</p>
-
-              {#if billingSubmitted}
-                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                  <Icon name="Check" size={16} />
-                  <span>Transaction ID submitted! Your account status is active and verified.</span>
+              <!-- Status Badge -->
+              {#if $subscription.status === 'cancelled'}
+                <div class="px-3.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                  <span>Cancelled (Active until expiry)</span>
+                </div>
+              {:else if $subscription.plan === 'free'}
+                <div class="px-3.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                  <span>Plan: Free / BYOK</span>
                 </div>
               {:else}
-                <div class="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="text"
-                    bind:value={txnId}
-                    placeholder="Enter TrxID (e.g. 9J28DA10K)"
-                    class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
-                  />
-                  <button
-                    type="button"
-                    onclick={() => { if (txnId.trim()) billingSubmitted = true; }}
-                    class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs cursor-pointer transition-colors"
-                  >
-                    Verify Payment
-                  </button>
+                <div class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Plan: {$subscription.plan === 'yearly' ? 'Yearly VIP Special' : 'Pro Monthly'} (Active)</span>
                 </div>
               {/if}
             </div>
+
+            <!-- Current Plan Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                <p class="text-[11px] text-slate-500 font-semibold uppercase">Current Plan Rate</p>
+                <p class="text-xl font-black text-white mt-1">
+                  {#if $subscription.plan === 'yearly'}
+                    BDT 1,499 <span class="text-xs text-slate-400 font-normal">/ 1st yr</span>
+                  {:else if $subscription.plan === 'monthly'}
+                    BDT 499 <span class="text-xs text-slate-400 font-normal">/ month</span>
+                  {:else}
+                    $0 <span class="text-xs text-slate-400 font-normal">/ Free (BYOK)</span>
+                  {/if}
+                </p>
+                <p class="text-[10px] text-emerald-400 mt-1">
+                  {$subscription.plan === 'yearly' ? '75% OFF Launch Discount Applied' : $subscription.plan === 'monthly' ? 'Standard Monthly Plan' : 'Free Forever with Own Gemini Key'}
+                </p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                <p class="text-[11px] text-slate-500 font-semibold uppercase">
+                  {$subscription.status === 'cancelled' ? 'Access Expiration Date' : 'Next Billing / Expiration'}
+                </p>
+                <p class="text-sm font-bold text-white mt-1">
+                  {new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+                <p class="text-[10px] text-slate-400 mt-1">
+                  {$subscription.status === 'cancelled' ? 'No further renewal will occur' : 'Auto-renewal active'}
+                </p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                <p class="text-[11px] text-slate-500 font-semibold uppercase">WhatsApp AI Bot Feature</p>
+                <p class="text-sm font-bold text-emerald-400 mt-1">
+                  {$subscription.plan === 'free' ? 'Disabled (Requires Pro/VIP)' : '24/7 Bot Activated'}
+                </p>
+                <p class="text-[10px] text-slate-400 mt-1">
+                  {$subscription.plan === 'free' ? 'Upgrade to connect WhatsApp' : 'Priority Baileys routing enabled'}
+                </p>
+              </div>
+            </div>
+
+            <!-- Cancel Subscription Action Bar -->
+            {#if $subscription.status === 'active' && $subscription.plan !== 'free'}
+              <div class="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <span class="text-slate-400">
+                  Don't want to renew your VIP membership? You can cancel auto-renewal anytime without losing current days.
+                </span>
+                <button
+                  type="button"
+                  onclick={() => (isCancelModalOpen = true)}
+                  class="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 font-semibold text-xs transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Icon name="X" size={14} />
+                  <span>Cancel Subscription</span>
+                </button>
+              </div>
+            {/if}
+          </div>
+
+          <!-- ==================================================== -->
+          <!-- ALL AVAILABLE PLANS SHOWCASE & SWITCHER -->
+          <!-- ==================================================== -->
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <Icon name="Layers" size={20} class="text-emerald-400" />
+                <span>Available Plans & Tiers</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Switch between Bring-Your-Own-Key (Free) or fully managed AI with 24/7 WhatsApp engine.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Plan 1: Free / Starter (BYOK) -->
+              <div class="p-5 rounded-2xl bg-slate-900 border {$subscription.plan === 'free' ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-800'} flex flex-col justify-between relative">
+                {#if $subscription.plan === 'free'}
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-bold text-[10px] uppercase tracking-wide">
+                    Active Plan
+                  </div>
+                {/if}
+                <div class="space-y-3">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-800 px-2 py-0.5 rounded">BYOK Tier</span>
+                    <h4 class="text-base font-bold text-white mt-1.5">Free / Starter</h4>
+                    <p class="text-xs text-slate-400 mt-1">Connect your own Google Gemini API key and use the tools free forever.</p>
+                  </div>
+
+                  <div class="pt-2 border-t border-slate-800/80">
+                    <p class="text-2xl font-black text-white">$0</p>
+                    <p class="text-[11px] text-slate-500">Free forever with your API key</p>
+                  </div>
+
+                  <ul class="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/60">
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>All 50+ Web AI Agents</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>Web Dashboard Chat</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-slate-500">
+                      <Icon name="X" size={14} class="text-slate-600 shrink-0" />
+                      <span>WhatsApp Bot (Not Included)</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-slate-500">
+                      <Icon name="X" size={14} class="text-slate-600 shrink-0" />
+                      <span>Managed AI Tokens</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="pt-6">
+                  {#if $subscription.plan === 'free'}
+                    <button disabled class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs cursor-default">
+                      Current Plan
+                    </button>
+                  {:else}
+                    <button
+                      type="button"
+                      onclick={() => { switchPlan('free'); billingNotice = 'Switched to Free / BYOK plan.'; }}
+                      class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      Switch to Free (BYOK)
+                    </button>
+                  {/if}
+                </div>
+              </div>
+
+              <!-- Plan 2: Pro Monthly -->
+              <div class="p-5 rounded-2xl bg-slate-900 border {$subscription.plan === 'monthly' ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-800'} flex flex-col justify-between relative">
+                {#if $subscription.plan === 'monthly'}
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-bold text-[10px] uppercase tracking-wide">
+                    Active Plan
+                  </div>
+                {/if}
+                <div class="space-y-3">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">Flexible</span>
+                    <h4 class="text-base font-bold text-white mt-1.5">Pro Monthly</h4>
+                    <p class="text-xs text-slate-400 mt-1">Full 24/7 WhatsApp AI bot and managed high-speed AI tokens.</p>
+                  </div>
+
+                  <div class="pt-2 border-t border-slate-800/80">
+                    <p class="text-2xl font-black text-white">BDT 499 <span class="text-xs text-slate-400 font-normal">/ mo</span></p>
+                    <p class="text-[11px] text-slate-500">Billed monthly, cancel anytime</p>
+                  </div>
+
+                  <ul class="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/60">
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>Built-in Gemini 2.5 Flash</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span><strong>24/7 WhatsApp AI Bot</strong></span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>All 50+ AI Specialists</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>AI Image Synthesis (/image)</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="pt-6">
+                  {#if $subscription.plan === 'monthly'}
+                    <button disabled class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs cursor-default">
+                      Current Plan
+                    </button>
+                  {:else}
+                    <button
+                      type="button"
+                      onclick={() => { switchPlan('monthly'); billingNotice = 'Switched to Pro Monthly plan!'; }}
+                      class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-lg shadow-purple-600/20"
+                    >
+                      Switch to Pro Monthly
+                    </button>
+                  {/if}
+                </div>
+              </div>
+
+              <!-- Plan 3: Yearly VIP Special (Featured) -->
+              <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500 shadow-xl shadow-emerald-500/10 flex flex-col justify-between relative">
+                <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-wide shadow-md">
+                  ⭐ 75% OFF • Best Value
+                </div>
+                <div class="space-y-3">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded">Yearly VIP</span>
+                    <h4 class="text-base font-bold text-white mt-1.5">VIP Special</h4>
+                    <p class="text-xs text-slate-400 mt-1">Uninterrupted 1-year 24/7 AI employee with priority servers.</p>
+                  </div>
+
+                  <div class="pt-2 border-t border-slate-800/80">
+                    <div class="flex items-baseline gap-1.5">
+                      <p class="text-2xl font-black text-white">BDT 1,499</p>
+                      <span class="text-xs text-slate-500 line-through">BDT 5,999</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-400 font-medium">Only BDT 124/mo (Save BDT 4,500)</p>
+                  </div>
+
+                  <ul class="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/60">
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span><strong>Everything in Pro Monthly</strong></span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>1 Full Year 24/7 WhatsApp Bot</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>Zero Token Headaches</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>VIP Priority Server Queue</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>1-on-1 VIP WhatsApp Support</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="pt-6">
+                  {#if $subscription.plan === 'yearly' && $subscription.status !== 'cancelled'}
+                    <button disabled class="w-full py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs cursor-default">
+                      Active Plan
+                    </button>
+                  {:else}
+                    <button
+                      type="button"
+                      onclick={() => { switchPlan('yearly'); billingNotice = 'Switched to Yearly VIP Special!'; }}
+                      class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors cursor-pointer shadow-lg shadow-emerald-500/20"
+                    >
+                      Switch to Yearly VIP
+                    </button>
+                  {/if}
+                </div>
+              </div>
+
+              <!-- Plan 4: Agency / Multi-Business -->
+              <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between relative">
+                <div class="space-y-3">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">For Teams</span>
+                    <h4 class="text-base font-bold text-white mt-1.5">Agency Suite</h4>
+                    <p class="text-xs text-slate-400 mt-1">Multi-number WhatsApp automation & custom persona branding.</p>
+                  </div>
+
+                  <div class="pt-2 border-t border-slate-800/80">
+                    <p class="text-2xl font-black text-white">BDT 4,999 <span class="text-xs text-slate-400 font-normal">/ yr</span></p>
+                    <p class="text-[11px] text-slate-500">Up to 5 connected phone numbers</p>
+                  </div>
+
+                  <ul class="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/60">
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>5 WhatsApp Connected Numbers</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>Custom Brand Agent Personas</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>Multi-Seat Team Access</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <Icon name="Check" size={14} class="text-emerald-400 shrink-0" />
+                      <span>Dedicated Account Manager</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="pt-6">
+                  <a
+                    href="mailto:support@ezboagents.com?subject=Agency%20Plan%20Inquiry%20-%20SuperAI%20Hub"
+                    class="block text-center w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Contact for Agency
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manual Payment Submission Form -->
+          <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <Icon name="Receipt" size={17} class="text-amber-400" />
+              <span>Verify Local Payment (bKash / Nagad / Rocket / Bank Transfer)</span>
+            </h3>
+            <p class="text-xs text-slate-400">If you completed payment via mobile financial services or manual transfer, submit your Transaction ID (TrxID) below for instant automated confirmation.</p>
+
+            {#if billingSubmitted}
+              <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                <Icon name="Check" size={16} />
+                <span>Transaction ID submitted! Your account status is active and verified.</span>
+              </div>
+            {:else}
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  bind:value={txnId}
+                  placeholder="Enter TrxID (e.g. 9J28DA10K)"
+                  class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                />
+                <button
+                  type="button"
+                  onclick={() => { if (txnId.trim()) billingSubmitted = true; }}
+                  class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  Verify Payment
+                </button>
+              </div>
+            {/if}
           </div>
         </div>
+
+        <!-- ==================================================== -->
+        <!-- CANCEL SUBSCRIPTION CONFIRMATION MODAL -->
+        <!-- ==================================================== -->
+        {#if isCancelModalOpen}
+          <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 text-left">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2.5 text-rose-400">
+                  <Icon name="AlertCircle" size={22} />
+                  <h3 class="text-base font-bold text-white">Cancel Subscription?</h3>
+                </div>
+                <button
+                  onclick={() => (isCancelModalOpen = false)}
+                  class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  aria-label="Close dialog"
+                >
+                  <Icon name="X" size={18} />
+                </button>
+              </div>
+
+              <div class="space-y-3 text-xs text-slate-300">
+                <p>
+                  Are you sure you want to cancel your VIP subscription? 
+                </p>
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                  <p class="text-white font-semibold flex items-center gap-1.5 text-[11px]">
+                    <Icon name="CheckCircle2" size={14} class="text-emerald-400" />
+                    <span>You won't lose your remaining time</span>
+                  </p>
+                  <p class="text-slate-400 text-[11px]">
+                    Your VIP privileges and WhatsApp Bot will remain active until 
+                    <strong class="text-slate-200">{new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>.
+                  </p>
+                </div>
+
+                <div class="space-y-1.5 pt-1">
+                  <label for="cancel-reason-select" class="text-[11px] font-semibold text-slate-400">Please tell us why you are cancelling:</label>
+                  <select
+                    id="cancel-reason-select"
+                    bind:value={cancelReason}
+                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-rose-500"
+                  >
+                    <option value="too_expensive">It is too expensive for me right now</option>
+                    <option value="byok">I want to use my own free Gemini API key (BYOK)</option>
+                    <option value="project_done">Finished my project / temporary need</option>
+                    <option value="missing_features">Missing a specific feature I need</option>
+                    <option value="other">Other reason</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onclick={() => (isCancelModalOpen = false)}
+                  class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs transition-colors cursor-pointer"
+                >
+                  Keep My Plan
+                </button>
+                <button
+                  type="button"
+                  onclick={() => {
+                    cancelSubscription();
+                    isCancelModalOpen = false;
+                    billingNotice = 'Your subscription has been cancelled. Access remains active until ' + new Date($subscription.expiresAt).toLocaleDateString();
+                  }}
+                  class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-lg shadow-rose-600/20"
+                >
+                  Confirm Cancellation
+                </button>
+              </div>
+            </div>
+          </div>
+        {/if}
 
       <!-- ==================================================== -->
       <!-- TAB 6: SETTINGS & PROFILE -->

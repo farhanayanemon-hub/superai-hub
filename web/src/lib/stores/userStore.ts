@@ -19,9 +19,11 @@ export interface UserProfile {
 
 export interface SubscriptionState {
   plan: 'free' | 'monthly' | 'yearly';
-  status: 'active' | 'expired' | 'grace_period';
+  status: 'active' | 'expired' | 'grace_period' | 'cancelled';
   expiresAt: string;
   isVip: boolean;
+  autoRenew?: boolean;
+  cancelledAt?: string;
 }
 
 export interface ChatMessage {
@@ -87,12 +89,72 @@ export const isDrawerOpen = writable<boolean>(false);
 export const activeCategory = writable<string>('all');
 export const searchQuery = writable<string>('');
 
-export const subscription = writable<SubscriptionState>({
-  plan: 'yearly',
-  status: 'active',
-  expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-  isVip: true
-});
+function loadInitialSubscription(): SubscriptionState {
+  const defaultSub: SubscriptionState = {
+    plan: 'yearly',
+    status: 'active',
+    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    isVip: true,
+    autoRenew: true
+  };
+  if (typeof window === 'undefined') return defaultSub;
+  try {
+    const raw = localStorage.getItem('superai_subscription');
+    return raw ? JSON.parse(raw) : defaultSub;
+  } catch (e) {
+    return defaultSub;
+  }
+}
+
+export const subscription = writable<SubscriptionState>(loadInitialSubscription());
+
+export function cancelSubscription(): void {
+  subscription.update((sub) => {
+    const updated: SubscriptionState = {
+      ...sub,
+      status: 'cancelled',
+      autoRenew: false,
+      cancelledAt: new Date().toISOString()
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(updated));
+    }
+    return updated;
+  });
+}
+
+export function reactivateSubscription(): void {
+  subscription.update((sub) => {
+    const updated: SubscriptionState = {
+      ...sub,
+      status: 'active',
+      autoRenew: true,
+      cancelledAt: undefined
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(updated));
+    }
+    return updated;
+  });
+}
+
+export function switchPlan(newPlan: 'free' | 'monthly' | 'yearly'): void {
+  subscription.update((sub) => {
+    const days = newPlan === 'yearly' ? 365 : newPlan === 'monthly' ? 30 : 7;
+    const updated: SubscriptionState = {
+      plan: newPlan,
+      status: 'active',
+      expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
+      isVip: newPlan !== 'free',
+      autoRenew: newPlan !== 'free',
+      cancelledAt: undefined
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(updated));
+    }
+    return updated;
+  });
+}
 
 export const chatMessages = writable<ChatMessage[]>(loadInitialChat());
 
