@@ -68,24 +68,42 @@
     }
   }
 
+  const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '471395556203-1ovc836o66irvc58nk2isc4kadnimp8u.apps.googleusercontent.com';
+
+  async function ensureGoogleGisLoaded(): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+    if ((window as any).google?.accounts?.oauth2) return true;
+
+    return new Promise((resolve) => {
+      let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]') as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener('load', () => resolve(true), { once: true });
+      script.addEventListener('error', () => resolve(false), { once: true });
+      setTimeout(() => {
+        resolve(!!(window as any).google?.accounts?.oauth2);
+      }, 1500);
+    });
+  }
+
   async function handleGoogleLogin() {
     errorMessage = '';
-    const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+    const isReady = await ensureGoogleGisLoaded();
 
-    if (!clientId) {
-      errorMessage = 'Google OAuth is not configured yet. Please sign in with your email & password below, or configure a Google OAuth Client ID.';
-      return;
-    }
-
-    if (typeof window === 'undefined' || !(window as any).google?.accounts?.oauth2) {
-      errorMessage = 'Google Sign-In library is loading. Please refresh and try again.';
+    if (!isReady || typeof window === 'undefined' || !(window as any).google?.accounts?.oauth2) {
+      errorMessage = 'Unable to reach Google Sign-In service. Please check your connection and try again.';
       return;
     }
 
     try {
       isLoading = true;
       const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
+        client_id: GOOGLE_CLIENT_ID,
         scope: 'email profile openid',
         callback: async (tokenResponse: any) => {
           if (tokenResponse.error) {
