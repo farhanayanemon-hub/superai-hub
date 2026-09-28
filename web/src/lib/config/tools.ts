@@ -115,7 +115,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Cody",
     "agentRole": "The Viral Ad Wordsmith",
     "agentTagline": "Your personal direct-response ad specialist. Writer’s block? Not on Cody’s watch.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Cody&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "customer_objection_handler",
@@ -165,7 +165,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Marcus",
     "agentRole": "The Objection Closer & Negotiator",
     "agentTagline": "Turns \"price is too high\" and customer skepticism into immediate checkout confirmations.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Marcus&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "discount_campaign_planner",
@@ -218,7 +218,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Blaze",
     "agentRole": "Flash Sale & Urgency Architect",
     "agentTagline": "Engineers irresistible countdown promotions, tiered bundles, and limited-time offer frenzy.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Blaze&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "product_description_pro",
@@ -261,7 +261,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Zara",
     "agentRole": "E-Commerce Sensory Storyteller",
     "agentTagline": "Transforms plain product specs into benefit-packed, high-converting product pages with SEO power.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Zara&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "cod_confirmation_msg",
@@ -303,7 +303,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Niko",
     "agentRole": "Order Verification & Anti-Return Guard",
     "agentTagline": "Reduces costly return rates (RTO) by up to 40% with high-urgency, friendly confirmation copy.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Niko&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "refund_exchange_policy",
@@ -346,7 +346,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Justice",
     "agentRole": "E-Commerce Policy & Trust Drafter",
     "agentTagline": "Builds customer trust and eliminates checkout friction with crystal-clear return & warranty policies.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Justice&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "inbox_sales_closer",
@@ -383,7 +383,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Chloe",
     "agentRole": "WhatsApp & DM Sales Closer",
     "agentTagline": "Guides hesitant chat leads into paying buyers with consultative, high-trust messaging scripts.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Chloe&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "customer_review_replier",
@@ -425,7 +425,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Amara",
     "agentRole": "Brand Reputation & Review Manager",
     "agentTagline": "Deftly transforms negative 1-star complaints into loyal brand advocates and amplifies 5-star praise.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Amara&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "viral_slogan_maker",
@@ -462,7 +462,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Vance",
     "agentRole": "Brand Identity & Tagline Wordsmith",
     "agentTagline": "Molds punchy, memorable 3-to-5 word slogans that stick in your customers’ minds forever.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Vance&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "delivery_delay_apology",
@@ -510,7 +510,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Pax",
     "agentRole": "Crisis & Retention Diplomat",
     "agentTagline": "Calms angry customers during logistics delays with genuine empathy, accountability, and goodwill perks.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Pax&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "vip_loyalty_pitch",
@@ -553,7 +553,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Sterling",
     "agentRole": "VIP Retention & LTV Strategist",
     "agentTagline": "Creates elite tier clubs, exclusive drops, and VIP retention campaigns that skyrocket customer lifetime value.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Sterling&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "stock_clearance_pitch",
@@ -591,7 +591,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Dash",
     "agentRole": "Inventory Liquidation Specialist",
     "agentTagline": "Generates urgent cash flow by clearing out excess warehouse stock with irresistible fire-sale offers.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Dash&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "upsell_cross_sell",
@@ -628,7 +628,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Max",
     "agentRole": "Average Order Value (AOV) Booster",
     "agentTagline": "Extracts 25-40% more revenue from every checkout with seamless order bumps and post-purchase offers.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Max&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "fb_live_sales_script",
@@ -664,7 +664,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Rio",
     "agentRole": "Live Shopping Broadcast Director",
     "agentTagline": "Orchestrates high-energy, timed broadcast scripts for Facebook & TikTok live sales events that sell out stock.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Rio&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "fcommerce_faq_builder",
@@ -694,7 +694,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Ada",
     "agentRole": "Customer Support Knowledge Architect",
     "agentTagline": "Builds comprehensive FAQ matrices that resolve 90% of routine buyer questions on autopilot.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Ada&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "ai_image_generator",
@@ -751,7 +751,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Arto",
     "agentRole": "Visionary AI Concept Artist",
     "agentTagline": "Brings your wildest visual imaginations to life in photorealistic 8K with instant /image synthesis.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Arto&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "midjourney_prompt_enhancer",
@@ -795,7 +795,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Pixel",
     "agentRole": "Master Prompt Engineer",
     "agentTagline": "Upgrades basic text into intricate Midjourney & Flux prompts with camera lenses, lighting, and aspect ratios.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Pixel&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1534751516642-a171edd2521b?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "tiktok_reels_script",
@@ -839,7 +839,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Nova",
     "agentRole": "Short-Form Viral Creator",
     "agentTagline": "Engineers 3-second visual hooks and high-retention 30s TikTok, Reels, and Shorts scripts designed to trend.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Nova&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "youtube_seo_tags",
@@ -875,7 +875,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Sloan",
     "agentRole": "YouTube Algorithm Strategist",
     "agentTagline": "Dominates search rankings with high-CTR video titles, keyword-rich descriptions, and viral tags.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Sloan&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "yt_clickbait_thumbnail_ideas",
@@ -905,7 +905,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Flash",
     "agentRole": "High-CTR Visual Concept Designer",
     "agentTagline": "Creates psychological thumbnail concepts and punchy 3-word overlays that demand clicks on YouTube.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Flash&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "linkedin_story_post",
@@ -948,7 +948,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Arthur",
     "agentRole": "LinkedIn Thought Leadership Architect",
     "agentTagline": "Writes authentic, engagement-heavy executive stories that build authority, followers, and B2B inbound leads.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Arthur&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "fb_weekly_content_calendar",
@@ -990,7 +990,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Serena",
     "agentRole": "Omni-Channel Content Director",
     "agentTagline": "Builds balanced 7-day multi-platform calendars with themes, hook angles, and zero creative burnout.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Serena&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "instagram_carousel_maker",
@@ -1031,7 +1031,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Maya",
     "agentRole": "Educational Carousel Designer",
     "agentTagline": "Crafts 5-to-10 slide micro-guides that generate massive saves, profile visits, and DM conversations.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Maya&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "catchy_hooks_generator",
@@ -1062,7 +1062,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Hunter",
     "agentRole": "Viral Hook Hunter",
     "agentTagline": "Generates 10 pattern-interrupting opening hooks proven to freeze the user’s thumb in under 1.5 seconds.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Hunter&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1492446845049-9c50ce313d00?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "twitter_thread_creator",
@@ -1092,7 +1092,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Orion",
     "agentRole": "X / Twitter Thread Architect",
     "agentTagline": "Crafts viral, bite-sized value threads that explode engagement, retweets, and follower growth.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Orion&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "meme_caption_creator",
@@ -1129,7 +1129,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Jester",
     "agentRole": "Viral Meme & Pop-Culture Wit",
     "agentTagline": "Blends trending internet humor with brand messaging to create effortlessly shareable viral cultural moments.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Jester&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "podcast_episode_script",
@@ -1165,7 +1165,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Echo",
     "agentRole": "Audio Show & Podcast Producer",
     "agentTagline": "Plans compelling interview questions, episode narrative structures, and captivating episode intros.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Echo&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "bangla_to_corporate_en",
@@ -1208,7 +1208,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Edward",
     "agentRole": "Executive Corporate English Polisher",
     "agentTagline": "Elevates casual thoughts into articulate, boardroom-ready Fortune 500 corporate communication.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Edward&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "pro_email_drafter",
@@ -1252,7 +1252,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Claire",
     "agentRole": "Executive Correspondence Secretary",
     "agentTagline": "Drafts diplomatic leave requests, tough client updates, follow-ups, and negotiation emails in seconds.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Claire&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "cv_resume_optimizer",
@@ -1291,7 +1291,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Harvey",
     "agentRole": "ATS Resume & Career Strategist",
     "agentTagline": "Tailors resumes to match exact job descriptions, beat ATS software filters, and quantify impact metrics.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Harvey&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "job_interview_coach",
@@ -1328,7 +1328,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Diana",
     "agentRole": "STAR Method Interview Coach",
     "agentTagline": "Conducts rigorous behavioral mock interviews and crafts winning answers to tough hiring questions.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Diana&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "ielts_writing_evaluator",
@@ -1365,7 +1365,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Winston",
     "agentRole": "IELTS Band 8.5+ Examiner",
     "agentTagline": "Provides deep paragraph-by-paragraph essay grading across Cohesion, Lexical Resource, and Grammar.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Winston&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "medical_test_simplifier",
@@ -1396,7 +1396,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Dr. Elena",
     "agentRole": "Clinical Report Simplifier",
     "agentTagline": "Decodes confusing blood tests, lab markers, and prescriptions into clear, comforting layman English.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Elena&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "daily_meal_planner",
@@ -1439,7 +1439,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Oliver",
     "agentRole": "Nutritional Meal & Macro Planner",
     "agentTagline": "Plans delicious, balanced daily meals tailored to your caloric goals, dietary preferences, and budget.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Oliver&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "long_text_summarizer",
@@ -1480,7 +1480,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Sage",
     "agentRole": "Executive Briefing Analyst",
     "agentTagline": "Condenses dense 50-page PDFs, transcripts, and articles into actionable 3-minute executive summaries.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Sage&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "budget_expense_planner",
@@ -1516,7 +1516,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Warren",
     "agentRole": "Personal Wealth & Budgeting Strategist",
     "agentTagline": "Applies the 50/30/20 financial framework to optimize cash flow, eliminate debt, and build emergency savings.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Warren&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "polite_rejection_drafter",
@@ -1558,7 +1558,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Grace",
     "agentRole": "Diplomatic Boundary Setter",
     "agentTagline": "Says \"No\" firmly and gracefully without guilt, awkwardness, or damaging valuable relationships.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Grace&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "motivation_habit_tracker",
@@ -1588,7 +1588,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Titan",
     "agentRole": "High-Performance Accountability Coach",
     "agentTagline": "Builds unbreakable 21-day micro-habits, breaks procrastination loops, and tracks daily momentum.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Titan&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "book_summary_insights",
@@ -1618,7 +1618,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Socrates",
     "agentRole": "Mental Models & Wisdom Curator",
     "agentTagline": "Distills the world’s greatest non-fiction books into 3 high-impact mental models you can apply today.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Socrates&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "excel_sheets_formula",
@@ -1662,7 +1662,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Emmi",
     "agentRole": "The Spreadsheet & Data Wizard",
     "agentTagline": "Turns complex calculations into clean Excel & Google Sheets formulas. Spreadsheets are now your superpower.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Emmi&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "upwork_fiverr_proposal",
@@ -1701,7 +1701,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Logan",
     "agentRole": "Top-Rated Freelance Pitcher",
     "agentTagline": "Writes client-focused proposals that identify exact pain points and close lucrative freelance contracts.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Logan&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "error_bug_fixer",
@@ -1746,7 +1746,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Cipher",
     "agentRole": "Full-Stack Code Debugger",
     "agentTagline": "Diagnoses cryptic compiler errors, memory leaks, and stacktraces across all major programming languages.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Cipher&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "landing_page_copywriter",
@@ -1790,7 +1790,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Apollo",
     "agentRole": "SaaS Conversion Copywriter",
     "agentTagline": "Crafts high-converting SaaS hero banners, value propositions, and objection-crushing feature sections.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Apollo&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "regex_builder",
@@ -1832,7 +1832,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Lex",
     "agentRole": "Regular Expression (Regex) Architect",
     "agentTagline": "Builds complex regex patterns with token-by-token breakdowns and verified edge-case test suites.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Lex&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "sql_query_writer",
@@ -1882,7 +1882,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Atlas",
     "agentRole": "Database Query & Index Optimizer",
     "agentTagline": "Writes lightning-fast SQL joins, CTEs, aggregations, and window functions that scale effortlessly.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Atlas&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "json_api_formatter",
@@ -1924,7 +1924,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Byte",
     "agentRole": "TypeScript Contract & API Engineer",
     "agentTagline": "Converts raw JSON payloads into clean TypeScript types, Zod validation schemas, and API documentation.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Byte&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "git_troubleshooter",
@@ -1955,7 +1955,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Octo",
     "agentRole": "Git Version Control Guru",
     "agentTagline": "Safely resolves scary merge conflicts, detached HEAD states, rebase issues, and accidental commits.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Octo&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "tailwind_ui_component",
@@ -2000,7 +2000,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Vibe",
     "agentRole": "Tailwind CSS Modern UI Builder",
     "agentTagline": "Generates responsive, accessible HTML and Tailwind CSS UI components with sleek dark-mode styling.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Vibe&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "script_generator",
@@ -2043,7 +2043,7 @@ export const TOOLS: AITool[] = [
     "agentName": "Forge",
     "agentRole": "DevOps & Shell Automation Engineer",
     "agentTagline": "Automates repetitive dev workflows, cron jobs, database backups, and server maintenance in Bash and PowerShell.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Forge&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80"
   },
   {
     "id": "freelance_invoice_contract",
@@ -2087,6 +2087,6 @@ export const TOOLS: AITool[] = [
     "agentName": "Baron",
     "agentRole": "Freelance Scope & Milestone Architect",
     "agentTagline": "Drafts professional scopes of work (SOW), project milestones, payment schedules, and clean invoices.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Baron&backgroundColor=0f172a,1e293b"
+    "agentAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80"
   }
 ];

@@ -180,32 +180,32 @@
 </script>
 
 <svelte:head>
-  <title>Log In - SuperAI Hub (ezboagents.com)</title>
-  <meta name="description" content="Sign in to your SuperAI Hub account to access 50+ AI Helpers and your WhatsApp Personal Assistant." />
+  <title>Client Sign In • EzboAgents (ezboagents.com)</title>
+  <meta name="description" content="Sign in to your EzboAgents executive console to access 50+ AI Specialists and your WhatsApp Personal Assistant." />
 </svelte:head>
 
-<div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-emerald-500 selection:text-slate-950">
-  <!-- Background Glow Gradients -->
-  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-emerald-500/10 blur-[120px] pointer-events-none rounded-full"></div>
-  <div class="absolute bottom-1/4 right-1/4 w-[300px] h-[250px] bg-teal-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+<div class="min-h-screen bg-[#08090d] text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-amber-400 selection:text-black">
+  <!-- Background Ambient Spotlights -->
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[320px] bg-amber-500/10 blur-[130px] pointer-events-none rounded-full"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-[320px] h-[260px] bg-amber-600/5 blur-[100px] pointer-events-none rounded-full"></div>
 
   <!-- Header / Logo -->
   <div class="mb-8 text-center relative z-10">
     <a href="/" class="inline-flex items-center gap-2.5 group">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
         <Icon name="Sparkles" size={20} />
       </div>
       <span class="font-extrabold text-2xl tracking-tight text-white">
-        Super<span class="text-emerald-400">AI</span> Hub
+        Ezbo<span class="text-amber-400">Agents</span>
       </span>
     </a>
-    <p class="text-xs text-slate-400 mt-2">Sign in to your account</p>
+    <p class="text-xs text-slate-400 mt-2">Executive Consortium Client Sign In</p>
   </div>
 
   <!-- Auth Card -->
-  <div class="w-full max-w-md bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative z-10">
+  <div class="w-full max-w-md bg-[#0e1017] border border-amber-500/20 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative z-10">
     <h1 class="text-xl sm:text-2xl font-bold text-white mb-2 text-center">Welcome Back</h1>
-    <p class="text-xs text-slate-400 text-center mb-6">Access your AI assistant, WhatsApp engine, and tools</p>
+    <p class="text-xs text-slate-400 text-center mb-6">Access your AI specialists, WhatsApp engine, and console</p>
 
     {#if errorMessage}
       <div class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
@@ -215,7 +215,7 @@
     {/if}
 
     {#if successMessage}
-      <div class="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+      <div class="mb-4 p-3 rounded-xl bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs flex items-center gap-2">
         <Icon name="CheckCircle2" size={16} />
         <span>{successMessage}</span>
       </div>
@@ -226,7 +226,7 @@
       type="button"
       onclick={handleGoogleLogin}
       disabled={isLoading}
-      class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-white font-medium text-sm flex items-center justify-center gap-3 transition-all hover:shadow-md cursor-pointer disabled:opacity-50"
+      class="w-full py-2.5 px-4 rounded-xl bg-[#141622] hover:bg-[#1a1d2c] border border-white/10 hover:border-amber-400/40 text-white font-medium text-sm flex items-center justify-center gap-3 transition-all hover:shadow-md cursor-pointer disabled:opacity-50"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -239,8 +239,8 @@
 
     <!-- Divider -->
     <div class="relative my-6 text-center">
-      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-800"></div></div>
-      <span class="relative px-3 bg-slate-900 text-[11px] font-semibold tracking-wider text-slate-500 uppercase">Or with email</span>
+      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+      <span class="relative px-3 bg-[#0e1017] text-[11px] font-semibold tracking-wider text-slate-500 uppercase">Or with email</span>
     </div>
 
     <!-- Email & Password Form -->
@@ -254,7 +254,7 @@
             bind:value={email}
             required
             placeholder="you@domain.com"
-            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            class="w-full bg-[#08090d] border border-white/10 focus:border-amber-400/70 focus:ring-1 focus:ring-amber-400/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
           />
         </div>
       </div>
@@ -265,7 +265,7 @@
           <button
             type="button"
             onclick={() => { isForgotModalOpen = true; forgotEmail = email; }}
-            class="text-[11px] text-emerald-400 hover:underline cursor-pointer bg-transparent border-0 p-0"
+            class="text-[11px] text-amber-400 hover:underline cursor-pointer bg-transparent border-0 p-0"
           >
             Forgot password?
           </button>
@@ -277,7 +277,7 @@
             bind:value={password}
             required
             placeholder="••••••••"
-            class="w-full bg-slate-950/70 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            class="w-full bg-[#08090d] border border-white/10 focus:border-amber-400/70 focus:ring-1 focus:ring-amber-400/20 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
           />
           <button
             type="button"
@@ -293,7 +293,7 @@
       <button
         type="submit"
         disabled={isLoading}
-        class="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+        class="w-full py-3 px-4 rounded-xl gold-btn text-slate-950 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
       >
         {#if isLoading}
           <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
@@ -303,14 +303,12 @@
           <Icon name="ArrowRight" size={16} />
         {/if}
       </button>
-
-
     </form>
 
     <!-- Sign Up Link -->
     <p class="text-xs text-slate-400 text-center mt-6">
       Don't have an account yet?
-      <a href="/signup" class="text-emerald-400 font-semibold hover:underline ml-1">Sign Up Free</a>
+      <a href="/signup" class="text-amber-400 font-semibold hover:underline ml-1">Deploy Free Account</a>
     </p>
   </div>
 
@@ -323,26 +321,24 @@
   </div>
 </div>
 
-
-
 <!-- Forgot Password Modal -->
 {#if isForgotModalOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
     <div
-      class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-left"
+      class="w-full max-w-md bg-[#10121a] border border-amber-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-left"
       role="dialog"
       aria-modal="true"
     >
       <button
         onclick={() => (isForgotModalOpen = false)}
-        class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
         aria-label="Close dialog"
       >
         <Icon name="X" size={18} />
       </button>
 
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div class="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
           <Icon name="Key" size={20} />
         </div>
         <div>
