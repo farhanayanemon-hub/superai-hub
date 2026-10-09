@@ -46,7 +46,9 @@ export const POST: RequestHandler = async ({ request }) => {
       'smtpHost',
       'smtpUser',
       'smtpPass',
-      'smtpFrom'
+      'smtpFrom',
+      'telegramBotToken',
+      'telegramBotUsername'
     ];
 
     for (const key of stringKeys) {

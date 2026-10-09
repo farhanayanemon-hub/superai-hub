@@ -100,6 +100,87 @@
     }
   }
 
+  // Telegram Channel state
+  let telegramLinked = $state(false);
+  let telegramUsername = $state('');
+  let telegramSyncCode = $state('');
+  let telegramDeepLink = $state('');
+  let isGeneratingTelegramCode = $state(false);
+  let isDisconnectingTelegram = $state(false);
+  let telegramCopied = $state(false);
+  let telegramPollTimer: any = null;
+
+  async function checkTelegramStatus() {
+    if (!$currentUser?.id) return;
+    try {
+      const res = await fetch(`/api/telegram/sync?userId=${encodeURIComponent($currentUser.id)}`);
+      const data = await res.json();
+      if (data.success) {
+        telegramLinked = !!data.isLinked;
+        telegramUsername = data.telegramUsername || '';
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  async function generateTelegramSync() {
+    if (!$currentUser?.id) return;
+    isGeneratingTelegramCode = true;
+    try {
+      const res = await fetch('/api/telegram/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: $currentUser.id,
+          userName: $currentUser.name,
+          userEmail: $currentUser.email,
+          planTier: $subscription.tier,
+          isSubscribed: $subscription.status === 'active',
+          byokKey: $apiKey,
+          unlockedBots: $subscription.unlockedStoreBots || []
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        telegramSyncCode = data.syncCode;
+        telegramDeepLink = data.deepLink;
+      }
+    } catch (e) {
+      console.error('Error generating telegram sync:', e);
+    } finally {
+      isGeneratingTelegramCode = false;
+    }
+  }
+
+  async function handleDisconnectTelegram() {
+    if (!$currentUser?.id) return;
+    isDisconnectingTelegram = true;
+    try {
+      await fetch('/api/telegram/disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: $currentUser.id })
+      });
+      telegramLinked = false;
+      telegramUsername = '';
+      telegramSyncCode = '';
+      telegramDeepLink = '';
+      await generateTelegramSync();
+    } catch (e) {
+      console.error('Error disconnecting telegram:', e);
+    } finally {
+      isDisconnectingTelegram = false;
+    }
+  }
+
+  function copyTelegramCode() {
+    if (!telegramSyncCode) return;
+    navigator.clipboard.writeText(telegramSyncCode);
+    telegramCopied = true;
+    setTimeout(() => { telegramCopied = false; }, 3000);
+  }
+
   onMount(() => {
     // Production Auth Protection: Redirect unauthenticated visitors to login
     if (!$isAuthenticated || !$currentUser) {
@@ -115,6 +196,15 @@
 
     // Start WhatsApp live SSE stream
     whatsappApi.initStream();
+
+    // Init Telegram Channel
+    checkTelegramStatus();
+    generateTelegramSync();
+    telegramPollTimer = setInterval(() => {
+      if (!telegramLinked) {
+        checkTelegramStatus();
+      }
+    }, 5000);
   });
 
   $effect(() => {
@@ -129,6 +219,7 @@
 
   onDestroy(() => {
     whatsappApi.closeStream();
+    if (telegramPollTimer) clearInterval(telegramPollTimer);
   });
 
   async function testAndSaveApiKey() {
@@ -707,9 +798,15 @@
                   Connect multiple communication channels to automate client interactions and executive workflows 24/7.
                 </p>
               </div>
-              <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold {$whatsappStatus === 'connected' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-                <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span>
-                <span>WhatsApp: {$whatsappStatus.toUpperCase()}</span>
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {$whatsappStatus === 'connected' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
+                  <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span>
+                  <span>WhatsApp: {$whatsappStatus.toUpperCase()}</span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {telegramLinked ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
+                  <span class="w-2 h-2 rounded-full {telegramLinked ? 'bg-sky-500 animate-pulse' : 'bg-slate-400'}"></span>
+                  <span>Telegram: {telegramLinked ? 'CONNECTED' : 'DISCONNECTED'}</span>
+                </div>
               </div>
             </div>
 
@@ -789,6 +886,163 @@
             </div>
           </div>
 
+          <!-- ======================================================== -->
+          <!-- CHANNEL 2: TELEGRAM BOT EXECUTIVE HUB (LIVE INTEGRATION) -->
+          <!-- ======================================================== -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase">Channel 2</span>
+                  <h3 class="text-sm font-bold text-slate-900">Telegram Bot Executive Hub</h3>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">
+                  Chat with your 50+ AI executives and generate images 24/7 without QR code scanning or disconnection risk.
+                </p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-semibold {telegramLinked ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
+                  <span class="w-2 h-2 rounded-full {telegramLinked ? 'bg-sky-500 animate-pulse' : 'bg-slate-400'}"></span>
+                  <span>{telegramLinked ? `CONNECTED${telegramUsername ? ` (@${telegramUsername})` : ''}` : 'DISCONNECTED'}</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-2">
+              {#if telegramLinked}
+                <!-- Connected State Card -->
+                <div class="flex flex-col items-center justify-center p-6 rounded-2xl bg-sky-50/50 border border-sky-200 shadow-inner space-y-3">
+                  <div class="w-16 h-16 rounded-full bg-sky-100 border-2 border-sky-500 flex items-center justify-center text-sky-600 animate-bounce">
+                    <Icon name="Send" size={30} />
+                  </div>
+                  <h3 class="text-base font-bold text-slate-900">Telegram Live &amp; Synchronized!</h3>
+                  <p class="text-xs text-slate-600 text-center">
+                    Connected as <strong class="text-sky-700">{telegramUsername ? `@${telegramUsername}` : 'Telegram User'}</strong>. All commands and chats sync in real time.
+                  </p>
+                  <div class="flex items-center gap-3 pt-2">
+                    {#if telegramDeepLink}
+                      <a
+                        href={telegramDeepLink}
+                        target="_blank"
+                        rel="noopener"
+                        class="px-4 py-2 rounded-xl blue-btn text-white text-xs font-bold flex items-center gap-2 shadow-xs"
+                      >
+                        <Icon name="Send" size={13} />
+                        <span>Open Telegram Chat</span>
+                      </a>
+                    {/if}
+                    <button
+                      type="button"
+                      onclick={handleDisconnectTelegram}
+                      disabled={isDisconnectingTelegram}
+                      class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      {isDisconnectingTelegram ? 'Disconnecting...' : 'Disconnect'}
+                    </button>
+                  </div>
+                </div>
+              {:else}
+                <!-- Pairing Box with Sync Code -->
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-center space-y-4">
+                  <div class="w-12 h-12 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600">
+                    <Icon name="Send" size={24} />
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-slate-900">Pair Your Telegram Account</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Use your 1-click sync link or enter your sync code below:</p>
+                  </div>
+
+                  <!-- Sync Code Pill with Copy -->
+                  <div class="w-full max-w-xs flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+                    <div class="text-left">
+                      <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Your Sync Code</span>
+                      <span class="text-sm font-mono font-black text-slate-900 tracking-wider">
+                        {telegramSyncCode || 'EZBO-CONNECT'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onclick={copyTelegramCode}
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer {telegramCopied ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"
+                    >
+                      <Icon name={telegramCopied ? 'Check' : 'Copy'} size={12} />
+                      <span>{telegramCopied ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+
+                  <!-- 1-Click Launch Button -->
+                  {#if telegramDeepLink}
+                    <a
+                      href={telegramDeepLink}
+                      target="_blank"
+                      rel="noopener"
+                      class="w-full max-w-xs py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all"
+                    >
+                      <Icon name="Send" size={14} />
+                      <span>Open Telegram &amp; Connect (1-Click)</span>
+                    </a>
+                  {:else}
+                    <button
+                      type="button"
+                      onclick={generateTelegramSync}
+                      disabled={isGeneratingTelegramCode}
+                      class="w-full max-w-xs py-2.5 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                    >
+                      <Icon name="RefreshCw" size={13} class={isGeneratingTelegramCode ? 'animate-spin' : ''} />
+                      <span>Generate Sync Code</span>
+                    </button>
+                  {/if}
+                </div>
+              {/if}
+
+              <!-- Telegram Instructions & Command Cheatsheet -->
+              <div class="space-y-4">
+                <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-sky-600">Quick Pairing &amp; Commands:</h4>
+                <ol class="space-y-2.5 text-xs text-slate-700">
+                  <li class="flex items-start gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 border border-sky-200">1</span>
+                    <span>Click <strong>"Open Telegram &amp; Connect"</strong> or find your bot on Telegram.</span>
+                  </li>
+                  <li class="flex items-start gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 border border-sky-200">2</span>
+                    <span>Tap <strong>START</strong> in the bot chat — your account syncs instantly!</span>
+                  </li>
+                  <li class="flex items-start gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 border border-sky-200">3</span>
+                    <span>Start chatting or send any task directly in Telegram.</span>
+                  </li>
+                </ol>
+
+                <!-- Command Cheatsheet Box -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                  <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                    <Icon name="Bot" size={14} class="text-sky-600" />
+                    <span>Telegram Slash Commands:</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
+                      <code class="text-sky-700 font-bold">/status</code>
+                      <p class="text-slate-500 text-[10px]">Plan &amp; active bot details</p>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
+                      <code class="text-sky-700 font-bold">/agents</code>
+                      <p class="text-slate-500 text-[10px]">List &amp; switch 50+ specialists</p>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
+                      <code class="text-sky-700 font-bold">/image [prompt]</code>
+                      <p class="text-slate-500 text-[10px]">Instant AI image creation</p>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
+                      <code class="text-sky-700 font-bold">/help</code>
+                      <p class="text-slate-500 text-[10px]">Full command documentation</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Omni-Channel Expansion Roadmap Cards -->
           <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
             <div>
@@ -796,26 +1050,26 @@
                 <Icon name="Layers" size={18} class="text-blue-600" />
                 <span>Multi-Channel Expansions</span>
               </h3>
-              <p class="text-xs text-slate-500 mt-0.5">Integrations currently in pipeline for multi-channel message routing.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Integrations currently in pipeline for omni-channel customer message routing.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <Icon name="Send" size={18} class="text-sky-500" />
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
-                </div>
-                <h4 class="text-xs font-bold text-slate-900">Telegram Bot</h4>
-                <p class="text-[11px] text-slate-500">Direct BotFather webhook synchronization for private command execution.</p>
-              </div>
-
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                 <div class="flex items-center justify-between">
                   <Icon name="MessageSquare" size={18} class="text-blue-600" />
                   <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
                 </div>
                 <h4 class="text-xs font-bold text-slate-900">Meta Messenger</h4>
-                <p class="text-[11px] text-slate-500">Facebook Page & Instagram Direct Message automated reply routing.</p>
+                <p class="text-[11px] text-slate-500">Facebook Page automated customer reply routing &amp; support.</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <Icon name="Smartphone" size={18} class="text-pink-600" />
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-900">Instagram DM</h4>
+                <p class="text-[11px] text-slate-500">Direct message e-commerce sales closer and product FAQ bot.</p>
               </div>
 
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
@@ -823,7 +1077,7 @@
                   <Icon name="Code" size={18} class="text-indigo-600" />
                   <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
                 </div>
-                <h4 class="text-xs font-bold text-slate-900">REST API & Webhooks</h4>
+                <h4 class="text-xs font-bold text-slate-900">REST API &amp; Webhooks</h4>
                 <p class="text-[11px] text-slate-500">Trigger custom agents via HTTP POST webhooks from external CRM software.</p>
               </div>
 

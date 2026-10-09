@@ -30,6 +30,8 @@ export interface AdminConfig {
   smtpPass?: string;
   smtpFrom?: string;
   smtpSecure?: boolean;
+  telegramBotToken?: string;
+  telegramBotUsername?: string;
 }
 
 const DEFAULT_MODELS: AdminModelToggles = {
@@ -68,7 +70,9 @@ function loadConfigFromStorage(): AdminConfig {
     smtpUser: process.env.SMTP_USER || '',
     smtpPass: process.env.SMTP_PASS || '',
     smtpFrom: process.env.SMTP_FROM || 'EzboAgents <noreply@ezboagents.com>',
-    smtpSecure: process.env.SMTP_SECURE === 'true'
+    smtpSecure: process.env.SMTP_SECURE === 'true',
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot'
   };
 
   try {
@@ -95,7 +99,9 @@ function loadConfigFromStorage(): AdminConfig {
         smtpUser: saved.smtpUser ?? envConfig.smtpUser,
         smtpPass: saved.smtpPass ?? envConfig.smtpPass,
         smtpFrom: saved.smtpFrom ?? envConfig.smtpFrom,
-        smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure
+        smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure,
+        telegramBotToken: saved.telegramBotToken ?? envConfig.telegramBotToken,
+        telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername
       };
     }
   } catch (err) {
@@ -165,6 +171,9 @@ export function getMaskedAdminConfig() {
     smtpUser: config.smtpUser || '',
     smtpPass: maskKey(config.smtpPass),
     smtpFrom: config.smtpFrom || '',
-    hasSmtp: !!(config.smtpHost && config.smtpUser && config.smtpPass)
+    hasSmtp: !!(config.smtpHost && config.smtpUser && config.smtpPass),
+    telegramBotToken: maskKey(config.telegramBotToken),
+    telegramBotUsername: config.telegramBotUsername || 'EzboAgentsBot',
+    hasTelegramBot: !!config.telegramBotToken
   };
 }

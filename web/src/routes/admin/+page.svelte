@@ -37,6 +37,9 @@
     smtpPass?: string;
     smtpFrom?: string;
     hasSmtp?: boolean;
+    telegramBotToken?: string;
+    telegramBotUsername?: string;
+    hasTelegramBot?: boolean;
   }
 
   // Passphrase gate
@@ -65,6 +68,15 @@
   let testEmailTo = $state('');
   let isSendingTestEmail = $state(false);
   let testEmailFeedback = $state('');
+
+  // Telegram Bot Form State
+  let telegramBotToken = $state('');
+  let telegramBotUsername = $state('EzboAgentsBot');
+  let hasTelegramBot = $state(false);
+  let isTestingTelegram = $state(false);
+  let telegramFeedback = $state('');
+  let isRegisteringWebhook = $state(false);
+  let webhookFeedback = $state('');
 
   let showKeyMap = $state<Record<string, boolean>>({});
 
@@ -131,6 +143,9 @@
         smtpPass = s.smtpPass || '';
         smtpFrom = s.smtpFrom || 'EzboAgents <noreply@ezboagents.com>';
         hasSmtp = !!s.hasSmtp;
+        telegramBotToken = s.telegramBotToken || '';
+        telegramBotUsername = s.telegramBotUsername || 'EzboAgentsBot';
+        hasTelegramBot = !!s.hasTelegramBot;
         if (s.modelsEnabled) {
           modelsEnabled = { ...s.modelsEnabled };
         }
@@ -168,6 +183,8 @@
         smtpUser,
         smtpPass,
         smtpFrom,
+        telegramBotToken,
+        telegramBotUsername,
         modelsEnabled
       };
 
@@ -254,6 +271,58 @@
     }
   }
 
+  async function testTelegramBot() {
+    isTestingTelegram = true;
+    telegramFeedback = '';
+    try {
+      const res = await fetch('/api/admin/telegram/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret,
+          action: 'test'
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        telegramFeedback = `✅ ${data.message}`;
+      } else {
+        telegramFeedback = `❌ Ping Failed: ${data.error}`;
+      }
+    } catch (e: any) {
+      telegramFeedback = `❌ Error: ${e.message}`;
+    } finally {
+      isTestingTelegram = false;
+    }
+  }
+
+  async function registerTelegramWebhook() {
+    isRegisteringWebhook = true;
+    webhookFeedback = '';
+    try {
+      const res = await fetch('/api/admin/telegram/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret,
+          action: 'set'
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        webhookFeedback = `✅ ${data.message}`;
+      } else {
+        webhookFeedback = `❌ Registration Failed: ${data.error}`;
+      }
+    } catch (e: any) {
+      webhookFeedback = `❌ Error: ${e.message}`;
+    } finally {
+      isRegisteringWebhook = false;
+    }
+  }
+
   function copyVercelEnv() {
     const lines: string[] = [];
     if (opayApiKey && !opayApiKey.includes('••••')) lines.push(`OPAY_API_KEY=${opayApiKey}`);
@@ -270,6 +339,8 @@
     if (smtpUser && !smtpUser.includes('••••')) lines.push(`SMTP_USER=${smtpUser}`);
     if (smtpPass && !smtpPass.includes('••••')) lines.push(`SMTP_PASS=${smtpPass}`);
     if (smtpFrom) lines.push(`SMTP_FROM=${smtpFrom}`);
+    if (telegramBotToken && !telegramBotToken.includes('••••')) lines.push(`TELEGRAM_BOT_TOKEN=${telegramBotToken}`);
+    if (telegramBotUsername) lines.push(`TELEGRAM_BOT_USERNAME=${telegramBotUsername}`);
     lines.push(`ADMIN_SECRET=${adminSecret}`);
 
     const text = lines.join('\n');
@@ -899,6 +970,148 @@
             <div class="pt-3 border-t border-slate-200/70 text-[10px] text-slate-400 space-y-1">
               <p class="font-semibold text-slate-600">💡 Gmail Quick Tip:</p>
               <p>Turn on 2-Step Verification in Google Account ➔ Search "App Passwords" ➔ Create a 16-letter App Password and paste it here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 5: TELEGRAM BOT & WEBHOOK SYNCHRONIZATION -->
+      <!-- ======================================================== -->
+      <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
+              <Icon name="Send" size={20} />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase">Section 5</span>
+                <h2 class="text-base font-bold text-slate-900">Telegram Bot & Webhook Synchronization</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Connect your official Telegram bot so users can command their AI executives and generate images 24/7 directly from Telegram.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold {hasTelegramBot || telegramBotToken ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">
+              {hasTelegramBot || telegramBotToken ? '● Bot Configured' : '○ Pending Setup'}
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <!-- Inputs (2 Cols) -->
+          <div class="lg:col-span-2 space-y-4">
+            <!-- Bot Token -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="tg-token" class="text-xs font-bold text-slate-700">Telegram Bot API Token</label>
+                <button
+                  type="button"
+                  onclick={() => toggleShowKey('telegramBotToken')}
+                  class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                >
+                  {showKeyMap['telegramBotToken'] ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                id="tg-token"
+                type={showKeyMap['telegramBotToken'] ? 'text' : 'password'}
+                bind:value={telegramBotToken}
+                placeholder="e.g. 7192849102:AAH9f2Xv... (from @BotFather)"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+              />
+            </div>
+
+            <!-- Bot Username -->
+            <div>
+              <label for="tg-username" class="block text-xs font-bold text-slate-700 mb-1">Bot Handle / Username</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400">@</span>
+                <input
+                  id="tg-username"
+                  type="text"
+                  bind:value={telegramBotUsername}
+                  placeholder="EzboAgentsBot"
+                  class="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+                />
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">This handle is used to generate 1-click sync deep links in user dashboards.</p>
+            </div>
+
+            <!-- Target Webhook Preview -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+              <span class="font-bold text-slate-800">Live Webhook Target:</span>
+              <code class="ml-1 text-[11px] font-mono text-blue-700">https://ezboagents.com/api/telegram/webhook</code>
+            </div>
+          </div>
+
+          <!-- Actions & Health Column (1 Col) -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5 mb-1.5">
+                <Icon name="Zap" size={14} class="text-sky-600" />
+                <span>Webhook & Bot Test</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 leading-relaxed mb-3">
+                Verify token validity and activate the live webhook on ezboagents.com.
+              </p>
+
+              <div class="space-y-2.5">
+                <!-- Ping Button -->
+                <button
+                  type="button"
+                  onclick={testTelegramBot}
+                  disabled={isTestingTelegram || !telegramBotToken}
+                  class="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {#if isTestingTelegram}
+                    <Icon name="Loader2" size={14} class="animate-spin" />
+                    <span>Pinging bot...</span>
+                  {:else}
+                    <Icon name="Bot" size={14} class="text-sky-600" />
+                    <span>Test Bot Ping (getMe)</span>
+                  {/if}
+                </button>
+
+                <!-- Set Webhook Button -->
+                <button
+                  type="button"
+                  onclick={registerTelegramWebhook}
+                  disabled={isRegisteringWebhook || !telegramBotToken}
+                  class="w-full py-2.5 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {#if isRegisteringWebhook}
+                    <Icon name="Loader2" size={14} class="animate-spin" />
+                    <span>Registering webhook...</span>
+                  {:else}
+                    <Icon name="Send" size={14} />
+                    <span>Set Live Webhook (1-Click)</span>
+                  {/if}
+                </button>
+              </div>
+
+              {#if telegramFeedback}
+                <div class="mt-2.5 p-2.5 rounded-xl text-[11px] leading-relaxed {telegramFeedback.startsWith('✅') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">
+                  {telegramFeedback}
+                </div>
+              {/if}
+
+              {#if webhookFeedback}
+                <div class="mt-2 p-2.5 rounded-xl text-[11px] leading-relaxed {webhookFeedback.startsWith('✅') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">
+                  {webhookFeedback}
+                </div>
+              {/if}
+            </div>
+
+            <div class="pt-3 border-t border-slate-200/70 text-[10px] text-slate-400 space-y-1">
+              <p class="font-semibold text-slate-600">💡 BotFather Quick Setup:</p>
+              <p>1. Open Telegram & search <strong>@BotFather</strong></p>
+              <p>2. Send <code>/newbot</code>, choose name & handle</p>
+              <p>3. Paste token above & click <strong>Set Live Webhook</strong></p>
             </div>
           </div>
         </div>
