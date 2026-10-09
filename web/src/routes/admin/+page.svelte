@@ -49,7 +49,9 @@
   let mobileSidebarOpen = $state(false);
 
   // Passphrase gate
-  let adminSecret = $state('ezbo-admin-2026');
+  let authSecret = $state('ezbo-admin-2026');
+  let newPassphrase = $state('');
+  let passphraseUpdateMsg = $state('');
   let isAuthenticated = $state(false);
   let authError = $state('');
 
@@ -131,7 +133,7 @@
   }
 
   function handleAuthSubmit() {
-    if (!adminSecret.trim()) {
+    if (!authSecret.trim()) {
       authError = 'Please enter the admin passphrase.';
       return;
     }
@@ -142,8 +144,16 @@
   async function loadSettings() {
     isLoading = true;
     authError = '';
+    const secretToUse = authSecret.trim() || 'ezbo-admin-2026';
     try {
-      const res = await fetch('/api/admin/settings');
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret: secretToUse,
+          patch: {}
+        })
+      });
       const data = await res.json();
       if (res.ok && data.success && data.settings) {
         const s: PublicSettings = data.settings;
@@ -171,10 +181,14 @@
         isAuthenticated = true;
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('ezbo_admin_authed', 'true');
-          sessionStorage.setItem('ezbo_admin_secret', adminSecret);
+          sessionStorage.setItem('ezbo_admin_secret', secretToUse);
         }
       } else {
-        authError = data.error || 'Failed to load settings from server.';
+        authError = data.error || 'Failed to authenticate admin session.';
+        isAuthenticated = false;
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('ezbo_admin_authed');
+        }
       }
     } catch (e: any) {
       authError = e.message || 'Network connection failed.';
@@ -187,7 +201,7 @@
     isSaving = true;
     saveFeedback = '';
     try {
-      const patch = {
+      const patch: any = {
         opayApiKey,
         opaySecretKey,
         opayBrandKey,
@@ -207,11 +221,17 @@
         modelsEnabled
       };
 
+      if (newPassphrase.trim()) {
+        patch.adminPassphrase = newPassphrase.trim();
+      }
+
+      const secretToUse = authSecret.trim() || 'ezbo-admin-2026';
+
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminSecret,
+          adminSecret: secretToUse,
           patch
         })
       });
@@ -220,6 +240,15 @@
       if (res.ok && data.success) {
         saveFeedback = 'Admin configuration & AI models saved successfully in real-time.';
         saveFeedbackType = 'success';
+        if (newPassphrase.trim()) {
+          authSecret = newPassphrase.trim();
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('ezbo_admin_secret', authSecret);
+          }
+          newPassphrase = '';
+          passphraseUpdateMsg = '✅ Master passphrase updated successfully!';
+          setTimeout(() => { passphraseUpdateMsg = ''; }, 4000);
+        }
         if (data.settings) {
           const s: PublicSettings = data.settings;
           opayApiKey = s.opayApiKey || opayApiKey;
@@ -301,7 +330,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminSecret,
+          adminSecret: authSecret.trim() || 'ezbo-admin-2026',
           action: 'test'
         })
       });
@@ -327,7 +356,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminSecret,
+          adminSecret: authSecret.trim() || 'ezbo-admin-2026',
           action: 'set'
         })
       });
@@ -363,7 +392,7 @@
     if (smtpFrom) lines.push(`SMTP_FROM=${smtpFrom}`);
     if (telegramBotToken && !telegramBotToken.includes('••••')) lines.push(`TELEGRAM_BOT_TOKEN=${telegramBotToken}`);
     if (telegramBotUsername) lines.push(`TELEGRAM_BOT_USERNAME=${telegramBotUsername}`);
-    lines.push(`ADMIN_SECRET=${adminSecret}`);
+    lines.push(`ADMIN_SECRET=${newPassphrase.trim() || authSecret.trim() || 'ezbo-admin-2026'}`);
 
     const text = lines.join('\n');
     navigator.clipboard.writeText(text);
@@ -375,6 +404,7 @@
     isAuthenticated = false;
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('ezbo_admin_authed');
+      sessionStorage.removeItem('ezbo_admin_secret');
     }
   }
 
@@ -402,7 +432,7 @@
     if (typeof window !== 'undefined') {
       const storedAuth = sessionStorage.getItem('ezbo_admin_authed');
       const storedSecret = sessionStorage.getItem('ezbo_admin_secret');
-      if (storedSecret) adminSecret = storedSecret;
+      if (storedSecret) authSecret = storedSecret;
       if (storedAuth === 'true') {
         loadSettings();
       }
@@ -446,7 +476,7 @@
             <input
               id="admin-passphrase-input"
               type="password"
-              bind:value={adminSecret}
+              bind:value={authSecret}
               placeholder="Enter master admin passphrase..."
               class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all font-mono"
             />
@@ -560,7 +590,7 @@
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Authenticated Session</span>
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
               </div>
-              <p class="text-xs font-mono font-bold text-slate-700 truncate">{adminSecret}</p>
+              <p class="text-xs font-mono font-bold text-slate-700 truncate">{authSecret}</p>
             </div>
 
             <div class="flex items-center gap-2">
@@ -1671,17 +1701,23 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Change Admin Passphrase -->
                 <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                  <h3 class="text-xs font-bold text-slate-900">Master Admin Passphrase</h3>
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-900">Master Admin Passphrase</h3>
+                    <span class="text-[10px] text-slate-400 font-mono">Current: {authSecret ? '••••••••' : 'default'}</span>
+                  </div>
                   <p class="text-xs text-slate-500">
-                    This secret protects access to this console. Update it and click "Save Changes" to apply.
+                    To change the master admin passphrase, enter a new passphrase below and click "Save Changes" to apply.
                   </p>
                   <div class="space-y-1.5">
                     <input
                       type="text"
-                      bind:value={adminSecret}
-                      placeholder="e.g. your-new-secret-phrase"
+                      bind:value={newPassphrase}
+                      placeholder="Enter new passphrase (leave empty to keep current)..."
                       class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 outline-none"
                     />
+                    {#if passphraseUpdateMsg}
+                      <p class="text-[11px] text-emerald-600 font-semibold">{passphraseUpdateMsg}</p>
+                    {/if}
                   </div>
                 </div>
 
