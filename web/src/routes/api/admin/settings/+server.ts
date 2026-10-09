@@ -42,13 +42,25 @@ export const POST: RequestHandler = async ({ request }) => {
       'deepseekApiKey',
       'openrouterApiKey',
       'replicateApiKey',
-      'adminPassphrase'
+      'adminPassphrase',
+      'smtpHost',
+      'smtpUser',
+      'smtpPass',
+      'smtpFrom'
     ];
 
     for (const key of stringKeys) {
       if (typeof patch[key] === 'string' && patch[key].trim() && !patch[key].includes('••••')) {
         (cleanPatch as any)[key] = patch[key].trim();
       }
+    }
+
+    if (patch.smtpPort && (typeof patch.smtpPort === 'number' || !isNaN(Number(patch.smtpPort)))) {
+      cleanPatch.smtpPort = Number(patch.smtpPort);
+    }
+
+    if (typeof patch.smtpSecure === 'boolean') {
+      cleanPatch.smtpSecure = patch.smtpSecure;
     }
 
     if (patch.modelsEnabled && typeof patch.modelsEnabled === 'object') {

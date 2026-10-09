@@ -31,6 +31,12 @@
     hasOpenrouterKey: boolean;
     hasReplicateKey: boolean;
     modelsEnabled: AdminModelToggles;
+    smtpHost?: string;
+    smtpPort?: number;
+    smtpUser?: string;
+    smtpPass?: string;
+    smtpFrom?: string;
+    hasSmtp?: boolean;
   }
 
   // Passphrase gate
@@ -48,6 +54,17 @@
   let deepseekApiKey = $state('');
   let openrouterApiKey = $state('');
   let replicateApiKey = $state('');
+
+  // SMTP Email Form State
+  let smtpHost = $state('');
+  let smtpPort = $state(587);
+  let smtpUser = $state('');
+  let smtpPass = $state('');
+  let smtpFrom = $state('EzboAgents <noreply@ezboagents.com>');
+  let hasSmtp = $state(false);
+  let testEmailTo = $state('');
+  let isSendingTestEmail = $state(false);
+  let testEmailFeedback = $state('');
 
   let showKeyMap = $state<Record<string, boolean>>({});
 
@@ -108,6 +125,12 @@
         deepseekApiKey = s.deepseekApiKey || '';
         openrouterApiKey = s.openrouterApiKey || '';
         replicateApiKey = s.replicateApiKey || '';
+        smtpHost = s.smtpHost || '';
+        smtpPort = s.smtpPort || 587;
+        smtpUser = s.smtpUser || '';
+        smtpPass = s.smtpPass || '';
+        smtpFrom = s.smtpFrom || 'EzboAgents <noreply@ezboagents.com>';
+        hasSmtp = !!s.hasSmtp;
         if (s.modelsEnabled) {
           modelsEnabled = { ...s.modelsEnabled };
         }
@@ -140,6 +163,11 @@
         deepseekApiKey,
         openrouterApiKey,
         replicateApiKey,
+        smtpHost,
+        smtpPort: Number(smtpPort) || 587,
+        smtpUser,
+        smtpPass,
+        smtpFrom,
         modelsEnabled
       };
 
@@ -167,6 +195,12 @@
           deepseekApiKey = s.deepseekApiKey || deepseekApiKey;
           openrouterApiKey = s.openrouterApiKey || openrouterApiKey;
           replicateApiKey = s.replicateApiKey || replicateApiKey;
+          smtpHost = s.smtpHost || smtpHost;
+          smtpPort = s.smtpPort || smtpPort;
+          smtpUser = s.smtpUser || smtpUser;
+          smtpPass = s.smtpPass || smtpPass;
+          smtpFrom = s.smtpFrom || smtpFrom;
+          hasSmtp = !!s.hasSmtp;
           if (s.modelsEnabled) modelsEnabled = { ...s.modelsEnabled };
         }
       } else {
@@ -184,6 +218,42 @@
     }
   }
 
+  async function sendTestEmail() {
+    if (!testEmailTo.trim()) {
+      testEmailFeedback = 'Please enter an email address to send the test verification code.';
+      return;
+    }
+    isSendingTestEmail = true;
+    testEmailFeedback = '';
+
+    try {
+      const res = await fetch('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmailTo.trim(),
+          name: 'Admin Test',
+          action: 'signup'
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        if (data.simulated) {
+          testEmailFeedback = `Simulated Mode: Code ${data.debugCode} generated. Save real SMTP below to deliver live emails to inbox.`;
+        } else {
+          testEmailFeedback = `✅ Live 6-digit OTP email delivered successfully to ${testEmailTo}! Check inbox or spam folder.`;
+        }
+      } else {
+        testEmailFeedback = `❌ Failed: ${data.error || 'Could not send test email'}`;
+      }
+    } catch (e: any) {
+      testEmailFeedback = `❌ Error: ${e.message || 'Network error'}`;
+    } finally {
+      isSendingTestEmail = false;
+    }
+  }
+
   function copyVercelEnv() {
     const lines: string[] = [];
     if (opayApiKey && !opayApiKey.includes('••••')) lines.push(`OPAY_API_KEY=${opayApiKey}`);
@@ -195,6 +265,11 @@
     if (deepseekApiKey && !deepseekApiKey.includes('••••')) lines.push(`DEEPSEEK_API_KEY=${deepseekApiKey}`);
     if (openrouterApiKey && !openrouterApiKey.includes('••••')) lines.push(`OPENROUTER_API_KEY=${openrouterApiKey}`);
     if (replicateApiKey && !replicateApiKey.includes('••••')) lines.push(`REPLICATE_API_KEY=${replicateApiKey}`);
+    if (smtpHost && !smtpHost.includes('••••')) lines.push(`SMTP_HOST=${smtpHost}`);
+    if (smtpPort) lines.push(`SMTP_PORT=${smtpPort}`);
+    if (smtpUser && !smtpUser.includes('••••')) lines.push(`SMTP_USER=${smtpUser}`);
+    if (smtpPass && !smtpPass.includes('••••')) lines.push(`SMTP_PASS=${smtpPass}`);
+    if (smtpFrom) lines.push(`SMTP_FROM=${smtpFrom}`);
     lines.push(`ADMIN_SECRET=${adminSecret}`);
 
     const text = lines.join('\n');
@@ -674,6 +749,158 @@
               </div>
             </div>
           {/each}
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 4: TRANSACTIONAL EMAIL & SMTP (6-DIGIT OTP) -->
+      <!-- ======================================================== -->
+      <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Icon name="Mail" size={20} class="text-blue-600" />
+                <span>Transactional Email & SMTP (6-Digit OTP Delivery)</span>
+              </h2>
+              {#if hasSmtp}
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
+                  Live SMTP Active
+                </span>
+              {:else}
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">
+                  Simulated Dev Mode
+                </span>
+              {/if}
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Configure your email server to deliver real 6-digit verification codes to user inboxes for Sign Up & Password Reset.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- SMTP Form Inputs (2 Cols) -->
+          <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Host -->
+            <div>
+              <label for="smtp-host" class="block text-xs font-bold text-slate-700 mb-1">SMTP Host</label>
+              <input
+                id="smtp-host"
+                type="text"
+                bind:value={smtpHost}
+                placeholder="smtp.gmail.com or smtp.hostinger.com"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+              />
+              <p class="text-[10px] text-slate-400 mt-1">e.g. smtp.gmail.com, smtp.resend.com</p>
+            </div>
+
+            <!-- Port -->
+            <div>
+              <label for="smtp-port" class="block text-xs font-bold text-slate-700 mb-1">SMTP Port</label>
+              <input
+                id="smtp-port"
+                type="number"
+                bind:value={smtpPort}
+                placeholder="587"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+              />
+              <p class="text-[10px] text-slate-400 mt-1">Usually 587 (STARTTLS) or 465 (SSL)</p>
+            </div>
+
+            <!-- User -->
+            <div>
+              <label for="smtp-user" class="block text-xs font-bold text-slate-700 mb-1">SMTP Username / Email</label>
+              <input
+                id="smtp-user"
+                type="text"
+                bind:value={smtpUser}
+                placeholder="you@domain.com or your-gmail@gmail.com"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+              />
+            </div>
+
+            <!-- Pass -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="smtp-pass" class="text-xs font-bold text-slate-700">SMTP Password / App Password</label>
+                <button
+                  type="button"
+                  onclick={() => toggleShowKey('smtpPass')}
+                  class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                >
+                  {showKeyMap['smtpPass'] ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                id="smtp-pass"
+                type={showKeyMap['smtpPass'] ? 'text' : 'password'}
+                bind:value={smtpPass}
+                placeholder="App Password or SMTP token"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+              />
+            </div>
+
+            <!-- From -->
+            <div class="sm:col-span-2">
+              <label for="smtp-from" class="block text-xs font-bold text-slate-700 mb-1">Sender "From" Address</label>
+              <input
+                id="smtp-from"
+                type="text"
+                bind:value={smtpFrom}
+                placeholder="EzboAgents &lt;noreply@ezboagents.com&gt;"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Test & Guide Column (1 Col) -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5 mb-1.5">
+                <Icon name="Send" size={14} class="text-blue-600" />
+                <span>Test Live 6-Digit OTP Delivery</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 leading-relaxed mb-3">
+                Send a real 6-digit verification code email right now to confirm your SMTP configuration.
+              </p>
+
+              <div class="space-y-2">
+                <input
+                  type="email"
+                  bind:value={testEmailTo}
+                  placeholder="your-personal@email.com"
+                  class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 text-xs text-slate-900 placeholder-slate-400 outline-none"
+                />
+
+                <button
+                  type="button"
+                  onclick={sendTestEmail}
+                  disabled={isSendingTestEmail}
+                  class="w-full py-2.5 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {#if isSendingTestEmail}
+                    <Icon name="Loader2" size={14} class="animate-spin" />
+                    <span>Dispatching test email...</span>
+                  {:else}
+                    <Icon name="Mail" size={14} />
+                    <span>Send Test OTP Email</span>
+                  {/if}
+                </button>
+              </div>
+
+              {#if testEmailFeedback}
+                <div class="mt-2.5 p-2.5 rounded-xl text-[11px] leading-relaxed {testEmailFeedback.startsWith('✅') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">
+                  {testEmailFeedback}
+                </div>
+              {/if}
+            </div>
+
+            <div class="pt-3 border-t border-slate-200/70 text-[10px] text-slate-400 space-y-1">
+              <p class="font-semibold text-slate-600">💡 Gmail Quick Tip:</p>
+              <p>Turn on 2-Step Verification in Google Account ➔ Search "App Passwords" ➔ Create a 16-letter App Password and paste it here.</p>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -24,6 +24,12 @@ export interface AdminConfig {
   openrouterApiKey: string;
   replicateApiKey: string;
   modelsEnabled: AdminModelToggles;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPass?: string;
+  smtpFrom?: string;
+  smtpSecure?: boolean;
 }
 
 const DEFAULT_MODELS: AdminModelToggles = {
@@ -56,7 +62,13 @@ function loadConfigFromStorage(): AdminConfig {
     deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',
     openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
     replicateApiKey: process.env.REPLICATE_API_KEY || '',
-    modelsEnabled: { ...DEFAULT_MODELS }
+    modelsEnabled: { ...DEFAULT_MODELS },
+    smtpHost: process.env.SMTP_HOST || '',
+    smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587,
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPass: process.env.SMTP_PASS || '',
+    smtpFrom: process.env.SMTP_FROM || 'EzboAgents <noreply@ezboagents.com>',
+    smtpSecure: process.env.SMTP_SECURE === 'true'
   };
 
   try {
@@ -77,7 +89,13 @@ function loadConfigFromStorage(): AdminConfig {
         modelsEnabled: {
           ...DEFAULT_MODELS,
           ...(saved.modelsEnabled || {})
-        }
+        },
+        smtpHost: saved.smtpHost ?? envConfig.smtpHost,
+        smtpPort: saved.smtpPort ?? envConfig.smtpPort,
+        smtpUser: saved.smtpUser ?? envConfig.smtpUser,
+        smtpPass: saved.smtpPass ?? envConfig.smtpPass,
+        smtpFrom: saved.smtpFrom ?? envConfig.smtpFrom,
+        smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure
       };
     }
   } catch (err) {
@@ -141,6 +159,12 @@ export function getMaskedAdminConfig() {
     hasDeepseekKey: !!config.deepseekApiKey,
     hasOpenrouterKey: !!config.openrouterApiKey,
     hasReplicateKey: !!config.replicateApiKey,
-    modelsEnabled: config.modelsEnabled
+    modelsEnabled: config.modelsEnabled,
+    smtpHost: config.smtpHost || '',
+    smtpPort: config.smtpPort || 587,
+    smtpUser: config.smtpUser || '',
+    smtpPass: maskKey(config.smtpPass),
+    smtpFrom: config.smtpFrom || '',
+    hasSmtp: !!(config.smtpHost && config.smtpUser && config.smtpPass)
   };
 }
