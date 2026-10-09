@@ -2,47 +2,27 @@
   import Icon from '$lib/components/Icon.svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
-  import { isAuthenticated } from '$lib/stores/userStore';
-  import { TOOLS, CATEGORIES, type AITool } from '$lib/config/tools';
+  import { isAuthenticated, currentUser } from '$lib/stores/userStore';
 
-  let activeCategory = $state<string>('all');
-  let searchQuery = $state<string>('');
   let openFaq = $state<number | null>(0);
-
-  let filteredTools = $derived(
-    TOOLS.filter((t: AITool) => {
-      const matchesCategory = activeCategory === 'all' || t.category === activeCategory;
-      const q = searchQuery.toLowerCase().trim();
-      if (!q) return matchesCategory;
-
-      const matchesSearch =
-        t.agentName.toLowerCase().includes(q) ||
-        t.name.toLowerCase().includes(q) ||
-        t.agentRole.toLowerCase().includes(q) ||
-        t.description.toLowerCase().includes(q) ||
-        t.agentTagline.toLowerCase().includes(q) ||
-        (t.keywords && t.keywords.some((k: string) => k.toLowerCase().includes(q)));
-
-      return matchesCategory && matchesSearch;
-    })
-  );
+  let billingInterval = $state<'monthly' | 'yearly'>('monthly');
 
   const faqs = [
     {
-      q: 'What is BYOK (Bring Your Own Key) and is Gemini API free?',
-      a: 'Yes! Google AI Studio provides every user with a free Gemini 1.5/2.0 Flash API Key offering over 1,500 requests per day with zero fees and no credit card required. Because you use your own key, there are zero middleman token markups and you get maximum generation speeds directly from Google.'
+      q: 'What is the BYOK (Bring Your Own Key) plan?',
+      a: 'The BYOK Multi-Engine plan lets you connect your own API keys from Google Gemini, OpenAI, xAI (Grok), DeepSeek, OpenRouter (Claude), and Replicate. Because requests go directly through your provider accounts, you pay zero token markup or middleman fees. Google also offers a free Gemini Flash API key with 1,500 daily requests requiring zero credit card!'
+    },
+    {
+      q: 'What is the All-Inclusive Cloud plan?',
+      a: 'The All-Inclusive Cloud plan requires ZERO API keys or technical setup. All your AI workflows, copywriting, data calculations, and image generation are powered directly by our platform high-speed AI cluster. You just sign in and start executing immediately!'
+    },
+    {
+      q: 'Can I add multiple API keys for different tasks?',
+      a: 'Yes! On the BYOK plan, our Universal API Key Vault allows you to add multiple keys from various providers. You can easily select DeepSeek for coding, GPT-4o for complex research, Grok for real-time insights, or Gemini for instant responses.'
     },
     {
       q: 'Is there any risk of my WhatsApp number getting restricted?',
-      a: 'None at all! EzboAgents is an executive self-assistant, not a bulk marketing or broadcast bot. Our Baileys engine exclusively monitors your personal self-chat ("Message Yourself"). It completely ignores external contacts and groups, simulating natural human typing speed with an authentic composing delay.'
-    },
-    {
-      q: 'Can I use all 50+ specialists and the WhatsApp bot on mobile?',
-      a: 'Absolutely! The EzboAgents console is fully optimized for smartphones, tablets, and desktops. Once WhatsApp is paired, you can execute any specialist, evaluate proposals, draft contracts, and generate images directly within your WhatsApp chat without opening a browser.'
-    },
-    {
-      q: 'How long will the VIP launch special be available?',
-      a: 'This special pricing is limited to our inaugural launch campaign. You lock in full executive VIP access for an entire year at just BDT 1,499 (equal to only BDT 125/month). Standard renewal rate is BDT 2,999/year after the first year.'
+      a: 'None at all! EzboAgents is an executive self-assistant, not a bulk marketing or broadcast bot. Our Baileys engine exclusively monitors your personal self-chat ("Message Yourself"). It completely ignores external contacts and groups, simulating natural human typing speed with authentic composing delay.'
     },
     {
       q: 'How do payments work and how fast is activation?',
@@ -53,111 +33,87 @@
 
 <svelte:head>
   <title>EzboAgents — Private AI Executive Advisory & Intelligent Automation</title>
-  <meta name="description" content="Deploy an elite consortium of 50+ specialized AI executives and sync your personal WhatsApp into an autonomous command center. Zero token markup with BYOK." />
+  <meta name="description" content="Deploy your personalized autonomous AI workforce and sync your personal WhatsApp into an executive command center. Choose BYOK or All-Inclusive Cloud." />
 </svelte:head>
 
-<div class="min-h-screen bg-[#06070a] text-slate-100 flex flex-col font-sans selection:bg-amber-300 selection:text-black">
+<div class="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
   <Navbar />
 
   <main class="flex-1">
     <!-- ======================================================== -->
-    <!-- 1. HERO SECTION (FOCUSED, LUXURIOUS, SCREEN MOCKUP REMOVED) -->
+    <!-- 1. HERO SECTION -->
     <!-- ======================================================== -->
-    <section class="relative pt-24 pb-20 sm:pt-32 sm:pb-28 overflow-hidden">
-      <!-- Ambient Luxury Spotlights -->
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-amber-500/10 via-amber-600/5 to-transparent blur-[160px] pointer-events-none rounded-full"></div>
-      <div class="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-indigo-500/5 blur-[140px] pointer-events-none rounded-full"></div>
+    <section class="relative pt-20 pb-16 sm:pt-28 sm:pb-24 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-[#f8fafc]">
+      <!-- Ambient Royal Blue Spotlights -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-gradient-to-b from-blue-400/10 via-indigo-400/5 to-transparent blur-[140px] pointer-events-none rounded-full"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center space-y-6 max-w-4xl mx-auto">
-          <!-- Top Tagline Badge -->
-          <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0d0f17] border border-amber-400/30 text-amber-200 text-xs sm:text-sm font-semibold shadow-lg shadow-black/60 backdrop-blur-md">
-            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span>Private AI Executive Consortium • 50+ Vetted Specialists</span>
-            <span class="w-1 h-1 rounded-full bg-amber-400/60"></span>
-            <span class="text-white font-bold">VIP Launch Access</span>
-          </div>
-
           <!-- Main Title -->
-          <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.12]">
-            Deploy An Elite Army of <br class="hidden sm:inline" />
-            <span class="gold-gradient-text font-serif italic">
-              50+ Specialized AI Experts
+          <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.14]">
+            Deploy Your Private <br class="hidden sm:inline" />
+            <span class="blue-gradient-text font-serif italic">
+              Autonomous AI Workforce
             </span><br class="hidden sm:inline" />
-            To Automate 90% of Your Work.
+            To Automate 90% of Your Business.
           </h1>
 
           <!-- Subtitle -->
-          <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Direct-response copywriters, objection closers, financial architects, and software engineers — seamlessly synchronized between your private web console and your personal WhatsApp. Powered by your free Google Gemini API with zero token markups.
+          <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Custom specialized AI agents seamlessly synchronized between your private web console and your personal WhatsApp. Connect your own Multi-API keys with zero token markups, or choose our fully managed cloud cluster with zero setup.
           </p>
 
           <!-- Primary CTAs -->
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             {#if $isAuthenticated}
               <a
-                href="/dashboard"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm gold-btn text-slate-950 flex items-center justify-center gap-2 shadow-xl cursor-pointer"
+                href={$currentUser?.isSubscribed ? "/dashboard" : "/plans"}
+                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 shadow-md cursor-pointer"
               >
-                <span>Enter Executive Console</span>
+                <span>{$currentUser?.isSubscribed ? "Enter Executive Console" : "Select Your Plan & Unlock"}</span>
                 <Icon name="ArrowRight" size={16} />
               </a>
             {:else}
               <a
                 href="/signup"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm gold-btn text-slate-950 flex items-center justify-center gap-2 shadow-xl cursor-pointer"
+                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
               >
-                <span>Deploy Your Consortium Free</span>
+                <span>Deploy Your AI Workforce</span>
                 <Icon name="ArrowRight" size={16} />
               </a>
               <a
-                href="/login"
-                class="w-full sm:w-auto px-7 py-4 rounded-xl font-semibold text-sm bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border border-white/10 hover:border-amber-400/40 transition-all flex items-center justify-center gap-2"
+                href="#pricing"
+                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 transition-all shadow-xs flex items-center justify-center gap-2"
               >
-                <span>Client Sign In</span>
+                <span>View Plans & Pricing</span>
               </a>
             {/if}
-            <a
-              href="#specialists"
-              class="w-full sm:w-auto px-6 py-4 rounded-xl font-medium text-sm text-slate-400 hover:text-amber-300 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <span>Explore 50+ Specialists</span>
-              <Icon name="ChevronRight" size={15} />
-            </a>
           </div>
 
-          <!-- Trust Checkpoint Bar (Darius Lukas Style) -->
-          <div class="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-white/[0.07] mt-8">
-            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <div class="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
-                <Icon name="CheckCircle" size={16} class="text-amber-400 shrink-0" />
-                <span>50+ Field Specialists</span>
+          <!-- Trust Badges -->
+          <div class="pt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
+            <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <div class="flex items-center gap-2 text-blue-700 font-bold text-xs sm:text-sm">
+                <Icon name="MessageSquare" size={16} class="text-blue-600 shrink-0" />
+                <span>Personal WhatsApp Link</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-1">Covering sales, media, tech, and corporate</p>
+              <p class="text-[11px] text-slate-500 mt-1">Chat directly via private self-chat • Zero ban risk</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <div class="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
-                <Icon name="Shield" size={16} class="text-amber-400 shrink-0" />
-                <span>Personal WhatsApp</span>
+            <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <div class="flex items-center gap-2 text-blue-700 font-bold text-xs sm:text-sm">
+                <Icon name="Key" size={16} class="text-blue-600 shrink-0" />
+                <span>Multi-API Vault or Managed</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-1">100% anti-ban self-chat synchronization</p>
+              <p class="text-[11px] text-slate-500 mt-1">BYOK with zero markup, or 100% plug & play</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <div class="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
-                <Icon name="Key" size={16} class="text-amber-400 shrink-0" />
-                <span>Zero Token Markup</span>
+            <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs">
+              <div class="flex items-center gap-2 text-blue-700 font-bold text-xs sm:text-sm">
+                <Icon name="Zap" size={16} class="text-blue-600 shrink-0" />
+                <span>Instant 60s Activation</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-1">Free 1,500 daily requests via Gemini BYOK</p>
-            </div>
-
-            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <div class="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
-                <Icon name="Zap" size={16} class="text-amber-400 shrink-0" />
-                <span>Instant 60s Setup</span>
-              </div>
-              <p class="text-[11px] text-slate-400 mt-1">Immediate access • No credit card required</p>
+              <p class="text-[11px] text-slate-500 mt-1">Immediate access • No complex setup</p>
             </div>
           </div>
         </div>
@@ -165,233 +121,82 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 2. DARIUS LUKAS STYLE 50+ SPECIALIST GALLERY -->
+    <!-- 2. WHY EZBOAGENTS VS GENERIC CHATGPT -->
     <!-- ======================================================== -->
-    <section id="specialists" class="py-24 bg-[#090b11] border-y border-white/[0.06] relative">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Section Header -->
-        <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold">
-            <Icon name="Grid" size={13} />
-            <span>Meet Your New AI Workforce</span>
-          </div>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            50 Specialized AI Executives
-          </h2>
-          <p class="text-sm sm:text-base text-slate-400">
-            From virtual wordsmiths to spreadsheet wizards, our diverse AI squad covers every business task 24/7.
-          </p>
-        </div>
-
-        <!-- Search & Category Filters Strip -->
-        <div class="max-w-5xl mx-auto mb-10 space-y-4">
-          <!-- Search Bar -->
-          <div class="relative">
-            <Icon name="Search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              type="text"
-              bind:value={searchQuery}
-              placeholder="Search 50+ specialists by name, role, or task (e.g., Cody, Facebook Ads, Excel, SEO, Pitch)..."
-              class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#0f121b] border border-white/10 hover:border-amber-400/30 focus:border-amber-400 focus:outline-none text-sm text-white placeholder-slate-500 shadow-inner transition-all"
-            />
-            {#if searchQuery}
-              <button
-                onclick={() => (searchQuery = '')}
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
-              >
-                Clear
-              </button>
-            {/if}
-          </div>
-
-          <!-- Category Pills -->
-          <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
-            {#each CATEGORIES as cat}
-              <button
-                onclick={() => (activeCategory = cat.id)}
-                class="px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer {activeCategory === cat.id
-                  ? 'bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20'
-                  : 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/10'}"
-              >
-                <Icon name={cat.icon} size={14} />
-                <span>{cat.name}</span>
-              </button>
-            {/each}
-          </div>
-
-          <div class="text-center text-xs text-slate-400">
-            Showing <span class="font-bold text-white">{filteredTools.length}</span> of 50 Specialists
-          </div>
-        </div>
-
-        <!-- 50+ Specialists Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {#each filteredTools as tool}
-            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between group transition-all duration-300">
-              <div>
-                <!-- Top: Portrait + Name + Role Badge -->
-                <div class="flex items-start gap-4 mb-4">
-                  <div class="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-950 border border-white/10 group-hover:border-amber-400/60 transition-all shadow-md shrink-0">
-                    <img
-                      src={tool.agentAvatar}
-                      alt={tool.agentName}
-                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0f121b]" title="Active & Ready"></span>
-                  </div>
-
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2">
-                      <h3 class="font-bold text-lg text-white group-hover:text-amber-200 transition-colors truncate">
-                        {tool.agentName}
-                      </h3>
-                      {#if tool.badge}
-                        <span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/30 uppercase tracking-wider shrink-0">
-                          {tool.badge}
-                        </span>
-                      {/if}
-                    </div>
-                    <p class="text-xs font-semibold text-amber-300/90 truncate">{tool.agentRole}</p>
-                    <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] bg-white/[0.04] text-slate-400 border border-white/[0.06]">
-                      {tool.categoryName}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Specialization & Description -->
-                <p class="text-xs text-slate-300 leading-relaxed mb-4 line-clamp-3">
-                  {tool.agentTagline || tool.description}
-                </p>
-              </div>
-
-              <!-- Footer CTA -->
-              <div class="pt-3 border-t border-white/[0.07] flex items-center justify-between">
-                <span class="text-[11px] text-slate-400 font-mono">
-                  {tool.inputs.length} parameters
-                </span>
-                <a
-                  href={$isAuthenticated ? '/dashboard' : '/signup'}
-                  class="flex items-center gap-1.5 text-xs font-semibold text-amber-300 group-hover:text-amber-200 group-hover:translate-x-1 transition-all"
-                >
-                  <span>Consult Specialist</span>
-                  <Icon name="ArrowRight" size={13} />
-                </a>
-              </div>
-            </div>
-          {/each}
-        </div>
-
-        {#if filteredTools.length === 0}
-          <div class="text-center py-16 text-slate-400 space-y-3">
-            <Icon name="Search" size={32} class="mx-auto text-slate-600" />
-            <p class="text-sm">No specialists found matching "{searchQuery}".</p>
-            <button
-              onclick={() => { searchQuery = ''; activeCategory = 'all'; }}
-              class="px-4 py-2 rounded-xl text-xs font-bold gold-btn text-slate-950"
-            >
-              Reset Filters
-            </button>
-          </div>
-        {/if}
-
-        <!-- Bottom Roster Unlock Callout -->
-        <div class="mt-16 text-center p-8 rounded-3xl bg-gradient-to-r from-[#111420] via-[#0d0f17] to-[#111420] border border-amber-400/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl">
-          <div class="text-left space-y-1">
-            <h4 class="text-lg font-bold text-white">Wield the entire 50+ specialist roster</h4>
-            <p class="text-xs text-slate-400">All 50 agents are available on web console and synced to your personal WhatsApp.</p>
-          </div>
-          <a
-            href={$isAuthenticated ? '/dashboard' : '/signup'}
-            class="px-7 py-3 rounded-xl font-bold text-xs gold-btn text-slate-950 transition-all shrink-0"
-          >
-            Access All 50 Specialists
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================================================== -->
-    <!-- 3. WHY EZBOAGENTS VS GENERIC CHATGPT (DIRECT COMPARISON) -->
-    <!-- ======================================================== -->
-    <section class="py-24 relative overflow-hidden">
+    <section class="py-24 relative overflow-hidden bg-white border-y border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold">
-            <Icon name="Shield" size={13} />
-            <span>Why Elite Operators Choose EzboAgents</span>
-          </div>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
             Stop Staring At Blank Prompt Boxes.
           </h2>
-          <p class="text-sm sm:text-base text-slate-400">
-            Standard AI chatbots provide generic answers. EzboAgents deploys domain-specific, pre-calibrated executives that know exactly what to produce.
+          <p class="text-sm sm:text-base text-slate-600">
+            Standard AI chatbots provide generic answers. EzboAgents deploys domain-specific, custom-calibrated agents that know exactly what to produce.
           </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <!-- The Generic Way (Red/Grey muted) -->
-          <div class="rounded-3xl bg-white/[0.02] border border-white/10 p-8 space-y-6">
-            <div class="flex items-center gap-3 border-b border-white/[0.08] pb-4">
-              <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold">
+          <!-- The Generic Way -->
+          <div class="rounded-3xl bg-[#f8fafc] border border-slate-200 p-8 space-y-6 shadow-xs">
+            <div class="flex items-center gap-3 border-b border-slate-200 pb-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 font-bold">
                 ✕
               </div>
               <div>
-                <h3 class="font-bold text-lg text-white">Standard ChatGPT & Copilots</h3>
-                <p class="text-xs text-slate-400">Generic, unfocused conversational bots</p>
+                <h3 class="font-bold text-lg text-slate-900">Standard ChatGPT & Generic Bots</h3>
+                <p class="text-xs text-slate-500">Unfocused conversational chatbots</p>
               </div>
             </div>
 
-            <ul class="space-y-4 text-xs sm:text-sm text-slate-400">
+            <ul class="space-y-4 text-xs sm:text-sm text-slate-600">
               <li class="flex items-start gap-3">
-                <span class="text-rose-400 font-bold mt-0.5">✕</span>
-                <span><strong>Blank Prompt Paralysis:</strong> You have to figure out how to engineer complex prompts from scratch every single time.</span>
+                <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                <span><strong>Blank Prompt Paralysis:</strong> You have to engineer complex prompts from scratch every single time.</span>
               </li>
               <li class="flex items-start gap-3">
-                <span class="text-rose-400 font-bold mt-0.5">✕</span>
+                <span class="text-rose-500 font-bold mt-0.5">✕</span>
                 <span><strong>Robotic & Generic Output:</strong> Hallucinates generic fluff that sounds like AI and lacks sales psychology or real domain nuance.</span>
               </li>
               <li class="flex items-start gap-3">
-                <span class="text-rose-400 font-bold mt-0.5">✕</span>
-                <span><strong>High Monthly Subscriptions:</strong> Costs \$20–\$30/month per seat, recurring forever with no regional pricing.</span>
+                <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                <span><strong>High Monthly Subscriptions:</strong> Costs $20–$30/month per seat, recurring forever with no regional pricing.</span>
               </li>
               <li class="flex items-start gap-3">
-                <span class="text-rose-400 font-bold mt-0.5">✕</span>
+                <span class="text-rose-500 font-bold mt-0.5">✕</span>
                 <span><strong>Browser Only:</strong> You cannot run them inside your personal mobile WhatsApp without expensive 3rd-party webhook setups.</span>
               </li>
             </ul>
           </div>
 
-          <!-- The EzboAgents Way (Champagne Gold Glow) -->
-          <div class="rounded-3xl bg-gradient-to-b from-[#131624] via-[#0d0f17] to-[#131624] border-2 border-amber-400/50 p-8 space-y-6 relative shadow-2xl shadow-amber-500/10">
-            <div class="flex items-center gap-3 border-b border-white/[0.08] pb-4">
-              <div class="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 font-bold">
+          <!-- The EzboAgents Way -->
+          <div class="rounded-3xl bg-white border-2 border-blue-500 p-8 space-y-6 relative shadow-xl shadow-blue-500/10">
+            <div class="flex items-center gap-3 border-b border-blue-100 pb-4">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold">
                 ✓
               </div>
               <div>
-                <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                  <span>EzboAgents Executive Consortium</span>
-                  <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase">Superior</span>
+                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                  <span>EzboAgents Custom Architecture</span>
+                  <span class="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase">Superior</span>
                 </h3>
-                <p class="text-xs text-amber-300/80">50 calibrated senior executives at your command</p>
+                <p class="text-xs text-blue-700 font-medium">Calibrated specialized AI agents at your command</p>
               </div>
             </div>
 
-            <ul class="space-y-4 text-xs sm:text-sm text-slate-200">
+            <ul class="space-y-4 text-xs sm:text-sm text-slate-700">
               <li class="flex items-start gap-3">
-                <span class="text-amber-400 font-bold mt-0.5">✓</span>
-                <span><strong>50 Calibrated Specialists:</strong> Each agent arrives pre-trained with hundreds of pages of real industry frameworks, copy systems, and Excel models.</span>
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>Custom Specialized Agents:</strong> Pre-calibrated with proven industry frameworks, direct-response copy systems, and Excel models.</span>
               </li>
               <li class="flex items-start gap-3">
-                <span class="text-amber-400 font-bold mt-0.5">✓</span>
-                <span><strong>Personal WhatsApp Sync:</strong> Chat with any specialist directly in WhatsApp via private self-chat with zero ban risk.</span>
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>Personal WhatsApp Sync:</strong> Chat with your agents directly in WhatsApp via private self-chat with zero ban risk.</span>
               </li>
               <li class="flex items-start gap-3">
-                <span class="text-amber-400 font-bold mt-0.5">✓</span>
-                <span><strong>Zero Token Markup (BYOK):</strong> Connect your free Google Gemini API key and get 1,500 requests per day with zero middleman fees.</span>
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>Multi-API Vault or Managed Cloud:</strong> Connect your own API keys with zero token markups, or let our managed cloud handle everything with zero keys.</span>
               </li>
               <li class="flex items-start gap-3">
-                <span class="text-amber-400 font-bold mt-0.5">✓</span>
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
                 <span><strong>Instant Visual Media (/image):</strong> Generate photorealistic commercial assets and mockups directly inside WhatsApp and web.</span>
               </li>
             </ul>
@@ -401,19 +206,15 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 4. WHATSAPP ENGINE ARCHITECTURE -->
+    <!-- 3. WHATSAPP ENGINE ARCHITECTURE -->
     <!-- ======================================================== -->
-    <section id="features" class="py-24 bg-[#090b11] border-y border-white/[0.06] relative">
+    <section id="features" class="py-24 bg-[#f8fafc] relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold">
-            <Icon name="MessageSquare" size={13} />
-            <span>Autonomous WhatsApp Integration</span>
-          </div>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
             Turn Your Personal WhatsApp Into an Autonomous Executive
           </h2>
-          <p class="text-sm sm:text-base text-slate-400">
+          <p class="text-sm sm:text-base text-slate-600">
             No app switching required. Chat with yourself in WhatsApp and our Central Brain router delegates to the right specialist in seconds.
           </p>
         </div>
@@ -421,34 +222,34 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- Step 1 -->
           <div class="glass-card rounded-2xl p-6 space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 font-mono font-bold text-lg">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono font-bold text-lg">
               01
             </div>
-            <h3 class="text-lg font-bold text-white">Scan Private QR Code</h3>
-            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <h3 class="text-lg font-bold text-slate-900">Scan Private QR Code</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Pair your personal WhatsApp in less than 10 seconds via our secure multi-device Baileys socket link. No API verification delays.
             </p>
           </div>
 
           <!-- Step 2 -->
           <div class="glass-card rounded-2xl p-6 space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 font-mono font-bold text-lg">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono font-bold text-lg">
               02
             </div>
-            <h3 class="text-lg font-bold text-white">Message Yourself Anytime</h3>
-            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Open your own chat ("Message Yourself") on your phone. Send questions, ask for Excel formulas, or type <span class="text-amber-300 font-mono font-bold">/image</span> for commercial renders.
+            <h3 class="text-lg font-bold text-slate-900">Message Yourself Anytime</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Open your own chat ("Message Yourself") on your phone. Send questions, ask for copy variations, or type <span class="text-blue-600 font-mono font-bold">/image</span> for commercial renders.
             </p>
           </div>
 
           <!-- Step 3 -->
           <div class="glass-card rounded-2xl p-6 space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 font-mono font-bold text-lg">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono font-bold text-lg">
               03
             </div>
-            <h3 class="text-lg font-bold text-white">Instant Specialist Execution</h3>
-            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              The Central Brain identifies the exact persona, drafts the executive-level response, and replies back to your phone with authentic composing speed.
+            <h3 class="text-lg font-bold text-slate-900">Instant AI Execution</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              The Central Brain identifies the task, executes the prompt with your chosen engine, and replies back to your phone with authentic composing speed.
             </p>
           </div>
         </div>
@@ -456,125 +257,151 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 5. PRICING & MEMBERSHIP TIERS (DARIUS LUKAS STYLE) -->
+    <!-- 4. PRICING - 2 TIERS: BYOK vs ALL-INCLUSIVE MANAGED -->
     <!-- ======================================================== -->
-    <section id="pricing" class="py-24 relative">
+    <section id="pricing" class="py-24 relative bg-white border-y border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold">
-            <Icon name="Crown" size={13} />
-            <span>Inaugural VIP Launch — 75% OFF</span>
-          </div>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Transparent Pricing. Instant Activation.
+        <div class="text-center max-w-3xl mx-auto mb-12 space-y-4">
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            Transparent Pricing. Choose Your Setup.
           </h2>
-          <p class="text-sm sm:text-base text-slate-400">
-            Pay once, keep access. Supporting bKash, Nagad, Rocket, Visa & Mastercard with a 3-day safety grace period.
+          <p class="text-sm sm:text-base text-slate-600">
+            Bring your own API keys for complete control, or choose our managed cloud with zero configuration.
           </p>
+
+          <!-- Monthly / Yearly Toggle -->
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <span class="text-sm font-semibold {billingInterval === 'monthly' ? 'text-slate-900' : 'text-slate-500'}">Monthly</span>
+            <button
+              onclick={() => billingInterval = billingInterval === 'monthly' ? 'yearly' : 'monthly'}
+              aria-label="Toggle billing interval between monthly and yearly"
+              class="relative w-14 h-7 rounded-full transition-all duration-300 {billingInterval === 'yearly' ? 'bg-blue-600' : 'bg-slate-300'} cursor-pointer"
+            >
+              <span class="absolute top-1 transition-all duration-300 w-5 h-5 rounded-full bg-white shadow-xs {billingInterval === 'yearly' ? 'left-8' : 'left-1'}"></span>
+            </button>
+            <span class="text-sm font-semibold {billingInterval === 'yearly' ? 'text-blue-700 font-bold' : 'text-slate-500'}">Yearly</span>
+            {#if billingInterval === 'yearly'}
+              <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">Save 20% • 2 months FREE</span>
+            {/if}
+          </div>
         </div>
 
+        <!-- 2-Tier Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <!-- Monthly Pro Card -->
-          <div class="rounded-3xl bg-white/[0.02] border border-white/10 p-8 flex flex-col justify-between hover:border-amber-400/30 transition-all duration-300 shadow-xl">
+          <!-- PLAN 1: BYOK MULTI-ENGINE -->
+          <div class="rounded-3xl bg-white border border-slate-200 p-8 flex flex-col justify-between hover:border-blue-300 transition-all duration-300 shadow-sm">
             <div>
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-white">Monthly Pro</h3>
-                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/[0.06] text-slate-400">Monthly</span>
+              <div class="mb-5">
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">Bring Your Own Key</span>
+                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">BYOK Multi-Engine</h3>
+                <div class="flex items-baseline gap-1 mt-2">
+                  <span class="text-3xl font-extrabold text-slate-900">BDT {billingInterval === 'yearly' ? '399' : '499'}</span>
+                  <span class="text-sm font-medium text-slate-500">/mo</span>
+                </div>
+                {#if billingInterval === 'yearly'}
+                  <p class="text-xs text-slate-500 mt-1">Billed annually (BDT 4,790/yr)</p>
+                {/if}
               </div>
-              <div class="flex items-baseline gap-1 mb-6">
-                <span class="text-4xl font-extrabold text-white">BDT 499</span>
-                <span class="text-xs text-slate-400">/ month</span>
-              </div>
-              <ul class="space-y-3 text-xs sm:text-sm text-slate-300 mb-8">
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Full access to all 50+ AI specialists</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Personal WhatsApp assistant pair</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Free Gemini BYOK zero-markup engine</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Web executive console chat</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> 24/7 technical concierge</li>
+              <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                For freelancers, developers, and power users who want to connect their own API keys with unlimited engine switching and zero token markups.
+              </p>
+              <ul class="space-y-3 text-xs text-slate-700">
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Universal Multi-API Key Vault</strong></li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Add keys for Gemini, OpenAI, Grok, DeepSeek, OpenRouter & Replicate</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Live model switcher (use different APIs for different tasks)</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Zero token markups</strong> — direct provider pricing</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Free 1,500 daily requests via Google Gemini Free Key</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Personal WhatsApp self-assistant integration</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Web Executive Console & image generation (/image)</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Standard technical support</li>
               </ul>
             </div>
             <a
-              href="/signup"
-              class="w-full py-3.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white font-bold text-xs text-center transition-all block"
+              href={$isAuthenticated ? "/plans?plan=byok" : "/signup?plan=byok"}
+              class="mt-8 w-full py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs text-center transition-all block cursor-pointer"
             >
-              Get Started with Monthly Pro
+              Start with BYOK
             </a>
           </div>
 
-          <!-- Yearly VIP Card (Featured - Champagne Gold Accent) -->
-          <div class="rounded-3xl bg-gradient-to-b from-[#161928] via-[#0e111a] to-[#161928] border-2 border-amber-400/60 p-8 flex flex-col justify-between relative shadow-2xl shadow-amber-500/10">
-            <div class="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-300 to-amber-500 text-slate-950 text-[11px] font-black uppercase tracking-wider shadow-lg">
-              Save 75% • VIP Access
+          <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
+          <div class="rounded-3xl bg-white border-2 border-blue-600 p-8 flex flex-col justify-between relative shadow-xl shadow-blue-500/10 scale-[1.02]">
+            <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
+              ⚡ Zero Setup • Most Popular
             </div>
             <div>
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                  <span>Yearly VIP Special</span>
-                  <Icon name="Crown" size={18} class="text-amber-400" />
-                </h3>
+              <div class="mb-5">
+                <span class="px-3 py-1 rounded-full bg-blue-50 text-xs font-bold text-blue-700 border border-blue-200">100% Managed Cloud</span>
+                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">All-Inclusive Cloud</h3>
+                <div class="flex items-baseline gap-1 mt-2">
+                  <span class="text-3xl font-extrabold text-slate-900">BDT {billingInterval === 'yearly' ? '1,199' : '1,499'}</span>
+                  <span class="text-sm font-medium text-slate-500">/mo</span>
+                </div>
+                {#if billingInterval === 'yearly'}
+                  <p class="text-xs text-slate-500 mt-1">Billed annually (BDT 14,390/yr)</p>
+                {/if}
               </div>
-              <div class="flex items-baseline gap-2 mb-1">
-                <span class="text-4xl font-extrabold text-white">BDT 1,499</span>
-                <span class="text-xs text-slate-400">/ 1st year</span>
-                <span class="text-xs line-through text-slate-500">BDT 5,988</span>
-              </div>
-              <p class="text-[11px] text-amber-300 mb-6 font-semibold">Equal to only BDT 125/month!</p>
-              <ul class="space-y-3 text-xs sm:text-sm text-slate-200 mb-8">
-                <li class="flex items-center gap-2.5 font-semibold text-white"><Icon name="Check" size={16} class="text-amber-400" /> Everything in Monthly Pro</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Priority fast-lane AI response speeds</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Early access to all upcoming specialists</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> 3-day safety grace period protection</li>
-                <li class="flex items-center gap-2.5"><Icon name="Check" size={16} class="text-amber-400" /> Dedicated VIP WhatsApp concierge</li>
+              <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                For business owners and executives who want 100% plug & play AI. No API keys or technical setup required — ready instantly.
+              </p>
+              <ul class="space-y-3 text-xs text-slate-700">
+                <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong class="text-blue-700">ZERO API Keys Required</strong> — 100% hands-off</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Platform-managed high-speed AI cluster (Gemini 2.0 Flash & GPT-4o)</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Immediate plug-and-play access upon signup</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Priority fast-lane execution speeds</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Personal WhatsApp self-assistant integration</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Web Executive Console & image generation (/image)</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Dedicated VIP WhatsApp concierge</li>
+                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> 24/7 VIP priority support</li>
               </ul>
             </div>
             <a
-              href="/signup"
-              class="w-full py-4 rounded-xl gold-btn text-slate-950 font-bold text-xs text-center transition-all block shadow-lg"
+              href={$isAuthenticated ? "/plans?plan=managed" : "/signup?plan=managed"}
+              class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs text-center transition-all block shadow-md cursor-pointer"
             >
-              Claim 75% Launch Offer
+              Start All-Inclusive
             </a>
           </div>
         </div>
 
-        <!-- Payment Methods Trust Badge -->
-        <div class="mt-12 text-center text-xs text-slate-400 space-y-2">
-          <p>Instant Activation Guaranteed • 100% Secure Checkout</p>
-          <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-300">
-            <span class="px-3 py-1 rounded-lg bg-white/[0.04] border border-white/10">bKash</span>
-            <span class="px-3 py-1 rounded-lg bg-white/[0.04] border border-white/10">Nagad</span>
-            <span class="px-3 py-1 rounded-lg bg-white/[0.04] border border-white/10">Rocket</span>
-            <span class="px-3 py-1 rounded-lg bg-white/[0.04] border border-white/10">Visa / Mastercard</span>
+        <!-- Payment methods -->
+        <div class="mt-12 text-center text-xs text-slate-500 space-y-2">
+          <p>Instant Activation • 100% Secure Checkout • 3-Day Grace Period</p>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            {#each ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard'] as method}
+              <span class="px-3 py-1 rounded-lg bg-white border border-slate-200 font-semibold text-slate-700 shadow-2xs">{method}</span>
+            {/each}
           </div>
         </div>
       </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- 6. FAQ SECTION -->
+    <!-- 5. FAQ SECTION -->
     <!-- ======================================================== -->
-    <section id="faq" class="py-24 bg-[#090b11] border-t border-white/[0.06] relative">
+    <section id="faq" class="py-24 bg-[#f8fafc] relative">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 space-y-3">
-          <h2 class="text-2xl sm:text-4xl font-extrabold text-white">Frequently Asked Questions</h2>
-          <p class="text-xs sm:text-sm text-slate-400">Everything you need to know about EzboAgents, BYOK, and WhatsApp AI.</p>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900">Frequently Asked Questions</h2>
+          <p class="text-xs sm:text-sm text-slate-600">Everything you need to know about EzboAgents, BYOK, and WhatsApp AI.</p>
         </div>
 
         <div class="space-y-3">
           {#each faqs as faq, i}
-            <div class="rounded-2xl bg-white/[0.02] border border-white/10 hover:border-amber-400/30 overflow-hidden transition-all">
+            <div class="rounded-2xl bg-white border border-slate-200 hover:border-blue-300 overflow-hidden transition-all shadow-xs">
               <button
                 onclick={() => (openFaq = openFaq === i ? null : i)}
-                class="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-bold text-white hover:text-amber-300 transition-colors cursor-pointer"
+                class="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-bold text-slate-900 hover:text-blue-600 transition-colors cursor-pointer"
               >
                 <span>{faq.q}</span>
                 <Icon
                   name="ChevronRight"
                   size={16}
-                  class="text-amber-400 shrink-0 transform transition-transform {openFaq === i ? 'rotate-90' : ''}"
+                  class="text-blue-600 shrink-0 transform transition-transform {openFaq === i ? 'rotate-90' : ''}"
                 />
               </button>
               {#if openFaq === i}
-                <div class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-white/[0.06]">
+                <div class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
                   {faq.a}
                 </div>
               {/if}

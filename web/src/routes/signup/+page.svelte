@@ -5,7 +5,8 @@
     loginWithGoogle,
     loginOrCreateWithGoogle,
     checkUserExists,
-    isAuthenticated
+    isAuthenticated,
+    currentUser
   } from '$lib/stores/userStore';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -21,7 +22,11 @@
 
   onMount(() => {
     if ($isAuthenticated) {
-      goto('/dashboard');
+      if ($currentUser?.isSubscribed) {
+        goto('/dashboard');
+      } else {
+        goto('/plans');
+      }
     }
 
     const clientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
@@ -62,7 +67,7 @@
     try {
       const res = await signupWithEmail(name, email, password);
       if (res.success) {
-        goto('/dashboard');
+        goto('/plans');
       } else {
         errorMessage = res.error || 'Registration failed. Please try again.';
       }
@@ -128,7 +133,11 @@
               sub: data.sub
             });
             if (res.success) {
-              goto('/dashboard');
+              if (res.user?.isSubscribed) {
+                goto('/dashboard');
+              } else {
+                goto('/plans');
+              }
             } else {
               errorMessage = res.error || 'Google signup failed.';
             }
@@ -152,36 +161,31 @@
   <meta name="description" content="Create your EzboAgents account to unlock 50+ specialized AI executives and your private encrypted WhatsApp assistant." />
 </svelte:head>
 
-<div class="min-h-screen bg-[#08090d] text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-amber-400 selection:text-black">
+<div class="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-blue-600 selection:text-white">
   <!-- Background Ambient Spotlights -->
-  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[320px] bg-amber-500/10 blur-[130px] pointer-events-none rounded-full"></div>
-  <div class="absolute bottom-1/4 left-1/4 w-[320px] h-[260px] bg-amber-600/5 blur-[100px] pointer-events-none rounded-full"></div>
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[320px] bg-blue-500/10 blur-[130px] pointer-events-none rounded-full"></div>
+  <div class="absolute bottom-1/4 left-1/4 w-[320px] h-[260px] bg-indigo-500/5 blur-[100px] pointer-events-none rounded-full"></div>
 
   <!-- Header / Logo -->
   <div class="mb-8 text-center relative z-10">
     <a href="/" class="inline-flex items-center gap-2.5 group">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
         <Icon name="Sparkles" size={20} />
       </div>
-      <span class="font-extrabold text-2xl tracking-tight text-white">
-        Ezbo<span class="text-amber-400">Agents</span>
+      <span class="font-extrabold text-2xl tracking-tight text-slate-900">
+        Ezbo<span class="text-blue-600">Agents</span>
       </span>
     </a>
-    <p class="text-xs text-slate-400 mt-2">Deploy your private executive AI consortium</p>
+    <p class="text-xs text-slate-500 mt-2 font-medium">Deploy your private executive AI consortium</p>
   </div>
 
   <!-- Auth Card -->
-  <div class="w-full max-w-md bg-[#0e1017] border border-amber-500/20 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative z-10">
-    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[11px] font-semibold mb-3 mx-auto w-fit">
-      <Icon name="Gift" size={13} />
-      <span>75% Off VIP Launch Special Active</span>
-    </div>
-
-    <h1 class="text-xl sm:text-2xl font-bold text-white mb-2 text-center">Create Your Account</h1>
-    <p class="text-xs text-slate-400 text-center mb-6">Unlock 50+ specialists, WhatsApp engine, and zero-markup BYOK</p>
+  <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 relative z-10">
+    <h1 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2 text-center">Create Your Account</h1>
+    <p class="text-xs text-slate-500 text-center mb-6">Unlock 50+ specialists, WhatsApp engine, and zero-markup BYOK</p>
 
     {#if errorMessage}
-      <div class="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+      <div class="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
         <Icon name="AlertCircle" size={16} />
         <span>{errorMessage}</span>
       </div>
@@ -192,7 +196,7 @@
       type="button"
       onclick={handleGoogleSignup}
       disabled={isLoading}
-      class="w-full py-2.5 px-4 rounded-xl bg-[#141622] hover:bg-[#1a1d2c] border border-white/10 hover:border-amber-400/40 text-white font-medium text-sm flex items-center justify-center gap-3 transition-all hover:shadow-md cursor-pointer disabled:opacity-50"
+      class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-400 text-slate-700 font-semibold text-sm flex items-center justify-center gap-3 transition-all hover:shadow-sm cursor-pointer disabled:opacity-50"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -205,38 +209,38 @@
 
     <!-- Divider -->
     <div class="relative my-6 text-center">
-      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-      <span class="relative px-3 bg-[#0e1017] text-[11px] font-semibold tracking-wider text-slate-500 uppercase">Or with email</span>
+      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+      <span class="relative px-3 bg-white text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Or with email</span>
     </div>
 
     <!-- Registration Form -->
     <form onsubmit={handleEmailSignup} class="space-y-4">
       <div>
-        <label for="signup-name" class="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+        <label for="signup-name" class="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
         <input
           id="signup-name"
           type="text"
           bind:value={name}
           required
           placeholder="Farhan Ayan"
-          class="w-full bg-[#08090d] border border-white/10 focus:border-amber-400/70 focus:ring-1 focus:ring-amber-400/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+          class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
         />
       </div>
 
       <div>
-        <label for="signup-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+        <label for="signup-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
         <input
           id="signup-email"
           type="email"
           bind:value={email}
           required
           placeholder="you@domain.com"
-          class="w-full bg-[#08090d] border border-white/10 focus:border-amber-400/70 focus:ring-1 focus:ring-amber-400/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+          class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
         />
       </div>
 
       <div>
-        <label for="signup-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+        <label for="signup-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
         <div class="relative">
           <input
             id="signup-password"
@@ -245,12 +249,12 @@
             required
             minlength="6"
             placeholder="At least 6 characters"
-            class="w-full bg-[#08090d] border border-white/10 focus:border-amber-400/70 focus:ring-1 focus:ring-amber-400/20 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
           />
           <button
             type="button"
             onclick={() => (showPassword = !showPassword)}
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
@@ -259,7 +263,7 @@
       </div>
 
       <div>
-        <label for="signup-confirm-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Confirm Password</label>
+        <label for="signup-confirm-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Password</label>
         <div class="relative">
           <input
             id="signup-confirm-password"
@@ -268,7 +272,7 @@
             required
             minlength="6"
             placeholder="Repeat password"
-            class="w-full bg-[#08090d] border border-white/10 focus:border-amber-400/70 focus:ring-1 focus:ring-amber-400/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
           />
         </div>
       </div>
@@ -278,20 +282,20 @@
           type="checkbox"
           id="terms"
           bind:checked={agreeTerms}
-          class="mt-1 rounded bg-[#141622] border-slate-700 text-amber-500 focus:ring-amber-500"
+          class="mt-1 rounded bg-white border-slate-300 text-blue-600 focus:ring-blue-500"
         />
-        <label for="terms" class="text-[11px] text-slate-400 leading-snug">
-          I agree to the <span class="text-white hover:underline cursor-pointer">Terms of Service</span> and <span class="text-white hover:underline cursor-pointer">Privacy Policy</span>.
+        <label for="terms" class="text-[11px] text-slate-500 leading-snug">
+          I agree to the <span class="text-blue-600 font-medium hover:underline cursor-pointer">Terms of Service</span> and <span class="text-blue-600 font-medium hover:underline cursor-pointer">Privacy Policy</span>.
         </label>
       </div>
 
       <button
         type="submit"
         disabled={isLoading}
-        class="w-full py-3 px-4 rounded-xl gold-btn text-slate-950 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+        class="w-full py-3 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 shadow-md shadow-blue-500/20"
       >
         {#if isLoading}
-          <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <span>Creating account...</span>
         {:else}
           <span>Deploy Account & Continue</span>
@@ -301,15 +305,15 @@
     </form>
 
     <!-- Sign In Link -->
-    <p class="text-xs text-slate-400 text-center mt-6">
+    <p class="text-xs text-slate-500 text-center mt-6">
       Already have an account?
-      <a href="/login" class="text-amber-400 font-semibold hover:underline ml-1">Client Sign In</a>
+      <a href="/login" class="text-blue-600 font-bold hover:underline ml-1">Client Sign In</a>
     </p>
   </div>
 
   <!-- Footer link back -->
   <div class="mt-8 text-center text-xs text-slate-500">
-    <a href="/" class="hover:text-slate-300 transition-colors inline-flex items-center gap-1.5">
+    <a href="/" class="hover:text-slate-800 transition-colors inline-flex items-center gap-1.5 font-medium">
       <Icon name="ChevronLeft" size={14} />
       <span>Back to Homepage</span>
     </a>

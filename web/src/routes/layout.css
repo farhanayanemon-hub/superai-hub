@@ -9,8 +9,8 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #06070a;
-    color: #f1f5f9;
+    background-color: #f8fafc;
+    color: #0f172a;
     overflow-x: hidden;
   }
 }
@@ -19,82 +19,88 @@
   font-family: var(--font-serif);
 }
 
-/* Custom Obsidian Glass & Champagne Gold Tokens */
+/* Modern Clean White & Royal Blue Tokens */
 .bg-obsidian-950 {
-  background-color: #06070a;
+  background-color: #f8fafc;
 }
 
 .bg-obsidian-900 {
-  background-color: #0b0d14;
+  background-color: #f1f5f9;
 }
 
 .bg-obsidian-800 {
-  background-color: #111420;
+  background-color: #e2e8f0;
 }
 
 .bg-obsidian-card {
-  background-color: rgba(15, 18, 28, 0.85);
+  background-color: #ffffff;
 }
 
 .border-gold-subtle {
-  border-color: rgba(216, 183, 114, 0.18);
+  border-color: rgba(37, 99, 235, 0.16);
 }
 
 .border-gold-glow:hover {
-  border-color: rgba(216, 183, 114, 0.45);
-  box-shadow: 0 10px 30px -10px rgba(216, 183, 114, 0.15);
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.2);
 }
 
-.gold-gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #f6e8cc 35%, #d8b772 70%, #aa8232 100%);
+/* Deep Slate to Royal Blue Gradient Headline */
+.gold-gradient-text,
+.blue-gradient-text {
+  background: linear-gradient(135deg, #0f172a 0%, #1e40af 55%, #2563eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gold-btn {
-  background: linear-gradient(135deg, #fffdf8 0%, #f3e4c6 45%, #d8b772 100%);
-  color: #090a0e;
+/* High-Energy Royal Blue Button (Supports .gold-btn and .blue-btn) */
+.gold-btn,
+.blue-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
   font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 20px -2px rgba(216, 183, 114, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.35);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.gold-btn:hover {
-  background: linear-gradient(135deg, #ffffff 0%, #faf0df 45%, #e5c78a 100%);
-  box-shadow: 0 8px 30px 0px rgba(216, 183, 114, 0.5);
+.gold-btn:hover,
+.blue-btn:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 8px 25px 0px rgba(37, 99, 235, 0.45);
   transform: translateY(-1.5px);
+  color: #ffffff;
 }
 
+/* Pure White Modern SaaS Card */
 .glass-card {
-  background: rgba(14, 16, 24, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(216, 183, 114, 0.35);
-  box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(216, 183, 114, 0.1);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 16px 36px -10px rgba(37, 99, 235, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
   transform: translateY(-2px);
 }
 
-/* Smooth luxury scrollbars */
+/* Clean Modern Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #06070a;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #181c2b;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d8b772;
+  background: #2563eb;
 }

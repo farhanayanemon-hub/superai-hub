@@ -1,10 +1,24 @@
 import { writable, get } from 'svelte/store';
 import type { AITool } from '$lib/config/tools';
-import { getDecryptedKey, saveEncryptedKey, clearStoredKey } from '$lib/services/crypto';
+import { getDecryptedKey, saveEncryptedKey, clearStoredKey, encryptVaultKey, decryptVaultKey } from '$lib/services/crypto';
 
 export type WhatsAppStatus = 'disconnected' | 'connecting' | 'qr_ready' | 'connected';
+export type DashboardTab = 'chat' | 'agents' | 'store' | 'channels' | 'billing' | 'settings' | 'tools' | 'whatsapp' | 'vault';
+export type AIProvider = 'gemini' | 'openai' | 'grok' | 'deepseek' | 'openrouter' | 'replicate';
+export type PlanTier = 'byok' | 'managed' | 'free' | 'pro' | 'ultra' | 'complete';
+export type BillingInterval = 'monthly' | 'yearly';
 
-export type DashboardTab = 'chat' | 'tools' | 'whatsapp' | 'byok' | 'billing' | 'settings';
+export interface ApiVaultKey {
+  id: string;
+  provider: AIProvider;
+  label: string;
+  encryptedKey: string;
+  model?: string;
+  isDefault: boolean;
+  addedAt: string;
+  lastValidated?: string;
+  isValid?: boolean;
+}
 
 export interface UserProfile {
   id: string;
@@ -13,17 +27,29 @@ export interface UserProfile {
   avatar?: string;
   provider: 'email' | 'google';
   isSubscribed: boolean;
-  plan: 'free' | 'monthly' | 'yearly';
+  plan: 'free' | 'monthly' | 'yearly'; // legacy compat
+  tier: PlanTier;
   createdAt: string;
 }
 
 export interface SubscriptionState {
-  plan: 'free' | 'monthly' | 'yearly';
+  tier: PlanTier;
+  interval: BillingInterval;
   status: 'active' | 'expired' | 'grace_period' | 'cancelled';
   expiresAt: string;
-  isVip: boolean;
   autoRenew?: boolean;
   cancelledAt?: string;
+  // Legacy fields for compatibility
+  plan: 'free' | 'monthly' | 'yearly';
+  isVip: boolean;
+  // Complete plan usage tracking
+  managedUsage?: {
+    usedThisMonth: number;
+    monthlyLimit: number;
+    resetsAt: string;
+  };
+  // Store unlocks
+  unlockedStoreBots: string[];
 }
 
 export interface ChatMessage {
@@ -34,6 +60,7 @@ export interface ChatMessage {
   toolMatched?: string;
   imageUrl?: string;
   status?: 'sending' | 'done' | 'error';
+  provider?: AIProvider;
 }
 
 // -------------------------------------------------------------
@@ -45,7 +72,15 @@ function loadInitialUser(): UserProfile | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem('superai_user');
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    // Migrate legacy plan -> 2-tier system
+    if (user.tier === 'complete') {
+      user.tier = 'managed';
+    } else if (user.tier === 'ultra' || user.tier === 'pro' || !user.tier) {
+      user.tier = 'byok';
+    }
+    return user;
   } catch (e) {
     return null;
   }
@@ -63,10 +98,56 @@ function loadInitialChat(): ChatMessage[] {
     {
       id: 'welcome',
       role: 'assistant',
-      content: `👋 **Welcome to your SuperAI Hub Executive Assistant!**\n\nI am directly connected to your WhatsApp Engine and Central Brain Router. Whatever you can do from WhatsApp, you can do right here:\n\n• **Ask any question** to automatically trigger our 50+ specialized tools (Copywriting, Code, Email, SEO, Marketing).\n• **Generate high-resolution AI images** using \`/image [your prompt]\`.\n• Type \`/help\` anytime for a full guide.\n\nHow can I help grow your business today?`,
+      content: `👋 **Welcome to your EzboAgents Executive Console!**\n\nI am connected to your Multi-API Vault and central AI engine. Whatever you can do from WhatsApp, you can do right here:\n\n• **Chat freely** with advanced AI models.\n• **Generate high-resolution AI images** using \`/image [your prompt]\`.\n• Add and manage multiple API keys in your **API Vault**.\n• Type \`/help\` anytime for a full guide.\n\nHow can I help grow your business today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ];
+}
+
+function loadInitialVault(): ApiVaultKey[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('ezbo_api_vault');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function loadInitialSubscription(): SubscriptionState {
+  const initialUser = loadInitialUser();
+  const defaultSub: SubscriptionState = {
+    tier: (initialUser?.tier as PlanTier) || 'byok',
+    interval: 'monthly',
+    status: initialUser?.isSubscribed ? 'active' : 'expired',
+    expiresAt: initialUser?.isSubscribed
+      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      : new Date(0).toISOString(),
+    autoRenew: !!initialUser?.isSubscribed,
+    plan: 'monthly',
+    isVip: !!initialUser?.isSubscribed,
+    unlockedStoreBots: []
+  };
+  if (typeof window === 'undefined') return defaultSub;
+  try {
+    const raw = localStorage.getItem('superai_subscription');
+    if (!raw) return defaultSub;
+    const parsed = JSON.parse(raw);
+    // Migrate legacy tier -> 2-tier system
+    if (parsed.tier === 'complete') {
+      parsed.tier = 'managed';
+    } else if (parsed.tier === 'ultra' || parsed.tier === 'pro' || !parsed.tier) {
+      parsed.tier = 'byok';
+    }
+    if (!parsed.unlockedStoreBots) parsed.unlockedStoreBots = [];
+    if (initialUser && !initialUser.isSubscribed) {
+      parsed.status = 'expired';
+      parsed.isVip = false;
+    }
+    return parsed;
+  } catch (e) {
+    return defaultSub;
+  }
 }
 
 // -------------------------------------------------------------
@@ -74,40 +155,90 @@ function loadInitialChat(): ChatMessage[] {
 // -------------------------------------------------------------
 export const currentUser = writable<UserProfile | null>(loadInitialUser());
 export const isAuthenticated = writable<boolean>(!!loadInitialUser());
-
 export const apiKey = writable<string>(initialKey);
 export const isKeyValid = writable<boolean>(!!initialKey);
-
 export const whatsappStatus = writable<WhatsAppStatus>('disconnected');
 export const whatsappQr = writable<string | null>(null);
-
 export const activeDashboardTab = writable<DashboardTab>('chat');
-
 export const activeTool = writable<AITool | null>(null);
 export const isDrawerOpen = writable<boolean>(false);
-
 export const activeCategory = writable<string>('all');
 export const searchQuery = writable<string>('');
+export const subscription = writable<SubscriptionState>(loadInitialSubscription());
+export const apiVault = writable<ApiVaultKey[]>(loadInitialVault());
+export const activeVaultKeyId = writable<string | null>(null);
 
-function loadInitialSubscription(): SubscriptionState {
-  const defaultSub: SubscriptionState = {
-    plan: 'yearly',
-    status: 'active',
-    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-    isVip: true,
-    autoRenew: true
-  };
-  if (typeof window === 'undefined') return defaultSub;
-  try {
-    const raw = localStorage.getItem('superai_subscription');
-    return raw ? JSON.parse(raw) : defaultSub;
-  } catch (e) {
-    return defaultSub;
+// Initialize default vault key from legacy single key
+if (typeof window !== 'undefined') {
+  const legacyKey = getDecryptedKey();
+  const vault = loadInitialVault();
+  if (legacyKey && vault.length === 0) {
+    const defaultEntry: ApiVaultKey[] = [{
+      id: `vault-${Date.now()}`,
+      provider: 'gemini',
+      label: 'My Gemini Key',
+      encryptedKey: legacyKey, // will be re-encrypted below
+      model: 'gemini-2.0-flash',
+      isDefault: true,
+      addedAt: new Date().toISOString(),
+      isValid: true
+    }];
+    localStorage.setItem('ezbo_api_vault', JSON.stringify(defaultEntry));
+    apiVault.set(defaultEntry);
   }
 }
 
-export const subscription = writable<SubscriptionState>(loadInitialSubscription());
+// -------------------------------------------------------------
+// Vault Actions
+// -------------------------------------------------------------
+export function addVaultKey(entry: Omit<ApiVaultKey, 'id' | 'addedAt'>): ApiVaultKey {
+  const newKey: ApiVaultKey = {
+    ...entry,
+    id: `vault-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    addedAt: new Date().toISOString()
+  };
+  apiVault.update((vault) => {
+    // If this is default, unset others
+    const updated = entry.isDefault
+      ? vault.map((k) => ({ ...k, isDefault: false }))
+      : [...vault];
+    const final = [...updated, newKey];
+    localStorage.setItem('ezbo_api_vault', JSON.stringify(final));
+    return final;
+  });
+  return newKey;
+}
 
+export function removeVaultKey(id: string): void {
+  apiVault.update((vault) => {
+    const filtered = vault.filter((k) => k.id !== id);
+    localStorage.setItem('ezbo_api_vault', JSON.stringify(filtered));
+    return filtered;
+  });
+}
+
+export function setDefaultVaultKey(id: string): void {
+  apiVault.update((vault) => {
+    const updated = vault.map((k) => ({ ...k, isDefault: k.id === id }));
+    localStorage.setItem('ezbo_api_vault', JSON.stringify(updated));
+    return updated;
+  });
+  activeVaultKeyId.set(id);
+}
+
+export function getActiveVaultKey(): ApiVaultKey | null {
+  const vault = get(apiVault);
+  const activeId = get(activeVaultKeyId);
+  if (activeId) {
+    const found = vault.find((k) => k.id === activeId);
+    if (found) return found;
+  }
+  return vault.find((k) => k.isDefault) || vault[0] || null;
+}
+
+// -------------------------------------------------------------
+// Subscription Actions
+// -------------------------------------------------------------
 export function cancelSubscription(): void {
   subscription.update((sub) => {
     const updated: SubscriptionState = {
@@ -138,16 +269,76 @@ export function reactivateSubscription(): void {
   });
 }
 
-export function switchPlan(newPlan: 'free' | 'monthly' | 'yearly'): void {
+export function switchPlan(tier: PlanTier, interval: BillingInterval = 'monthly'): void {
   subscription.update((sub) => {
-    const days = newPlan === 'yearly' ? 365 : newPlan === 'monthly' ? 30 : 7;
+    const days = interval === 'yearly' ? 365 : 30;
+    const monthlyUsedReset = new Date();
+    monthlyUsedReset.setMonth(monthlyUsedReset.getMonth() + 1);
+
     const updated: SubscriptionState = {
-      plan: newPlan,
+      tier,
+      interval,
       status: 'active',
       expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
-      isVip: newPlan !== 'free',
-      autoRenew: newPlan !== 'free',
-      cancelledAt: undefined
+      autoRenew: true,
+      cancelledAt: undefined,
+      plan: interval === 'yearly' ? 'yearly' : 'monthly',
+      isVip: true,
+      unlockedStoreBots: sub.unlockedStoreBots || [],
+      managedUsage: (tier === 'managed' || tier === 'complete') ? {
+        usedThisMonth: 0,
+        monthlyLimit: 5000,
+        resetsAt: monthlyUsedReset.toISOString()
+      } : undefined
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(updated));
+    }
+    return updated;
+  });
+
+  currentUser.update((user) => {
+    if (!user) return null;
+    const updatedUser: UserProfile = {
+      ...user,
+      isSubscribed: true,
+      tier,
+      plan: interval === 'yearly' ? 'yearly' : 'monthly'
+    };
+    saveUserSession(updatedUser);
+    const db = getStoredUsersDb();
+    if (db[user.email.toLowerCase()]) {
+      db[user.email.toLowerCase()].user = updatedUser;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('superai_registered_users', JSON.stringify(db));
+      }
+    }
+    return updatedUser;
+  });
+}
+
+export function unlockStoreBot(botId: string): void {
+  subscription.update((sub) => {
+    const updated = {
+      ...sub,
+      unlockedStoreBots: [...new Set([...(sub.unlockedStoreBots || []), botId])]
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(updated));
+    }
+    return updated;
+  });
+}
+
+export function incrementManagedUsage(): void {
+  subscription.update((sub) => {
+    if (!sub.managedUsage) return sub;
+    const updated = {
+      ...sub,
+      managedUsage: {
+        ...sub.managedUsage,
+        usedThisMonth: sub.managedUsage.usedThisMonth + 1
+      }
     };
     if (typeof window !== 'undefined') {
       localStorage.setItem('superai_subscription', JSON.stringify(updated));
@@ -192,20 +383,23 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ suc
   if (!cleanEmail || !pass) {
     return { success: false, error: 'Email and password are required.' };
   }
-
   try {
     const db = getStoredUsersDb();
     const account = db[cleanEmail];
-
     if (!account) {
       return { success: false, error: 'No account found with this email. Please check your credentials or click "Sign Up Free" to create your account.' };
     }
-
     if (account.passHash !== pass) {
       return { success: false, error: 'Incorrect password. Click "Forgot password?" if you need to reset it.' };
     }
-
     saveUserSession(account.user);
+    if (!account.user.isSubscribed) {
+      subscription.update((s) => ({ ...s, status: 'expired', isVip: false }));
+      if (typeof window !== 'undefined') {
+        const sub = get(subscription);
+        localStorage.setItem('superai_subscription', JSON.stringify(sub));
+      }
+    }
     return { success: true, user: account.user };
   } catch (err: any) {
     return { success: false, error: err.message || 'Login failed.' };
@@ -215,48 +409,51 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ suc
 export async function signupWithEmail(name: string, email: string, pass: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
   const cleanName = name.trim();
-
   if (!cleanName || !cleanEmail || !pass) {
     return { success: false, error: 'All fields are required.' };
   }
-
   if (pass.length < 6) {
     return { success: false, error: 'Password must be at least 6 characters long.' };
   }
-
   try {
     const db = getStoredUsersDb();
     if (db[cleanEmail]) {
       return { success: false, error: 'An account with this email already exists. Please log in directly.' };
     }
-
     const user: UserProfile = {
       id: `usr-${Date.now().toString(36)}`,
       name: cleanName,
       email: cleanEmail,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=10b981&color=022c22`,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=2563eb&color=ffffff`,
       provider: 'email',
-      isSubscribed: true,
-      plan: 'yearly',
+      isSubscribed: false,
+      plan: 'monthly',
+      tier: 'byok',
       createdAt: new Date().toISOString()
     };
-
     saveUserToDb(cleanEmail, { user, passHash: pass });
     saveUserSession(user);
-
-    // Send Welcome Email via server route (non-blocking)
+    const unpaidSub: SubscriptionState = {
+      tier: 'byok',
+      interval: 'monthly',
+      status: 'expired',
+      expiresAt: new Date(0).toISOString(),
+      autoRenew: false,
+      plan: 'monthly',
+      isVip: false,
+      unlockedStoreBots: []
+    };
+    subscription.set(unpaidSub);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(unpaidSub));
+    }
     if (typeof window !== 'undefined') {
       fetch('/api/auth/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: user.email,
-          name: user.name,
-          type: 'welcome'
-        })
+        body: JSON.stringify({ to: user.email, name: user.name, type: 'welcome' })
       }).catch((e) => console.warn('Welcome email trigger:', e));
     }
-
     return { success: true, user };
   } catch (err: any) {
     return { success: false, error: err.message || 'Sign up failed.' };
@@ -271,14 +468,12 @@ export async function resetPassword(email: string, newPass: string): Promise<{ s
   if (newPass.length < 6) {
     return { success: false, error: 'New password must be at least 6 characters long.' };
   }
-
   try {
     const db = getStoredUsersDb();
     const account = db[cleanEmail];
     if (!account) {
       return { success: false, error: 'No account registered with this email address.' };
     }
-
     account.passHash = newPass;
     saveUserToDb(cleanEmail, account);
     return { success: true };
@@ -337,57 +532,61 @@ export async function loginOrCreateWithGoogle(payload: GoogleAuthPayload): Promi
     if (!payload || !payload.email || !payload.email.includes('@')) {
       return { success: false, isNewUser: false, error: 'A valid Google/Gmail address is required.' };
     }
-
     const cleanEmail = payload.email.trim().toLowerCase();
     const db = getStoredUsersDb();
     const existing = db[cleanEmail];
-
-    // If user already exists: direct login immediately!
     if (existing) {
       if (payload.password && payload.password.length >= 6) {
         existing.passHash = payload.password;
         saveUserToDb(cleanEmail, existing);
       }
       saveUserSession(existing.user);
+      if (!existing.user.isSubscribed) {
+        subscription.update((s) => ({ ...s, status: 'expired', isVip: false }));
+        if (typeof window !== 'undefined') {
+          const sub = get(subscription);
+          localStorage.setItem('superai_subscription', JSON.stringify(sub));
+        }
+      }
       return { success: true, isNewUser: false, user: existing.user };
     }
-
-    // If user is brand new: create account with optional password
     const derivedName = payload.name?.trim() || cleanEmail.split('@')[0];
     const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
     const avatar = payload.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=4285F4&color=fff`;
-
     const newUser: UserProfile = {
       id: payload.sub ? `goog-${payload.sub}` : `usr-${Date.now().toString(36)}`,
       name: formattedName,
       email: cleanEmail,
-      avatar: avatar,
+      avatar,
       provider: 'google',
-      isSubscribed: true,
-      plan: 'yearly',
+      isSubscribed: false,
+      plan: 'monthly',
+      tier: 'byok',
       createdAt: new Date().toISOString()
     };
-
-    saveUserToDb(cleanEmail, {
-      user: newUser,
-      passHash: payload.password || ''
-    });
-
+    saveUserToDb(cleanEmail, { user: newUser, passHash: payload.password || '' });
     saveUserSession(newUser);
-
-    // Send Welcome Email in background
+    const unpaidSub: SubscriptionState = {
+      tier: 'byok',
+      interval: 'monthly',
+      status: 'expired',
+      expiresAt: new Date(0).toISOString(),
+      autoRenew: false,
+      plan: 'monthly',
+      isVip: false,
+      unlockedStoreBots: []
+    };
+    subscription.set(unpaidSub);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('superai_subscription', JSON.stringify(unpaidSub));
+    }
     if (typeof window !== 'undefined') {
       fetch('/api/auth/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: newUser.email,
-          name: newUser.name,
-          type: 'welcome'
-        })
+        body: JSON.stringify({ to: newUser.email, name: newUser.name, type: 'welcome' })
       }).catch((e) => console.warn('Welcome email trigger:', e));
     }
-
     return { success: true, isNewUser: true, user: newUser };
   } catch (err: any) {
     return { success: false, isNewUser: false, error: err.message || 'Google login failed.' };

@@ -12,7 +12,7 @@
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
-    Eye, EyeOff, Lock
+    Eye, EyeOff, Lock, Plus, Save, Trash2, Loader, ToggleLeft, ToggleRight, TrendingUp, Infinity
   } from '@lucide/svelte';
 
   let { name = 'Sparkles', size = 20, class: className = '' } = $props<{
@@ -34,11 +34,12 @@
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
-    Eye, EyeOff, Lock,
+    Eye, EyeOff, Lock, Plus, Save, Trash2, Loader, ToggleLeft, ToggleRight, TrendingUp, Infinity,
     // Aliases for social
     Youtube: Video,
     Linkedin: Share2,
-    Twitter: MessageSquare
+    Twitter: MessageSquare,
+    Store: ShoppingBag
   };
 
   const Component = $derived(iconMap[name] || Sparkles);
