@@ -2,8 +2,8 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
 import { getPlanPrice, DEFAULT_PLANS } from '$lib/config/plans';
 
-// Primary OPay endpoint per documentation
-const OPAY_CREATE_URL = 'http://verify.opaybd.com/api/payment/create';
+// Primary OPay endpoint per documentation (HTTPS)
+const OPAY_CREATE_URL = 'https://verify.opaybd.com/api/payment/create';
 
 interface CreatePaymentRequest {
   type: 'subscription' | 'store_bot';
@@ -62,39 +62,42 @@ export const POST: RequestHandler = async ({ request, url }) => {
     const cancelUrl = `${origin}/payment/callback?status=cancel`;
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
       'API-KEY': opayApiKey.trim()
     };
 
     if (opaySecretKey) headers['SECRET-KEY'] = opaySecretKey.trim();
     if (opayBrandKey) headers['BRAND-KEY'] = opayBrandKey.trim();
 
-    const payload = {
-      cus_name: customerName.trim(),
-      cus_email: customerEmail.trim(),
-      amount: String(amount),
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: {
-        type,
-        plan,
-        interval,
-        botId,
-        botName,
-        email: customerEmail,
-        name: customerName,
-        phone: customerPhone
-      }
-    };
+    // OPay CodeIgniter backend expects POST parameters via application/x-www-form-urlencoded
+    const formParams = new URLSearchParams();
+    formParams.set('cus_name', customerName.trim() || 'Valued Customer');
+    formParams.set('cus_email', customerEmail.trim() || 'customer@ezboagents.com');
+    formParams.set('amount', String(amount));
+    formParams.set('success_url', successUrl);
+    formParams.set('cancel_url', cancelUrl);
+    formParams.set('meta_data', JSON.stringify({
+      type,
+      plan,
+      interval,
+      botId,
+      botName,
+      email: customerEmail,
+      name: customerName,
+      phone: customerPhone
+    }));
 
-    const targetEndpoint = (adminConfig.opayEndpointUrl || process.env.OPAY_ENDPOINT_URL || OPAY_CREATE_URL).trim();
+    let targetEndpoint = (adminConfig.opayEndpointUrl || process.env.OPAY_ENDPOINT_URL || OPAY_CREATE_URL).trim();
+    if (targetEndpoint.startsWith('http://verify.opaybd.com')) {
+      targetEndpoint = targetEndpoint.replace('http://verify.opaybd.com', 'https://verify.opaybd.com');
+    }
 
     let opayRes: Response;
     try {
       opayRes = await fetch(targetEndpoint, {
         method: 'POST',
         headers,
-        body: JSON.stringify(payload)
+        body: formParams.toString()
       });
     } catch (networkErr: any) {
       console.error(`OPay fetch failed for endpoint ${targetEndpoint}:`, networkErr);
@@ -114,7 +117,13 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
     const opayData = await opayRes.json();
 
-    if (opayData.status === false || opayData.status === 'false') {
+    if (
+      opayData.status === false ||
+      opayData.status === 'false' ||
+      opayData.status === 0 ||
+      opayData.status === '0' ||
+      opayData.status === 'error'
+    ) {
       return json({
         success: false,
         error: opayData.message || 'Payment creation was rejected by OPayBD.'
@@ -125,7 +134,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
     if (!paymentUrl) {
       return json({
         success: false,
-        error: 'OPayBD did not return a checkout payment URL.'
+        error: opayData.message || 'OPayBD did not return a checkout payment URL.'
       }, { status: 500 });
     }
 

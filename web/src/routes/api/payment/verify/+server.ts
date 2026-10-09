@@ -1,7 +1,7 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
 
-const OPAY_VERIFY_URL = 'http://verify.opaybd.com/api/payment/verify';
+const OPAY_VERIFY_URL = 'https://verify.opaybd.com/api/payment/verify';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
       'API-KEY': opayApiKey.trim()
     };
 
@@ -36,15 +36,19 @@ export const POST: RequestHandler = async ({ request }) => {
     if (adminConfig.opayEndpointUrl) {
       targetVerifyUrl = adminConfig.opayEndpointUrl.replace(/\/create\/?$/, '/verify');
     }
+    if (targetVerifyUrl.startsWith('http://verify.opaybd.com')) {
+      targetVerifyUrl = targetVerifyUrl.replace('http://verify.opaybd.com', 'https://verify.opaybd.com');
+    }
+
+    const formParams = new URLSearchParams();
+    formParams.set('transaction_id', transactionId.trim());
 
     let opayRes: Response;
     try {
       opayRes = await fetch(targetVerifyUrl, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          transaction_id: transactionId.trim()
-        })
+        body: formParams.toString()
       });
     } catch (netErr: any) {
       console.error(`OPay verify network failure for ${targetVerifyUrl}:`, netErr);
@@ -67,15 +71,26 @@ export const POST: RequestHandler = async ({ request }) => {
     const isSuccess =
       verifyData.status === 'COMPLETED' ||
       verifyData.status === 'SUCCESS' ||
-      verifyData.status === true;
+      verifyData.status === true ||
+      verifyData.status === 1 ||
+      verifyData.status === '1';
+
+    let parsedMetadata = {};
+    if (typeof verifyData.metadata === 'string') {
+      try { parsedMetadata = JSON.parse(verifyData.metadata); } catch {}
+    } else if (verifyData.metadata) {
+      parsedMetadata = verifyData.metadata;
+    } else if (typeof verifyData.meta_data === 'string') {
+      try { parsedMetadata = JSON.parse(verifyData.meta_data); } catch {}
+    } else if (verifyData.meta_data) {
+      parsedMetadata = verifyData.meta_data;
+    }
 
     return json({
       success: isSuccess,
       status: verifyData.status,
       data: verifyData,
-      metadata: typeof verifyData.metadata === 'string'
-        ? JSON.parse(verifyData.metadata)
-        : (verifyData.metadata || {})
+      metadata: parsedMetadata
     });
   } catch (error: any) {
     console.error('Error verifying OPay transaction:', error);

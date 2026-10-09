@@ -68,7 +68,7 @@
   let opayApiKey = $state('');
   let opaySecretKey = $state('');
   let opayBrandKey = $state('');
-  let opayEndpointUrl = $state('http://verify.opaybd.com/api/payment/create');
+  let opayEndpointUrl = $state('https://verify.opaybd.com/api/payment/create');
   let showAdvancedPayment = $state(false);
 
   // Form state - AI Keys
@@ -172,7 +172,7 @@
         opayApiKey = s.opayApiKey || '';
         opaySecretKey = s.opaySecretKey || '';
         opayBrandKey = s.opayBrandKey || '';
-        opayEndpointUrl = s.opayEndpointUrl || 'http://verify.opaybd.com/api/payment/create';
+        opayEndpointUrl = (s.opayEndpointUrl || 'https://verify.opaybd.com/api/payment/create').replace('http://verify.opaybd.com', 'https://verify.opaybd.com');
         geminiApiKey = s.geminiApiKey || '';
         openaiApiKey = s.openaiApiKey || '';
         grokApiKey = s.grokApiKey || '';
@@ -1512,11 +1512,11 @@
                         id="opay-endpoint-url"
                         type="text"
                         bind:value={opayEndpointUrl}
-                        placeholder="http://verify.opaybd.com/api/payment/create"
+                        placeholder="https://verify.opaybd.com/api/payment/create"
                         class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
                       />
                       <p class="text-[10px] text-slate-500">
-                        ডিফল্ট: <code>http://verify.opaybd.com/api/payment/create</code>। OPayBD থেকে নতুন ডোমেন বা আপডেট পেলে এখানে সরাসরি পরিবর্তন করতে পারবেন।
+                        ডিফল্ট: <code>https://verify.opaybd.com/api/payment/create</code>। OPayBD থেকে নতুন ডোমেন বা আপডেট পেলে এখানে সরাসরি পরিবর্তন করতে পারবেন।
                       </p>
                     </div>
                   </div>
