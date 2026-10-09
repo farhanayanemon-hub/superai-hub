@@ -59,6 +59,7 @@
   let opayApiKey = $state('');
   let opaySecretKey = $state('');
   let opayBrandKey = $state('');
+  let showAdvancedPayment = $state(false);
 
   // Form state - AI Keys
   let geminiApiKey = $state('');
@@ -1010,72 +1011,113 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- API Key -->
-                <div class="space-y-1.5">
-                  <div class="flex items-center justify-between">
-                    <label for="opay-api-key" class="text-xs font-bold text-slate-700">OPAY_API_KEY</label>
-                    <button
-                      type="button"
-                      onclick={() => toggleShowKey('opayApiKey')}
-                      class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
-                    >
-                      {showKeyMap['opayApiKey'] ? 'Hide' : 'Show'}
-                    </button>
+              <!-- Primary Merchant API Key (The ONLY key needed for standard OPayBD!) -->
+              <div class="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-emerald-500/[0.02] to-transparent border-2 border-emerald-500/30 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <label for="opay-api-key" class="text-sm font-bold text-slate-900">
+                      Primary OPayBD API Key (একমাত্র প্রয়োজনীয় Key)
+                    </label>
                   </div>
+                  <button
+                    type="button"
+                    onclick={() => toggleShowKey('opayApiKey')}
+                    class="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer text-left sm:text-right"
+                  >
+                    {showKeyMap['opayApiKey'] ? 'Hide Key' : 'Show Key'}
+                  </button>
+                </div>
+
+                <div class="space-y-1.5">
                   <input
                     id="opay-api-key"
                     type={showKeyMap['opayApiKey'] ? 'text' : 'password'}
                     bind:value={opayApiKey}
-                    placeholder="Enter OPay API Key..."
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none transition-all"
+                    placeholder="Enter your OPayBD Merchant API Key (e.g. 78a9c...)..."
+                    class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm font-mono text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
                   />
-                  <p class="text-[11px] text-slate-400">Merchant public API key from your OPayBD Merchant dashboard.</p>
                 </div>
 
-                <!-- Secret Key -->
-                <div class="space-y-1.5">
-                  <div class="flex items-center justify-between">
-                    <label for="opay-secret-key" class="text-xs font-bold text-slate-700">OPAY_SECRET_KEY</label>
-                    <button
-                      type="button"
-                      onclick={() => toggleShowKey('opaySecretKey')}
-                      class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
-                    >
-                      {showKeyMap['opaySecretKey'] ? 'Hide' : 'Show'}
-                    </button>
+                <div class="p-3.5 rounded-xl bg-white border border-emerald-200/80 flex items-start gap-2.5 text-xs text-slate-700 shadow-xs">
+                  <Icon name="CheckCircle2" size={17} class="text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span class="font-bold text-emerald-950 block mb-0.5">OPayBD-তে শুধুমাত্র এই ১টি Key ব্যবহার করলেই যথেষ্ট!</span>
+                    <p class="text-slate-600 leading-relaxed">
+                      আপনার OPayBD মার্চেন্ট প্যানেল (<a href="http://verify.opaybd.com" target="_blank" rel="noreferrer" class="text-blue-600 underline font-semibold">verify.opaybd.com</a>) থেকে পাওয়া এই একটিমাত্র <strong>API Key</strong> সেভ করলেই bKash, Nagad, Rocket ও কার্ড পেমেন্ট সম্পূর্ণ সক্রিয় হয়ে যাবে।
+                    </p>
                   </div>
-                  <input
-                    id="opay-secret-key"
-                    type={showKeyMap['opaySecretKey'] ? 'text' : 'password'}
-                    bind:value={opaySecretKey}
-                    placeholder="Enter OPay Secret Key..."
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none transition-all"
-                  />
-                  <p class="text-[11px] text-slate-400">Used for server-side HMAC payment signature generation.</p>
                 </div>
+              </div>
 
-                <!-- Brand Key -->
-                <div class="space-y-1.5">
-                  <div class="flex items-center justify-between">
-                    <label for="opay-brand-key" class="text-xs font-bold text-slate-700">OPAY_BRAND_KEY</label>
-                    <button
-                      type="button"
-                      onclick={() => toggleShowKey('opayBrandKey')}
-                      class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
-                    >
-                      {showKeyMap['opayBrandKey'] ? 'Hide' : 'Show'}
-                    </button>
+              <!-- Optional / Advanced Settings Toggle -->
+              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/70">
+                <button
+                  type="button"
+                  onclick={() => showAdvancedPayment = !showAdvancedPayment}
+                  class="w-full flex items-center justify-between text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  <span class="flex items-center gap-2">
+                    <Icon name="Sliders" size={14} class="text-slate-500" />
+                    <span>Advanced / Optional Fields (ঐচ্ছিক — সাধারণ ব্যবহারে ফাঁকা রাখুন)</span>
+                  </span>
+                  <div class="flex items-center gap-1.5 text-slate-500">
+                    <span class="text-[11px] font-normal">{showAdvancedPayment ? 'Hide' : 'Expand (Optional)'}</span>
+                    <Icon name={showAdvancedPayment ? 'ChevronUp' : 'ChevronDown'} size={14} />
                   </div>
-                  <input
-                    id="opay-brand-key"
-                    type={showKeyMap['opayBrandKey'] ? 'text' : 'password'}
-                    bind:value={opayBrandKey}
-                    placeholder="Enter OPay Brand Key (optional)..."
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none transition-all"
-                  />
-                  <p class="text-[11px] text-slate-400">Brand identity token for custom checkout styling.</p>
-                </div>
+                </button>
+
+                {#if showAdvancedPayment || opaySecretKey || opayBrandKey}
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 mt-4 border-t border-slate-200 animate-in fade-in duration-150">
+                    <!-- Secret Key -->
+                    <div class="space-y-1.5">
+                      <div class="flex items-center justify-between">
+                        <label for="opay-secret-key" class="text-xs font-semibold text-slate-700">
+                          OPAY_SECRET_KEY <span class="text-slate-400 font-normal text-[11px]">(Optional)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onclick={() => toggleShowKey('opaySecretKey')}
+                          class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                        >
+                          {showKeyMap['opaySecretKey'] ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                      <input
+                        id="opay-secret-key"
+                        type={showKeyMap['opaySecretKey'] ? 'text' : 'password'}
+                        bind:value={opaySecretKey}
+                        placeholder="Leave blank if not provided by OPay"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+                      />
+                      <p class="text-[10px] text-slate-400">শুধুমাত্র বিশেষ HMAC প্যাকেজের জন্য। সাধারণ মার্চেন্টে এটি ফাঁকা থাকে।</p>
+                    </div>
+
+                    <!-- Brand Key -->
+                    <div class="space-y-1.5">
+                      <div class="flex items-center justify-between">
+                        <label for="opay-brand-key" class="text-xs font-semibold text-slate-700">
+                          OPAY_BRAND_KEY <span class="text-slate-400 font-normal text-[11px]">(Optional)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onclick={() => toggleShowKey('opayBrandKey')}
+                          class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                        >
+                          {showKeyMap['opayBrandKey'] ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                      <input
+                        id="opay-brand-key"
+                        type={showKeyMap['opayBrandKey'] ? 'text' : 'password'}
+                        bind:value={opayBrandKey}
+                        placeholder="Leave blank if not provided by OPay"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+                      />
+                      <p class="text-[10px] text-slate-400">কাস্টম চেকআউট ব্র্যান্ডিং আইডির জন্য (ঐচ্ছিক)।</p>
+                    </div>
+                  </div>
+                {/if}
               </div>
 
               <!-- Integration Documentation Card -->
