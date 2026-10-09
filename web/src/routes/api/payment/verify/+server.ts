@@ -32,21 +32,27 @@ export const POST: RequestHandler = async ({ request }) => {
     if (opaySecretKey) headers['SECRET-KEY'] = opaySecretKey.trim();
     if (opayBrandKey) headers['BRAND-KEY'] = opayBrandKey.trim();
 
-    let opayRes = await fetch(OPAY_VERIFY_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        transaction_id: transactionId.trim()
-      })
-    }).catch(async () => {
-      return await fetch('https://verify.opaybd.com/api/payment/verify', {
+    let targetVerifyUrl = OPAY_VERIFY_URL;
+    if (adminConfig.opayEndpointUrl) {
+      targetVerifyUrl = adminConfig.opayEndpointUrl.replace(/\/create\/?$/, '/verify');
+    }
+
+    let opayRes: Response;
+    try {
+      opayRes = await fetch(targetVerifyUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({
           transaction_id: transactionId.trim()
         })
       });
-    });
+    } catch (netErr: any) {
+      console.error(`OPay verify network failure for ${targetVerifyUrl}:`, netErr);
+      return json({
+        success: false,
+        error: `OPay Verification Gateway Server is unreachable (${netErr.message})`
+      }, { status: 502 });
+    }
 
     if (!opayRes.ok) {
       const errText = await opayRes.text();

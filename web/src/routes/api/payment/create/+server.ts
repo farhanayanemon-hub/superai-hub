@@ -78,17 +78,22 @@ export const POST: RequestHandler = async ({ request, url }) => {
       }
     };
 
-    let opayRes = await fetch(OPAY_CREATE_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload)
-    }).catch(async () => {
-      return await fetch('https://verify.opaybd.com/api/payment/create', {
+    const targetEndpoint = (adminConfig.opayEndpointUrl || process.env.OPAY_ENDPOINT_URL || OPAY_CREATE_URL).trim();
+
+    let opayRes: Response;
+    try {
+      opayRes = await fetch(targetEndpoint, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload)
       });
-    });
+    } catch (networkErr: any) {
+      console.error(`OPay fetch failed for endpoint ${targetEndpoint}:`, networkErr);
+      return json({
+        success: false,
+        error: `OPayBD গেটওয়ে সার্ভারে সংযোগ করা যায়নি (${networkErr.message || 'DNS/Network Error'})। Endpoint: ${targetEndpoint}। দয়া করে এডমিন প্যানেলে (/admin) সঠিক OPay API Endpoint চেক বা আপডেট করুন।`
+      }, { status: 502 });
+    }
 
     if (!opayRes.ok) {
       const errText = await opayRes.text();

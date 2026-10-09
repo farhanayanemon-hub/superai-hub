@@ -49,6 +49,7 @@ export const POST: RequestHandler = async ({ request }) => {
       'opayApiKey',
       'opaySecretKey',
       'opayBrandKey',
+      'opayEndpointUrl',
       'geminiApiKey',
       'openaiApiKey',
       'grokApiKey',

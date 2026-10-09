@@ -17,6 +17,7 @@ export interface AdminConfig {
   opayApiKey: string;
   opaySecretKey: string;
   opayBrandKey: string;
+  opayEndpointUrl?: string;
   geminiApiKey: string;
   openaiApiKey: string;
   grokApiKey: string;
@@ -58,6 +59,7 @@ function loadConfigFromStorage(): AdminConfig {
     opayApiKey: process.env.OPAY_API_KEY || '',
     opaySecretKey: process.env.OPAY_SECRET_KEY || '',
     opayBrandKey: process.env.OPAY_BRAND_KEY || '',
+    opayEndpointUrl: process.env.OPAY_ENDPOINT_URL || 'http://verify.opaybd.com/api/payment/create',
     geminiApiKey: process.env.PLATFORM_GEMINI_KEY || process.env.GEMINI_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     grokApiKey: process.env.GROK_API_KEY || '',
@@ -152,6 +154,7 @@ export function getMaskedAdminConfig() {
     opayApiKey: maskKey(config.opayApiKey),
     opaySecretKey: maskKey(config.opaySecretKey),
     opayBrandKey: maskKey(config.opayBrandKey),
+    opayEndpointUrl: config.opayEndpointUrl || 'http://verify.opaybd.com/api/payment/create',
     geminiApiKey: maskKey(config.geminiApiKey),
     openaiApiKey: maskKey(config.openaiApiKey),
     grokApiKey: maskKey(config.grokApiKey),

@@ -19,6 +19,7 @@
     opayApiKey: string;
     opaySecretKey: string;
     opayBrandKey: string;
+    opayEndpointUrl?: string;
     geminiApiKey: string;
     openaiApiKey: string;
     grokApiKey: string;
@@ -59,6 +60,7 @@
   let opayApiKey = $state('');
   let opaySecretKey = $state('');
   let opayBrandKey = $state('');
+  let opayEndpointUrl = $state('http://verify.opaybd.com/api/payment/create');
   let showAdvancedPayment = $state(false);
 
   // Form state - AI Keys
@@ -161,6 +163,7 @@
         opayApiKey = s.opayApiKey || '';
         opaySecretKey = s.opaySecretKey || '';
         opayBrandKey = s.opayBrandKey || '';
+        opayEndpointUrl = s.opayEndpointUrl || 'http://verify.opaybd.com/api/payment/create';
         geminiApiKey = s.geminiApiKey || '';
         openaiApiKey = s.openaiApiKey || '';
         grokApiKey = s.grokApiKey || '';
@@ -206,6 +209,7 @@
         opayApiKey,
         opaySecretKey,
         opayBrandKey,
+        opayEndpointUrl,
         geminiApiKey,
         openaiApiKey,
         grokApiKey,
@@ -380,6 +384,7 @@
     if (opayApiKey && !opayApiKey.includes('••••')) lines.push(`OPAY_API_KEY=${opayApiKey}`);
     if (opaySecretKey && !opaySecretKey.includes('••••')) lines.push(`OPAY_SECRET_KEY=${opaySecretKey}`);
     if (opayBrandKey && !opayBrandKey.includes('••••')) lines.push(`OPAY_BRAND_KEY=${opayBrandKey}`);
+    if (opayEndpointUrl) lines.push(`OPAY_ENDPOINT_URL=${opayEndpointUrl}`);
     if (geminiApiKey && !geminiApiKey.includes('••••')) lines.push(`PLATFORM_GEMINI_KEY=${geminiApiKey}`);
     if (openaiApiKey && !openaiApiKey.includes('••••')) lines.push(`OPENAI_API_KEY=${openaiApiKey}`);
     if (grokApiKey && !grokApiKey.includes('••••')) lines.push(`GROK_API_KEY=${grokApiKey}`);
@@ -1115,6 +1120,25 @@
                         class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
                       />
                       <p class="text-[10px] text-slate-400">কাস্টম চেকআউট ব্র্যান্ডিং আইডির জন্য (ঐচ্ছিক)।</p>
+                    </div>
+
+                    <!-- Custom API Endpoint URL -->
+                    <div class="col-span-full space-y-1.5 pt-2 border-t border-slate-200/60">
+                      <div class="flex items-center justify-between">
+                        <label for="opay-endpoint-url" class="text-xs font-semibold text-slate-700">
+                          OPAY_ENDPOINT_URL <span class="text-slate-400 font-normal text-[11px]">(Checkout API URL)</span>
+                        </label>
+                      </div>
+                      <input
+                        id="opay-endpoint-url"
+                        type="text"
+                        bind:value={opayEndpointUrl}
+                        placeholder="http://verify.opaybd.com/api/payment/create"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
+                      />
+                      <p class="text-[10px] text-slate-500">
+                        ডিফল্ট: <code>http://verify.opaybd.com/api/payment/create</code>। OPayBD থেকে নতুন ডোমেন বা আপডেট পেলে এখানে সরাসরি পরিবর্তন করতে পারবেন।
+                      </p>
                     </div>
                   </div>
                 {/if}
