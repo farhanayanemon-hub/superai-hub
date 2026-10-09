@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { DEFAULT_PLANS, type PlansSettings } from '$lib/config/plans';
 
 export interface AdminModelToggles {
   'gemini-2.0-flash': boolean;
@@ -33,6 +34,7 @@ export interface AdminConfig {
   smtpSecure?: boolean;
   telegramBotToken?: string;
   telegramBotUsername?: string;
+  plans?: PlansSettings;
 }
 
 const DEFAULT_MODELS: AdminModelToggles = {
@@ -74,7 +76,8 @@ function loadConfigFromStorage(): AdminConfig {
     smtpFrom: process.env.SMTP_FROM || 'EzboAgents <noreply@ezboagents.com>',
     smtpSecure: process.env.SMTP_SECURE === 'true',
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
-    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot'
+    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot',
+    plans: DEFAULT_PLANS
   };
 
   try {
@@ -86,6 +89,7 @@ function loadConfigFromStorage(): AdminConfig {
         opayApiKey: saved.opayApiKey || envConfig.opayApiKey,
         opaySecretKey: saved.opaySecretKey || envConfig.opaySecretKey,
         opayBrandKey: saved.opayBrandKey || envConfig.opayBrandKey,
+        opayEndpointUrl: saved.opayEndpointUrl || envConfig.opayEndpointUrl,
         geminiApiKey: saved.geminiApiKey || envConfig.geminiApiKey,
         openaiApiKey: saved.openaiApiKey || envConfig.openaiApiKey,
         grokApiKey: saved.grokApiKey || envConfig.grokApiKey,
@@ -103,7 +107,8 @@ function loadConfigFromStorage(): AdminConfig {
         smtpFrom: saved.smtpFrom ?? envConfig.smtpFrom,
         smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure,
         telegramBotToken: saved.telegramBotToken ?? envConfig.telegramBotToken,
-        telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername
+        telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername,
+        plans: saved.plans || DEFAULT_PLANS
       };
     }
   } catch (err) {
@@ -128,7 +133,11 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
     modelsEnabled: {
       ...current.modelsEnabled,
       ...(patch.modelsEnabled || {})
-    }
+    },
+    plans: patch.plans ? {
+      byok: { ...(current.plans?.byok || DEFAULT_PLANS.byok), ...patch.plans.byok },
+      managed: { ...(current.plans?.managed || DEFAULT_PLANS.managed), ...patch.plans.managed }
+    } : (current.plans || DEFAULT_PLANS)
   };
 
   memoryConfig = updated;
@@ -177,6 +186,7 @@ export function getMaskedAdminConfig() {
     hasSmtp: !!(config.smtpHost && config.smtpUser && config.smtpPass),
     telegramBotToken: maskKey(config.telegramBotToken),
     telegramBotUsername: config.telegramBotUsername || 'EzboAgentsBot',
-    hasTelegramBot: !!config.telegramBotToken
+    hasTelegramBot: !!config.telegramBotToken,
+    plans: config.plans || DEFAULT_PLANS
   };
 }

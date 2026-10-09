@@ -9,6 +9,7 @@
     type BillingInterval
   } from '$lib/stores/userStore';
   import { initiateSubscriptionPayment } from '$lib/services/opay';
+  import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
@@ -20,6 +21,8 @@
   let paymentNotice = $state('');
 
   onMount(() => {
+    loadPublicPlans();
+
     // If the user is already authenticated and subscribed, redirect to dashboard
     if ($isAuthenticated && $currentUser?.isSubscribed && $subscription.status === 'active') {
       goto('/dashboard');
@@ -193,32 +196,28 @@
         <div>
           <div class="mb-5">
             <span class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">
-              BYOK Multi-Engine
+              {$plansStore.byok.badge}
             </span>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">BYOK Multi-Engine</h2>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">{$plansStore.byok.name}</h2>
             <div class="flex items-baseline gap-1 mt-2">
               <span class="text-3xl font-extrabold text-slate-900">
-                BDT {billingInterval === 'yearly' ? '399' : '499'}
+                BDT {billingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice}
               </span>
               <span class="text-sm font-medium text-slate-500">/mo</span>
             </div>
             {#if billingInterval === 'yearly'}
-              <p class="text-xs text-slate-500 mt-1">Billed annually (BDT 4,790/yr)</p>
+              <p class="text-xs text-slate-500 mt-1">Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)</p>
             {/if}
           </div>
 
           <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-            For freelancers, builders & agencies who already have or want their own free Gemini, OpenAI, Grok, or DeepSeek API keys with zero token markups.
+            {$plansStore.byok.description}
           </p>
 
           <ul class="space-y-3 text-xs text-slate-700">
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>All 50+ Specialized AI Executives</strong></li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Universal Multi-API Vault</strong> (Gemini, ChatGPT, Grok, DeepSeek, OpenRouter)</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Direct LLM Connection (Zero token markups)</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Personal WhatsApp self-assistant integration</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Executive Web Console & Live Model Switcher</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Commercial Image Generation (/image)</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Standard technical support</li>
+            {#each $plansStore.byok.features as feature}
+              <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+            {/each}
           </ul>
         </div>
 
@@ -239,40 +238,37 @@
 
       <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
       <div class="rounded-3xl bg-white border-2 border-blue-600 p-6 sm:p-8 flex flex-col justify-between relative shadow-xl shadow-blue-500/10 scale-[1.01]">
-        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
-          ⚡ Zero Setup • Most Popular
-        </div>
+        {#if $plansStore.managed.highlightBadge}
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
+            {$plansStore.managed.highlightBadge}
+          </div>
+        {/if}
 
         <div>
           <div class="mb-5">
             <span class="px-3 py-1 rounded-full bg-blue-50 text-xs font-bold text-blue-700 border border-blue-200">
-              100% Managed Cloud
+              {$plansStore.managed.badge}
             </span>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">All-Inclusive Cloud</h2>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">{$plansStore.managed.name}</h2>
             <div class="flex items-baseline gap-1 mt-2">
               <span class="text-3xl font-extrabold text-slate-900">
-                BDT {billingInterval === 'yearly' ? '1,199' : '1,499'}
+                BDT {billingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice}
               </span>
               <span class="text-sm font-medium text-slate-500">/mo</span>
             </div>
             {#if billingInterval === 'yearly'}
-              <p class="text-xs text-slate-500 mt-1">Billed annually (BDT 14,390/yr)</p>
+              <p class="text-xs text-slate-500 mt-1">Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)</p>
             {/if}
           </div>
 
           <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-            For business owners and executives who want 100% plug & play AI. No API keys or technical setup required — our managed cloud handles everything.
+            {$plansStore.managed.description}
           </p>
 
           <ul class="space-y-3 text-xs text-slate-700">
-            <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong class="text-blue-700">ZERO API Keys Required</strong> — 100% hands-off</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Platform-managed high-speed AI cluster (Gemini 2.0 Flash & GPT-4o)</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Immediate plug-and-play access upon signup</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Priority fast-lane execution speeds</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Personal WhatsApp self-assistant integration</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Web Executive Console & image generation (/image)</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Dedicated VIP WhatsApp concierge</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> 24/7 VIP priority support</li>
+            {#each $plansStore.managed.features as feature}
+              <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+            {/each}
           </ul>
         </div>
 

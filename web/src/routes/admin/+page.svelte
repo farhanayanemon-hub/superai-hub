@@ -1,8 +1,9 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import { onMount } from 'svelte';
+  import { DEFAULT_PLANS, type PlansSettings, type PlanConfig } from '$lib/config/plans';
 
-  type AdminTab = 'overview' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
+  type AdminTab = 'overview' | 'plans' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
 
   interface AdminModelToggles {
     'gemini-2.0-flash': boolean;
@@ -43,6 +44,7 @@
     telegramBotToken?: string;
     telegramBotUsername?: string;
     hasTelegramBot?: boolean;
+    plans?: PlansSettings;
   }
 
   // Navigation State
@@ -55,6 +57,12 @@
   let passphraseUpdateMsg = $state('');
   let isAuthenticated = $state(false);
   let authError = $state('');
+
+  // Form state - Plans & Pricing
+  let editablePlans = $state<PlansSettings>(JSON.parse(JSON.stringify(DEFAULT_PLANS)));
+  let activePlanTab = $state<'byok' | 'managed'>('byok');
+  let newFeatureText = $state('');
+  let previewBillingInterval = $state<'monthly' | 'yearly'>('monthly');
 
   // Form state - Payment
   let opayApiKey = $state('');
@@ -123,6 +131,7 @@
 
   const ADMIN_NAV: { id: AdminTab; label: string; icon: string; badge: string }[] = [
     { id: 'overview', label: 'Overview', icon: 'Grid', badge: 'Live' },
+    { id: 'plans', label: 'Plans & Pricing', icon: 'Receipt', badge: 'Editable' },
     { id: 'payment', label: 'Payment Gateway', icon: 'CreditCard', badge: 'OPayBD' },
     { id: 'ai-keys', label: 'AI Engines Vault', icon: 'Key', badge: '6 Providers' },
     { id: 'models', label: 'Model Toggles', icon: 'Bot', badge: '8 Models' },
@@ -182,6 +191,9 @@
         if (s.modelsEnabled) {
           modelsEnabled = { ...s.modelsEnabled };
         }
+        if (s.plans) {
+          editablePlans = JSON.parse(JSON.stringify(s.plans));
+        }
         isAuthenticated = true;
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('ezbo_admin_authed', 'true');
@@ -199,6 +211,20 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  function addPlanFeature(planId: 'byok' | 'managed') {
+    if (!newFeatureText.trim()) return;
+    editablePlans[planId].features = [...editablePlans[planId].features, newFeatureText.trim()];
+    newFeatureText = '';
+  }
+
+  function removePlanFeature(planId: 'byok' | 'managed', index: number) {
+    editablePlans[planId].features = editablePlans[planId].features.filter((_, i) => i !== index);
+  }
+
+  function resetPlanDefaults(planId: 'byok' | 'managed') {
+    editablePlans[planId] = JSON.parse(JSON.stringify(DEFAULT_PLANS[planId]));
   }
 
   async function saveSettings() {
@@ -223,7 +249,8 @@
         smtpFrom,
         telegramBotToken,
         telegramBotUsername,
-        modelsEnabled
+        modelsEnabled,
+        plans: editablePlans
       };
 
       if (newPassphrase.trim()) {
@@ -748,8 +775,29 @@
                 </div>
               </div>
 
-              <!-- Top KPI Metric Cards (4 Cards) -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Top KPI Metric Cards (5 Cards) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Plans & Pricing KPI -->
+                <button
+                  type="button"
+                  onclick={() => activeAdminTab = 'plans'}
+                  class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-purple-400 hover:shadow-md transition-all text-left group cursor-pointer"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 group-hover:scale-105 transition-transform">
+                      <Icon name="Receipt" size={20} />
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border border-purple-200">
+                      2 Tiers Live
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 font-medium">Pricing Plans</p>
+                  <h3 class="text-base font-extrabold text-slate-900 mt-0.5 truncate">
+                    ৳{editablePlans.byok.monthlyPrice} / ৳{editablePlans.managed.monthlyPrice}
+                  </h3>
+                  <p class="text-[11px] text-slate-400 mt-1">Click to Edit Price &amp; Details</p>
+                </button>
+
                 <!-- Payment Gateway KPI -->
                 <button
                   type="button"
@@ -985,6 +1033,337 @@
                 </div>
               </div>
 
+            </div>
+          {/if}
+
+          <!-- ======================================================== -->
+          <!-- 1b. PLANS & PRICING TAB -->
+          <!-- ======================================================== -->
+          {#if activeAdminTab === 'plans'}
+            <div class="space-y-6 animate-in fade-in duration-200">
+              <!-- Header Card -->
+              <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
+                    <Icon name="Receipt" size={20} />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 uppercase">Pricing System</span>
+                      <h2 class="text-base font-bold text-slate-900">Subscription Plans &amp; Details Manager</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                      প্ল্যানের মূল্য, বিবরণ এবং ফিচারের তালিকা এডমিন প্যানেল থেকে সরাসরি পরিবর্তন করুন। হোমপেজ ও ড্যাশবোর্ডে সাথে সাথে কার্যকর হবে।
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Plan Switcher Pills -->
+                <div class="flex items-center p-1 rounded-2xl bg-slate-100 border border-slate-200 shrink-0">
+                  <button
+                    type="button"
+                    onclick={() => activePlanTab = 'byok'}
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'byok' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+                  >
+                    <span>BYOK Multi-Engine</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => activePlanTab = 'managed'}
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'managed' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+                  >
+                    <span>All-Inclusive Cloud</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main Editor & Live Preview Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Left: Plan Form Editor (7 Columns) -->
+                <div class="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                  
+                  <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full {activePlanTab === 'byok' ? 'bg-slate-700' : 'bg-blue-600'}"></span>
+                      <h3 class="text-sm font-bold text-slate-900">
+                        Editing: <span class="text-blue-600 font-extrabold">{editablePlans[activePlanTab].name}</span>
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      onclick={() => resetPlanDefaults(activePlanTab)}
+                      class="text-xs text-slate-500 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                      title="Reset this plan to factory defaults"
+                    >
+                      <Icon name="RefreshCw" size={12} />
+                      <span>Reset Defaults</span>
+                    </button>
+                  </div>
+
+                  <!-- General Info Group -->
+                  <div class="space-y-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Basic Plan Identifiers</h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <!-- Plan Name -->
+                      <div class="space-y-1.5">
+                        <label for="plan-name" class="text-xs font-bold text-slate-700">Plan Display Name</label>
+                        <input
+                          id="plan-name"
+                          type="text"
+                          bind:value={editablePlans[activePlanTab].name}
+                          placeholder="e.g. BYOK Multi-Engine"
+                          class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-semibold text-slate-900 outline-none"
+                        />
+                      </div>
+
+                      <!-- Plan Badge -->
+                      <div class="space-y-1.5">
+                        <label for="plan-badge" class="text-xs font-bold text-slate-700">Category Tag / Badge</label>
+                        <input
+                          id="plan-badge"
+                          type="text"
+                          bind:value={editablePlans[activePlanTab].badge}
+                          placeholder="e.g. Bring Your Own Key"
+                          class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs text-slate-900 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Highlight Ribbon (Optional) -->
+                    <div class="space-y-1.5">
+                      <label for="plan-ribbon" class="text-xs font-bold text-slate-700">
+                        Promotional Top Ribbon <span class="text-slate-400 font-normal text-[11px]">(Optional — e.g. "⚡ Zero Setup • Most Popular")</span>
+                      </label>
+                      <input
+                        id="plan-ribbon"
+                        type="text"
+                        bind:value={editablePlans[activePlanTab].highlightBadge}
+                        placeholder="Leave blank for standard card"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs text-slate-900 outline-none"
+                      />
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-1.5">
+                      <label for="plan-desc" class="text-xs font-bold text-slate-700">Plan Description / Pitch</label>
+                      <textarea
+                        id="plan-desc"
+                        rows="2"
+                        bind:value={editablePlans[activePlanTab].description}
+                        placeholder="Short compelling description of who this plan is for..."
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs text-slate-900 outline-none resize-none leading-relaxed"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Pricing Structure Group (BDT) -->
+                  <div class="space-y-4 pt-2 border-t border-slate-100">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Pricing Rates (BDT ৳)</h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <!-- Monthly Price -->
+                      <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                        <label for="monthly-price" class="text-[11px] font-bold text-slate-700 block">Monthly Price (BDT)</label>
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-xs font-bold text-slate-400">৳</span>
+                          <input
+                            id="monthly-price"
+                            type="number"
+                            min="0"
+                            bind:value={editablePlans[activePlanTab].monthlyPrice}
+                            class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+                          />
+                        </div>
+                        <span class="text-[10px] text-slate-400 block">গ্রাহকের মাসিক বিল</span>
+                      </div>
+
+                      <!-- Yearly Monthly Equivalent -->
+                      <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                        <label for="yearly-monthly" class="text-[11px] font-bold text-slate-700 block">Yearly Rate (/mo)</label>
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-xs font-bold text-slate-400">৳</span>
+                          <input
+                            id="yearly-monthly"
+                            type="number"
+                            min="0"
+                            bind:value={editablePlans[activePlanTab].yearlyMonthlyPrice}
+                            class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+                          />
+                        </div>
+                        <span class="text-[10px] text-slate-400 block">বাৎসরিকে প্রতি মাসের রেট</span>
+                      </div>
+
+                      <!-- Yearly Total Billed -->
+                      <div class="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-1.5">
+                        <label for="yearly-total" class="text-[11px] font-bold text-blue-900 block">Yearly Total Billed</label>
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-xs font-bold text-blue-500">৳</span>
+                          <input
+                            id="yearly-total"
+                            type="number"
+                            min="0"
+                            bind:value={editablePlans[activePlanTab].yearlyTotal}
+                            class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-blue-300 text-sm font-bold text-blue-900 outline-none focus:border-blue-600"
+                          />
+                        </div>
+                        <span class="text-[10px] text-blue-600 block">চেকআউটে কাটা হবে</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Features List Group -->
+                  <div class="space-y-4 pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Features &amp; Bullet Points</h4>
+                      <span class="text-[11px] font-semibold text-slate-500">{editablePlans[activePlanTab].features.length} features</span>
+                    </div>
+
+                    <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                      {#each editablePlans[activePlanTab].features as feature, idx}
+                        <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200 group">
+                          <span class="text-xs font-bold text-slate-400 w-5 text-center">{idx + 1}.</span>
+                          <input
+                            type="text"
+                            bind:value={editablePlans[activePlanTab].features[idx]}
+                            class="flex-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 focus:border-blue-600 text-xs text-slate-800 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onclick={() => removePlanFeature(activePlanTab, idx)}
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Remove feature"
+                          >
+                            <Icon name="Trash2" size={14} />
+                          </button>
+                        </div>
+                      {/each}
+                    </div>
+
+                    <!-- Add New Feature -->
+                    <div class="flex items-center gap-2 pt-1">
+                      <input
+                        type="text"
+                        bind:value={newFeatureText}
+                        placeholder="Add new feature bullet point..."
+                        onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addPlanFeature(activePlanTab); } }}
+                        class="flex-1 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs text-slate-900 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onclick={() => addPlanFeature(activePlanTab)}
+                        disabled={!newFeatureText.trim()}
+                        class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer"
+                      >
+                        <Icon name="Plus" size={14} />
+                        <span>Add</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Save Button Footer -->
+                  <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onclick={saveSettings}
+                      disabled={isSaving}
+                      class="px-6 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {#if isSaving}
+                        <Icon name="Loader2" size={14} class="animate-spin" />
+                        <span>Saving Plans...</span>
+                      {:else}
+                        <Icon name="Save" size={14} />
+                        <span>Save Plan Changes</span>
+                      {/if}
+                    </button>
+                  </div>
+
+                </div>
+
+                <!-- Right: Live Customer Preview (5 Columns) -->
+                <div class="lg:col-span-5 space-y-4">
+                  <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <Icon name="Eye" size={14} class="text-blue-600" />
+                      <span>Live Customer View</span>
+                    </span>
+
+                    <!-- Preview Interval Toggle -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] font-semibold text-slate-500">Preview:</span>
+                      <button
+                        type="button"
+                        onclick={() => previewBillingInterval = previewBillingInterval === 'monthly' ? 'yearly' : 'monthly'}
+                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border cursor-pointer {previewBillingInterval === 'yearly' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 text-slate-700 border-slate-200'}"
+                      >
+                        {previewBillingInterval}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Mockup Card -->
+                  <div class="rounded-3xl bg-white border-2 {editablePlans[activePlanTab].highlightBadge ? 'border-blue-600 shadow-xl shadow-blue-500/10' : 'border-slate-200 shadow-sm'} p-6 sm:p-7 relative transition-all">
+                    {#if editablePlans[activePlanTab].highlightBadge}
+                      <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
+                        {editablePlans[activePlanTab].highlightBadge}
+                      </div>
+                    {/if}
+
+                    <div class="mb-4">
+                      <span class="px-2.5 py-0.5 rounded-full {activePlanTab === 'managed' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-700 border border-slate-200'} text-[11px] font-bold">
+                        {editablePlans[activePlanTab].badge}
+                      </span>
+                      <h4 class="text-xl font-extrabold text-slate-900 mt-2.5">
+                        {editablePlans[activePlanTab].name}
+                      </h4>
+                      <div class="flex items-baseline gap-1 mt-1.5">
+                        <span class="text-3xl font-black text-slate-900">
+                          BDT {previewBillingInterval === 'yearly' ? editablePlans[activePlanTab].yearlyMonthlyPrice.toLocaleString() : editablePlans[activePlanTab].monthlyPrice.toLocaleString()}
+                        </span>
+                        <span class="text-xs font-medium text-slate-500">/mo</span>
+                      </div>
+                      {#if previewBillingInterval === 'yearly'}
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                          Billed annually (BDT {editablePlans[activePlanTab].yearlyTotal.toLocaleString()}/yr)
+                        </p>
+                      {/if}
+                    </div>
+
+                    <p class="text-xs text-slate-600 mb-5 leading-relaxed">
+                      {editablePlans[activePlanTab].description}
+                    </p>
+
+                    <div class="space-y-2.5 border-t border-slate-100 pt-4">
+                      {#each editablePlans[activePlanTab].features as feat}
+                        <div class="flex items-start gap-2 text-xs text-slate-700">
+                          <Icon name="Check" size={13} class="text-blue-600 shrink-0 mt-0.5" />
+                          <span class="leading-tight">{feat}</span>
+                        </div>
+                      {/each}
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100">
+                      <div class="w-full py-3 rounded-xl {activePlanTab === 'managed' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-900 text-white'} font-bold text-xs text-center uppercase tracking-wider">
+                        Subscribe with OPay
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs space-y-1">
+                    <p class="font-bold flex items-center gap-1.5">
+                      <Icon name="Sparkles" size={14} class="text-amber-600" />
+                      <span>রিয়েল-টাইম সিনক্রোনাইজেশন:</span>
+                    </p>
+                    <p class="text-[11px] text-amber-700 leading-relaxed">
+                      "Save Plan Changes" বাটনে ক্লিক করার সাথে সাথে আপনার হোমপেজ, <code>/plans</code> পেজ এবং ইউজার ড্যাশবোর্ডের বিলিং সেকশনে নতুন মূল্য ও ফিচার স্বয়ংক্রিয়ভাবে কার্যকর হয়ে যাবে।
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
             </div>
           {/if}
 

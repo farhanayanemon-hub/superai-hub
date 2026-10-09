@@ -6,6 +6,7 @@
   import ApiVaultManager from '$lib/components/ApiVaultManager.svelte';
   import { STORE_BOTS, STORE_CATEGORIES, type StoreBot } from '$lib/config/storeBots';
   import { initiateSubscriptionPayment, initiateBotPayment, verifyOpayTransaction } from '$lib/services/opay';
+  import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
   import { whatsappApi } from '$lib/services/whatsappApi';
   import { validateGeminiKey } from '$lib/services/gemini';
   import { goto } from '$app/navigation';
@@ -182,6 +183,8 @@
   }
 
   onMount(() => {
+    loadPublicPlans();
+
     // Production Auth Protection: Redirect unauthenticated visitors to login
     if (!$isAuthenticated || !$currentUser) {
       goto('/login');
@@ -1283,22 +1286,20 @@
                 {/if}
                 <div class="space-y-3">
                   <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Bring Your Own Key</span>
-                    <h4 class="text-lg font-bold text-slate-900 mt-1.5">BYOK Multi-Engine</h4>
-                    <p class="text-xs text-slate-500 mt-1">Connect your own API keys with unlimited engine switching and zero token markups.</p>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{$plansStore.byok.badge}</span>
+                    <h4 class="text-lg font-bold text-slate-900 mt-1.5">{$plansStore.byok.name}</h4>
+                    <p class="text-xs text-slate-500 mt-1">{$plansStore.byok.description}</p>
                   </div>
 
                   <div class="pt-2 border-t border-slate-100">
-                    <p class="text-2xl font-black text-slate-900">BDT {dashboardBillingInterval === 'yearly' ? '399' : '499'} <span class="text-xs text-slate-500 font-normal">/ mo</span></p>
-                    <p class="text-[11px] text-slate-500">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT 4,790/yr)' : 'Billed monthly'}</p>
+                    <p class="text-2xl font-black text-slate-900">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice} <span class="text-xs text-slate-500 font-normal">/ mo</span></p>
+                    <p class="text-[11px] text-slate-500">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.byok.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
                   </div>
 
                   <ul class="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Universal Multi-API Key Vault</strong></li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Gemini, OpenAI, Grok, DeepSeek, OpenRouter & Replicate</li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Live model switcher (different keys per task)</li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Zero token markup</strong> — direct provider rates</li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> WhatsApp self-assistant integration</li>
+                    {#each $plansStore.byok.features as feature}
+                      <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+                    {/each}
                   </ul>
                 </div>
 
@@ -1315,27 +1316,31 @@
 
               <!-- Plan 2: All-Inclusive Cloud -->
               <div class="p-6 rounded-3xl bg-gradient-to-b from-blue-50/50 via-white to-blue-50/30 border-2 {($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval ? 'border-blue-600 ring-2 ring-blue-500/50 shadow-blue-500/20' : 'border-blue-500/60'} flex flex-col justify-between relative shadow-md">
-                <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase tracking-wide shadow-md">
-                  ⚡ Zero Setup • Most Popular
-                </div>
+                {#if ($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval}
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wide shadow-sm">
+                    Active Plan
+                  </div>
+                {:else if $plansStore.managed.highlightBadge}
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase tracking-wide shadow-md">
+                    {$plansStore.managed.highlightBadge}
+                  </div>
+                {/if}
                 <div class="space-y-3">
                   <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">100% Managed Cloud</span>
-                    <h4 class="text-lg font-bold text-slate-900 mt-1.5">All-Inclusive Cloud</h4>
-                    <p class="text-xs text-slate-500 mt-1">Ready instantly with zero API keys or setup required.</p>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{$plansStore.managed.badge}</span>
+                    <h4 class="text-lg font-bold text-slate-900 mt-1.5">{$plansStore.managed.name}</h4>
+                    <p class="text-xs text-slate-500 mt-1">{$plansStore.managed.description}</p>
                   </div>
 
                   <div class="pt-2 border-t border-slate-100">
-                    <p class="text-2xl font-black text-slate-900">BDT {dashboardBillingInterval === 'yearly' ? '1,199' : '1,499'} <span class="text-xs text-slate-500 font-normal">/ mo</span></p>
-                    <p class="text-[11px] text-slate-500">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT 14,390/yr)' : 'Billed monthly'}</p>
+                    <p class="text-2xl font-black text-slate-900">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice} <span class="text-xs text-slate-500 font-normal">/ mo</span></p>
+                    <p class="text-[11px] text-slate-500">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.managed.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
                   </div>
 
                   <ul class="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
-                    <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong class="text-blue-700 font-bold">ZERO API Keys Needed</strong></li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Platform-managed high-speed AI cluster</li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Gemini 2.0 Flash & GPT-4o pre-configured</li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Priority fast-lane execution speeds</li>
-                    <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> WhatsApp self-assistant integration</li>
+                    {#each $plansStore.managed.features as feature}
+                      <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+                    {/each}
                   </ul>
                 </div>
 

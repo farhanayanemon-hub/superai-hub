@@ -1,5 +1,8 @@
+import { get } from 'svelte/store';
 import type { UserProfile, PlanTier, BillingInterval } from '$lib/stores/userStore';
 import type { StoreBot } from '$lib/config/storeBots';
+import { plansStore } from '$lib/stores/plansStore';
+import { getPlanPrice } from '$lib/config/plans';
 
 export const PLAN_PRICES: Record<PlanTier, Record<BillingInterval, number>> = {
   free: { monthly: 0, yearly: 0 },
@@ -19,9 +22,11 @@ export interface OPayInitiateResult {
 export async function initiateSubscriptionPayment(
   plan: PlanTier,
   interval: BillingInterval,
-  user: UserProfile | null
+  user: UserProfile | null,
+  customAmount?: number
 ): Promise<OPayInitiateResult> {
-  const amount = PLAN_PRICES[plan]?.[interval] || 999;
+  const currentPlans = get(plansStore);
+  const amount = customAmount || getPlanPrice(currentPlans, plan, interval) || PLAN_PRICES[plan]?.[interval] || 499;
 
   try {
     const res = await fetch('/api/payment/create', {

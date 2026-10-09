@@ -1,11 +1,17 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import { isAuthenticated, currentUser } from '$lib/stores/userStore';
+  import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
 
   let openFaq = $state<number | null>(0);
   let billingInterval = $state<'monthly' | 'yearly'>('monthly');
+
+  onMount(() => {
+    loadPublicPlans();
+  });
 
   const faqs = [
     {
@@ -292,28 +298,23 @@
           <div class="rounded-3xl bg-white border border-slate-200 p-8 flex flex-col justify-between hover:border-blue-300 transition-all duration-300 shadow-sm">
             <div>
               <div class="mb-5">
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">Bring Your Own Key</span>
-                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">BYOK Multi-Engine</h3>
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">{$plansStore.byok.badge}</span>
+                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">{$plansStore.byok.name}</h3>
                 <div class="flex items-baseline gap-1 mt-2">
-                  <span class="text-3xl font-extrabold text-slate-900">BDT {billingInterval === 'yearly' ? '399' : '499'}</span>
+                  <span class="text-3xl font-extrabold text-slate-900">BDT {billingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice}</span>
                   <span class="text-sm font-medium text-slate-500">/mo</span>
                 </div>
                 {#if billingInterval === 'yearly'}
-                  <p class="text-xs text-slate-500 mt-1">Billed annually (BDT 4,790/yr)</p>
+                  <p class="text-xs text-slate-500 mt-1">Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)</p>
                 {/if}
               </div>
               <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-                For freelancers, developers, and power users who want to connect their own API keys with unlimited engine switching and zero token markups.
+                {$plansStore.byok.description}
               </p>
               <ul class="space-y-3 text-xs text-slate-700">
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Universal Multi-API Key Vault</strong></li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Add keys for Gemini, OpenAI, Grok, DeepSeek, OpenRouter & Replicate</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Live model switcher (use different APIs for different tasks)</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong>Zero token markups</strong> — direct provider pricing</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Free 1,500 daily requests via Google Gemini Free Key</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Personal WhatsApp self-assistant integration</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Web Executive Console & image generation (/image)</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Standard technical support</li>
+                {#each $plansStore.byok.features as feature}
+                  <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+                {/each}
               </ul>
             </div>
             <a
@@ -326,33 +327,30 @@
 
           <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
           <div class="rounded-3xl bg-white border-2 border-blue-600 p-8 flex flex-col justify-between relative shadow-xl shadow-blue-500/10 scale-[1.02]">
-            <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
-              ⚡ Zero Setup • Most Popular
-            </div>
+            {#if $plansStore.managed.highlightBadge}
+              <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
+                {$plansStore.managed.highlightBadge}
+              </div>
+            {/if}
             <div>
               <div class="mb-5">
-                <span class="px-3 py-1 rounded-full bg-blue-50 text-xs font-bold text-blue-700 border border-blue-200">100% Managed Cloud</span>
-                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">All-Inclusive Cloud</h3>
+                <span class="px-3 py-1 rounded-full bg-blue-50 text-xs font-bold text-blue-700 border border-blue-200">{$plansStore.managed.badge}</span>
+                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">{$plansStore.managed.name}</h3>
                 <div class="flex items-baseline gap-1 mt-2">
-                  <span class="text-3xl font-extrabold text-slate-900">BDT {billingInterval === 'yearly' ? '1,199' : '1,499'}</span>
+                  <span class="text-3xl font-extrabold text-slate-900">BDT {billingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice}</span>
                   <span class="text-sm font-medium text-slate-500">/mo</span>
                 </div>
                 {#if billingInterval === 'yearly'}
-                  <p class="text-xs text-slate-500 mt-1">Billed annually (BDT 14,390/yr)</p>
+                  <p class="text-xs text-slate-500 mt-1">Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)</p>
                 {/if}
               </div>
               <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-                For business owners and executives who want 100% plug & play AI. No API keys or technical setup required — ready instantly.
+                {$plansStore.managed.description}
               </p>
               <ul class="space-y-3 text-xs text-slate-700">
-                <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <strong class="text-blue-700">ZERO API Keys Required</strong> — 100% hands-off</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Platform-managed high-speed AI cluster (Gemini 2.0 Flash & GPT-4o)</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Immediate plug-and-play access upon signup</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Priority fast-lane execution speeds</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Personal WhatsApp self-assistant integration</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Web Executive Console & image generation (/image)</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> Dedicated VIP WhatsApp concierge</li>
-                <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> 24/7 VIP priority support</li>
+                {#each $plansStore.managed.features as feature}
+                  <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+                {/each}
               </ul>
             </div>
             <a

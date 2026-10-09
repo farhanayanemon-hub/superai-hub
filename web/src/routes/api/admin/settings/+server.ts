@@ -83,6 +83,10 @@ export const POST: RequestHandler = async ({ request }) => {
       cleanPatch.modelsEnabled = patch.modelsEnabled;
     }
 
+    if (patch.plans && typeof patch.plans === 'object') {
+      cleanPatch.plans = patch.plans;
+    }
+
     const updated = updateAdminConfig(cleanPatch);
     const masked = getMaskedAdminConfig();
 

@@ -1,5 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
+import { getPlanPrice, DEFAULT_PLANS } from '$lib/config/plans';
 
 // Primary OPay endpoint per documentation
 const OPAY_CREATE_URL = 'http://verify.opaybd.com/api/payment/create';
@@ -24,7 +25,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
     const opayBrandKey = adminConfig.opayBrandKey || process.env.OPAY_BRAND_KEY || '';
 
     const body: CreatePaymentRequest = await request.json();
-    const {
+    let {
       type = 'subscription',
       plan = 'ultra',
       interval = 'monthly',
@@ -35,6 +36,14 @@ export const POST: RequestHandler = async ({ request, url }) => {
       customerEmail = 'customer@ezboagents.com',
       customerPhone = '01700000000'
     } = body;
+
+    // If subscription, use server-configured plan pricing
+    if (type === 'subscription') {
+      const serverPrice = getPlanPrice(adminConfig.plans || DEFAULT_PLANS, plan, interval);
+      if (serverPrice > 0) {
+        amount = serverPrice;
+      }
+    }
 
     if (!amount || amount <= 0) {
       return json({ success: false, error: 'Valid payment amount is required' }, { status: 400 });
