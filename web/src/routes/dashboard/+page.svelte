@@ -697,97 +697,119 @@
           </div>
 
           <!-- Store Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {#each filteredStoreBots as bot (bot.id)}
-              {@const isUnlocked = ($subscription.unlockedStoreBots || []).includes(bot.id)}
-              <div class="rounded-3xl bg-white border border-slate-200 p-6 flex flex-col justify-between space-y-5 shadow-sm hover:shadow-md transition-shadow">
-                <div class="space-y-4">
-                  <!-- Header: Avatar, Name & Badges -->
-                  <div class="flex items-start gap-3.5">
-                    <div class="relative w-14 h-14 rounded-2xl overflow-hidden border border-blue-100 shadow-inner shrink-0">
-                      <img src={bot.avatar} alt={bot.name} class="w-full h-full object-cover" />
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="font-bold text-slate-900 text-base">{bot.name}</h3>
-                        {#if bot.badge}
-                          <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">{bot.badge}</span>
-                        {/if}
-                        {#if bot.isNew}
-                          <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">NEW</span>
-                        {/if}
-                      </div>
-                      <p class="text-xs text-blue-600 font-semibold mt-0.5">{bot.role}</p>
-                    </div>
-                  </div>
-
-                  <p class="text-xs text-slate-600 leading-relaxed">{bot.description}</p>
-
-                  <!-- Technical Specs Card -->
-                  <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-[11px]">
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-500 font-medium">Neural Engine:</span>
-                      <span class="font-mono text-slate-900 font-semibold">{bot.specs.engine}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-500 font-medium">Latency:</span>
-                      <span class="text-emerald-600 font-semibold">{bot.specs.responseTime}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-500 font-medium">Context Window:</span>
-                      <span class="text-slate-900 font-semibold">{bot.specs.contextWindow}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-500 font-medium">Specialization:</span>
-                      <span class="text-blue-700 font-medium truncate max-w-[160px]">{bot.specs.specialization}</span>
-                    </div>
-                  </div>
-
-                  <!-- Features Preview -->
-                  <div class="space-y-1.5">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Features Unlocked Upon Purchase:</p>
-                    {#each bot.features as feat}
-                      <div class="flex items-start gap-2 text-xs text-slate-700">
-                        <Icon name="Check" size={13} class="text-blue-600 shrink-0 mt-0.5" />
-                        <span class="text-[11px] leading-tight">{feat}</span>
-                      </div>
-                    {/each}
-                  </div>
-                </div>
-
-                <!-- Price and Action CTA -->
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                  <div>
-                    <span class="text-xl font-black text-slate-900">
-                      BDT {storeBillingInterval === 'yearly' ? bot.yearlyPrice.toLocaleString() : bot.monthlyPrice.toLocaleString()}
-                    </span>
-                    <span class="text-xs text-slate-500 font-medium">/{storeBillingInterval === 'yearly' ? 'yr' : 'mo'}</span>
-                  </div>
-
-                  {#if isUnlocked}
-                    <button
-                      type="button"
-                      onclick={() => switchTab('agents')}
-                      class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Icon name="CheckCircle2" size={14} />
-                      <span>Active in My Agents →</span>
-                    </button>
-                  {:else}
-                    <button
-                      type="button"
-                      onclick={() => handleUnlockBot(bot)}
-                      disabled={isProcessingPayment}
-                      class="px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      <Icon name="Zap" size={14} />
-                      <span>{isProcessingPayment ? 'Connecting...' : 'Subscribe'}</span>
-                    </button>
-                  {/if}
-                </div>
+          {#if filteredStoreBots.length === 0}
+            <div class="text-center py-20 bg-white border border-slate-200 rounded-3xl p-8 space-y-4 shadow-xs">
+              <div class="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto">
+                <Icon name="ShoppingBag" size={28} />
               </div>
-            {/each}
-          </div>
+              <div class="space-y-1">
+                <h3 class="text-base font-bold text-slate-900">No Add-on Bots Available Yet</h3>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">
+                  Custom store bots and specialized AI agents will appear here once published. Meanwhile, you can use Executive Chat anytime.
+                </p>
+              </div>
+              <button
+                type="button"
+                onclick={() => switchTab('chat')}
+                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Icon name="MessageSquare" size={14} />
+                <span>Open Executive Chat</span>
+              </button>
+            </div>
+          {:else}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {#each filteredStoreBots as bot (bot.id)}
+                {@const isUnlocked = ($subscription.unlockedStoreBots || []).includes(bot.id)}
+                <div class="rounded-3xl bg-white border border-slate-200 p-6 flex flex-col justify-between space-y-5 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="space-y-4">
+                    <!-- Header: Avatar, Name & Badges -->
+                    <div class="flex items-start gap-3.5">
+                      <div class="relative w-14 h-14 rounded-2xl overflow-hidden border border-blue-100 shadow-inner shrink-0">
+                        <img src={bot.avatar} alt={bot.name} class="w-full h-full object-cover" />
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <h3 class="font-bold text-slate-900 text-base">{bot.name}</h3>
+                          {#if bot.badge}
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">{bot.badge}</span>
+                          {/if}
+                          {#if bot.isNew}
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">NEW</span>
+                          {/if}
+                        </div>
+                        <p class="text-xs text-blue-600 font-semibold mt-0.5">{bot.role}</p>
+                      </div>
+                    </div>
+
+                    <p class="text-xs text-slate-600 leading-relaxed">{bot.description}</p>
+
+                    <!-- Technical Specs Card -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-[11px]">
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Neural Engine:</span>
+                        <span class="font-mono text-slate-900 font-semibold">{bot.specs.engine}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Latency:</span>
+                        <span class="text-emerald-600 font-semibold">{bot.specs.responseTime}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Context Window:</span>
+                        <span class="text-slate-900 font-semibold">{bot.specs.contextWindow}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Specialization:</span>
+                        <span class="text-blue-700 font-medium truncate max-w-[160px]">{bot.specs.specialization}</span>
+                      </div>
+                    </div>
+
+                    <!-- Features Preview -->
+                    <div class="space-y-1.5">
+                      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Features Unlocked Upon Purchase:</p>
+                      {#each bot.features as feat}
+                        <div class="flex items-start gap-2 text-xs text-slate-700">
+                          <Icon name="Check" size={13} class="text-blue-600 shrink-0 mt-0.5" />
+                          <span class="text-[11px] leading-tight">{feat}</span>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+
+                  <!-- Price and Action CTA -->
+                  <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                    <div>
+                      <span class="text-xl font-black text-slate-900">
+                        BDT {storeBillingInterval === 'yearly' ? bot.yearlyPrice.toLocaleString() : bot.monthlyPrice.toLocaleString()}
+                      </span>
+                      <span class="text-xs text-slate-500 font-medium">/{storeBillingInterval === 'yearly' ? 'yr' : 'mo'}</span>
+                    </div>
+
+                    {#if isUnlocked}
+                      <button
+                        type="button"
+                        onclick={() => switchTab('agents')}
+                        class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Icon name="CheckCircle2" size={14} />
+                        <span>Active in My Agents →</span>
+                      </button>
+                    {:else}
+                      <button
+                        type="button"
+                        onclick={() => handleUnlockBot(bot)}
+                        disabled={isProcessingPayment}
+                        class="px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      >
+                        <Icon name="Zap" size={14} />
+                        <span>{isProcessingPayment ? 'Connecting...' : 'Subscribe'}</span>
+                      </button>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
         </div>
 
       <!-- ==================================================== -->

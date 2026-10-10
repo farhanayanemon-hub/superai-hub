@@ -19,36 +19,6 @@ const AGENT_PERSONAS: Record<string, { name: string; role: string; systemPrompt:
     role: 'Central AI Coordinator & Strategic Advisor',
     systemPrompt: `You are the EzboAgents Central Executive. You help entrepreneurs, agencies, and businesses with high-level strategy, copywriting, sales negotiations, programming, and operations. Deliver direct, high-value, actionable answers in concise professional markdown or formatted text.`
   },
-  'aegis-closer': {
-    name: 'Aegis-1 Sales Closer',
-    role: 'High-Ticket DM & Objection Negotiator',
-    systemPrompt: `You are Aegis-1, the master sales closer and deal negotiator for EzboAgents. You specialize in handling buyer objections, writing irresistible WhatsApp closing scripts, and psychological pricing tactics. Provide razor-sharp, psychology-backed rebuttals and sales scripts.`
-  },
-  'nexus-ads': {
-    name: 'NexusAds Omni-Engine',
-    role: 'Meta, Google & TikTok Ads Architect',
-    systemPrompt: `You are NexusAds, the omni-channel advertising engine for EzboAgents. You create high-converting ad copies, primary texts, compelling headlines, audience targeting parameters, and negative keyword lists.`
-  },
-  'kronos-video': {
-    name: 'Kronos-90 Video Autopilot',
-    role: 'Viral Short-Form Reels & TikTok Scriptwriter',
-    systemPrompt: `You are Kronos-90, the viral short-form content architect for EzboAgents. You craft 90-day viral Reels/TikTok storyboards with hook-to-conversion scripts, visual cues, and CapCut sound transitions.`
-  },
-  'lex-auditor': {
-    name: 'Lex-Prime Legal Auditor',
-    role: 'Corporate Contract Risk & Redline Specialist',
-    systemPrompt: `You are Lex-Prime, the executive corporate legal and contract risk auditor for EzboAgents. You review contracts, highlight risky clauses (indemnity, termination, liability), and recommend plain-English redline adjustments.`
-  },
-  'silo-seo': {
-    name: 'Silo-Core SEO Dominator',
-    role: 'Topical Authority & Cluster Architect',
-    systemPrompt: `You are Silo-Core, the programmatic SEO and topical cluster architect. You structure comprehensive 30,000-word topical cluster blueprints, internal linking schemas, and semantic search strategies.`
-  },
-  'quant-cfo': {
-    name: 'Quant-AI CFO Advisor',
-    role: 'Financial Analyst & Break-Even Modeler',
-    systemPrompt: `You are Quant-AI, the virtual CFO and quantitative financial advisor for EzboAgents. You analyze P&L statements, calculate unit economics, forecast cashflows, and build executive financial models.`
-  },
   code: {
     name: 'Code Architect',
     role: 'Senior Full-Stack Engineer & Bug Hunter',
@@ -210,15 +180,9 @@ export const POST: RequestHandler = async ({ request }) => {
     if (text === '/agents') {
       const agentListMsg = `<b>🤖 উপলব্ধ AI স্পেশালিস্ট তালিকা:</b>\n\n` +
         `• <b>General Executive:</b> <code>/agent general</code>\n  <i>সেন্ট্রাল স্ট্র্যাটেজি ও অল-রাউন্ডার সহকারী</i>\n\n` +
-        `• <b>Aegis-1 Closer:</b> <code>/agent aegis-closer</code>\n  <i>হাই-টিকেট সেলস ও অবজেকশন নেগোশিয়েটর</i>\n\n` +
-        `• <b>NexusAds Engine:</b> <code>/agent nexus-ads</code>\n  <i>Meta/Google/TikTok অ্যাড কপি ও টার্গেটিং</i>\n\n` +
-        `• <b>Kronos-90 Video:</b> <code>/agent kronos-video</code>\n  <i>ভাইরাল রিলস ও টিকটক স্ক্রিপ্ট রাইটার</i>\n\n` +
-        `• <b>Lex Legal Auditor:</b> <code>/agent lex-auditor</code>\n  <i>কর্পোরেট চুক্তি ও লিগ্যাল রিস্ক অডিটর</i>\n\n` +
-        `• <b>Silo-Core SEO:</b> <code>/agent silo-seo</code>\n  <i>টপিক্যাল ক্লাস্টার ও প্রোগ্রাম্যাটিক এসইও</i>\n\n` +
-        `• <b>Quant CFO Advisor:</b> <code>/agent quant-cfo</code>\n  <i>আর্থিক অ্যানালিসিস ও প্রফিট মডেলিং</i>\n\n` +
         `• <b>Code Architect:</b> <code>/agent code</code>\n  <i>ফুল-স্ট্যাক সফটওয়্যার কোডিং ও বাগ ফিক্স</i>\n\n` +
         `• <b>Copy Architect:</b> <code>/agent copy</code>\n  <i>হাই-কনভার্টিং ল্যান্ডিং পেজ ও সেলস কপি</i>\n\n` +
-        `👉 <b>সুইচ করতে লিখুন:</b> <code>/agent aegis-closer</code>`;
+        `👉 <b>সুইচ করতে লিখুন:</b> <code>/agent general</code>`;
 
       await sendTelegramMessage(botToken, chatId, agentListMsg);
       return json({ ok: true });
@@ -227,7 +191,7 @@ export const POST: RequestHandler = async ({ request }) => {
     if (text.startsWith('/agent')) {
       const parts = text.split(' ');
       if (parts.length < 2) {
-        await sendTelegramMessage(botToken, chatId, '⚠️ কোন এজেন্টে সুইচ করতে চান উল্লেখ করুন। যেমন: <code>/agent aegis-closer</code> বা <code>/agent code</code>');
+        await sendTelegramMessage(botToken, chatId, '⚠️ কোন এজেন্টে সুইচ করতে চান উল্লেখ করুন। যেমন: <code>/agent general</code> বা <code>/agent code</code>');
         return json({ ok: true });
       }
 
@@ -242,17 +206,6 @@ export const POST: RequestHandler = async ({ request }) => {
       if (!linkedUser) {
         await sendTelegramMessage(botToken, chatId, '⚠️ অনুগ্রহ করে প্রথমে আপনার Ezbo ড্যাশবোর্ডের Channels ট্যাব থেকে অ্যাকাউন্ট লিঙ্ক করুন।');
         return json({ ok: true });
-      }
-
-      // Check if it's a store bot and if user has access
-      const storeBots = ['aegis-closer', 'nexus-ads', 'kronos-video', 'lex-auditor', 'silo-seo', 'quant-cfo'];
-      if (storeBots.includes(requestedAgent)) {
-        const hasAccess = linkedUser.planTier === 'managed' || linkedUser.unlockedBots.includes(requestedAgent);
-        if (!hasAccess) {
-          const lockMsg = `🔒 <b>এজেন্টটি এখনও আনলক করা হয়নি!</b>\n\n<b>${escapeHtml(persona.name)}</b> হলো একটি প্রিমিয়াম স্পেশালিস্ট।\nআপনার ড্যাশবোর্ডের <b>Agents Store</b> থেকে এটি আনলক করতে পারবেন:\n<a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>`;
-          await sendTelegramMessage(botToken, chatId, lockMsg);
-          return json({ ok: true });
-        }
       }
 
       updateUserAgent(chatId, requestedAgent);

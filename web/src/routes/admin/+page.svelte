@@ -1487,48 +1487,57 @@
                           বট স্টোরের যে বটগুলোতে টিক দেবেন, সেগুলো ইউজারের "My Agents" এবং চ্যাটে আনলক হয়ে যাবে।
                         </p>
                       </div>
-                      <div class="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onclick={selectAllGrantBots}
-                          class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold cursor-pointer transition-colors"
-                        >
-                          Select All 6 Bots
-                        </button>
-                        <button
-                          type="button"
-                          onclick={clearAllGrantBots}
-                          class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold cursor-pointer transition-colors"
-                        >
-                          Clear All
-                        </button>
-                      </div>
+                      {#if STORE_BOTS.length > 0}
+                        <div class="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onclick={selectAllGrantBots}
+                            class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold cursor-pointer transition-colors"
+                          >
+                            Select All Bots
+                          </button>
+                          <button
+                            type="button"
+                            onclick={clearAllGrantBots}
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold cursor-pointer transition-colors"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      {/if}
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {#each STORE_BOTS as bot (bot.id)}
-                        {@const isBotSelected = grantSelectedBots.includes(bot.id)}
-                        <button
-                          type="button"
-                          onclick={() => toggleGrantBot(bot.id)}
-                          class="p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer {isBotSelected ? 'border-blue-600 bg-blue-50/30 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 opacity-75'}"
-                        >
-                          <img src={bot.avatar} alt={bot.name} class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 mt-0.5" />
-                          <div class="min-w-0 flex-1">
-                            <div class="flex items-center justify-between gap-1">
-                              <span class="text-xs font-extrabold text-slate-900 truncate">{bot.name}</span>
-                              <span class="w-4 h-4 rounded-md flex items-center justify-center shrink-0 {isBotSelected ? 'bg-blue-600 text-white' : 'border border-slate-300 bg-slate-50'}">
-                                {#if isBotSelected}
-                                  <Icon name="Check" size={11} />
-                                {/if}
-                              </span>
+                    {#if STORE_BOTS.length === 0}
+                      <div class="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-1">
+                        <p class="text-xs font-bold text-slate-700">বট স্টোরে বর্তমানে কোনো ডেমো বট নেই (0 Bots)</p>
+                        <p class="text-[11px] text-slate-500">কাস্টম বট যুক্ত করা হলে সেগুলো এখান থেকে যেকোনো ইউজারকে অ্যাসাইন করা যাবে।</p>
+                      </div>
+                    {:else}
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {#each STORE_BOTS as bot (bot.id)}
+                          {@const isBotSelected = grantSelectedBots.includes(bot.id)}
+                          <button
+                            type="button"
+                            onclick={() => toggleGrantBot(bot.id)}
+                            class="p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer {isBotSelected ? 'border-blue-600 bg-blue-50/30 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 opacity-75'}"
+                          >
+                            <img src={bot.avatar} alt={bot.name} class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 mt-0.5" />
+                            <div class="min-w-0 flex-1">
+                              <div class="flex items-center justify-between gap-1">
+                                <span class="text-xs font-extrabold text-slate-900 truncate">{bot.name}</span>
+                                <span class="w-4 h-4 rounded-md flex items-center justify-center shrink-0 {isBotSelected ? 'bg-blue-600 text-white' : 'border border-slate-300 bg-slate-50'}">
+                                  {#if isBotSelected}
+                                    <Icon name="Check" size={11} />
+                                  {/if}
+                                </span>
+                              </div>
+                              <p class="text-[11px] text-blue-600 font-semibold truncate">{bot.role}</p>
+                              <p class="text-[10px] text-slate-400 mt-0.5">Store Value: ৳{bot.monthlyPrice}/mo</p>
                             </div>
-                            <p class="text-[11px] text-blue-600 font-semibold truncate">{bot.role}</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Store Value: ৳{bot.monthlyPrice}/mo</p>
-                          </div>
-                        </button>
-                      {/each}
-                    </div>
+                          </button>
+                        {/each}
+                      </div>
+                    {/if}
                   </div>
 
                   <!-- Optional Admin Note -->
@@ -1630,21 +1639,23 @@
                           </div>
 
                           <!-- Unlocked Store Bots Badges -->
-                          <div class="flex flex-wrap items-center gap-1.5">
-                            <span class="text-[10px] font-bold text-slate-400">Store Bots ({u.unlockedStoreBots.length}/{STORE_BOTS.length}):</span>
-                            {#if u.unlockedStoreBots.length === 0}
-                              <span class="text-[10px] text-slate-400 italic">None unlocked</span>
-                            {:else}
-                              {#each u.unlockedStoreBots as botId}
-                                {@const botObj = STORE_BOTS.find((b) => b.id === botId)}
-                                {#if botObj}
-                                  <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-700">
-                                    {botObj.name}
-                                  </span>
-                                {/if}
-                              {/each}
-                            {/if}
-                          </div>
+                          {#if STORE_BOTS.length > 0}
+                            <div class="flex flex-wrap items-center gap-1.5">
+                              <span class="text-[10px] font-bold text-slate-400">Store Bots ({u.unlockedStoreBots.length}/{STORE_BOTS.length}):</span>
+                              {#if u.unlockedStoreBots.length === 0}
+                                <span class="text-[10px] text-slate-400 italic">None unlocked</span>
+                              {:else}
+                                {#each u.unlockedStoreBots as botId}
+                                  {@const botObj = STORE_BOTS.find((b) => b.id === botId)}
+                                  {#if botObj}
+                                    <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-700">
+                                      {botObj.name}
+                                    </span>
+                                  {/if}
+                                {/each}
+                              {/if}
+                            </div>
+                          {/if}
 
                           {#if u.note}
                             <p class="text-[10px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-100">
@@ -1660,7 +1671,7 @@
                               class="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
                             >
                               <Icon name="Zap" size={12} />
-                              <span>Unlock Plan + All 6 Bots</span>
+                              <span>{STORE_BOTS.length > 0 ? 'Unlock Plan + All Bots' : 'Activate VIP Plan'}</span>
                             </button>
 
                             {#if u.isSubscribed || u.unlockedStoreBots.length > 0}
