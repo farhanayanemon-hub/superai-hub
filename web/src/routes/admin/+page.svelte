@@ -2,8 +2,15 @@
   import Icon from '$lib/components/Icon.svelte';
   import { onMount } from 'svelte';
   import { DEFAULT_PLANS, type PlansSettings, type PlanConfig } from '$lib/config/plans';
+  import { STORE_BOTS } from '$lib/config/storeBots';
+  import {
+    currentUser,
+    getAllLocalRegisteredUsers,
+    applyAdminGrantLocally,
+    type ServerUserGrant
+  } from '$lib/stores/userStore';
 
-  type AdminTab = 'overview' | 'plans' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
+  type AdminTab = 'overview' | 'users' | 'plans' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
 
   interface AdminModelToggles {
     'gemini-2.0-flash': boolean;
@@ -45,6 +52,8 @@
     telegramBotUsername?: string;
     hasTelegramBot?: boolean;
     plans?: PlansSettings;
+    userGrants?: Record<string, ServerUserGrant>;
+    registeredUsers?: Record<string, any>;
   }
 
   // Navigation State
@@ -57,6 +66,21 @@
   let passphraseUpdateMsg = $state('');
   let isAuthenticated = $state(false);
   let authError = $state('');
+
+  // Form state - User Access & Bot Assignment
+  let userGrantsMap = $state<Record<string, ServerUserGrant>>({});
+  let registeredUsersMap = $state<Record<string, any>>({});
+  let grantEmail = $state('');
+  let grantName = $state('');
+  let grantIsSubscribed = $state(true);
+  let grantTier = $state<'byok' | 'managed'>('managed');
+  let grantInterval = $state<'monthly' | 'yearly'>('yearly');
+  let grantSelectedBots = $state<string[]>(STORE_BOTS.map((b) => b.id));
+  let grantNote = $state('');
+  let isGrantingUser = $state(false);
+  let grantFeedback = $state('');
+  let grantFeedbackType = $state<'success' | 'error'>('success');
+  let userSearchQuery = $state('');
 
   // Form state - Plans & Pricing
   let editablePlans = $state<PlansSettings>(JSON.parse(JSON.stringify(DEFAULT_PLANS)));
@@ -131,6 +155,7 @@
 
   const ADMIN_NAV: { id: AdminTab; label: string; icon: string; badge: string }[] = [
     { id: 'overview', label: 'Overview', icon: 'Grid', badge: 'Live' },
+    { id: 'users', label: 'User Access & Bots', icon: 'UserCheck', badge: 'Assign' },
     { id: 'plans', label: 'Plans & Pricing', icon: 'Receipt', badge: 'Editable' },
     { id: 'payment', label: 'Payment Gateway', icon: 'CreditCard', badge: 'OPayBD' },
     { id: 'ai-keys', label: 'AI Engines Vault', icon: 'Key', badge: '6 Providers' },
@@ -151,6 +176,30 @@
     }
     authError = '';
     loadSettings();
+  }
+
+  async function syncUsersDirectory(secretToUse: string) {
+    try {
+      const localUsers = getAllLocalRegisteredUsers();
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret: secretToUse,
+          action: 'list',
+          localUsers
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          userGrantsMap = data.userGrants || {};
+          registeredUsersMap = data.registeredUsers || {};
+        }
+      }
+    } catch {
+      // ignore
+    }
   }
 
   async function loadSettings() {
@@ -194,11 +243,18 @@
         if (s.plans) {
           editablePlans = JSON.parse(JSON.stringify(s.plans));
         }
+        if (s.userGrants) {
+          userGrantsMap = s.userGrants;
+        }
+        if (s.registeredUsers) {
+          registeredUsersMap = s.registeredUsers;
+        }
         isAuthenticated = true;
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('ezbo_admin_authed', 'true');
           sessionStorage.setItem('ezbo_admin_secret', secretToUse);
         }
+        syncUsersDirectory(secretToUse);
       } else {
         authError = data.error || 'Failed to authenticate admin session.';
         isAuthenticated = false;
@@ -212,6 +268,212 @@
       isLoading = false;
     }
   }
+
+  function toggleGrantBot(botId: string) {
+    if (grantSelectedBots.includes(botId)) {
+      grantSelectedBots = grantSelectedBots.filter((id) => id !== botId);
+    } else {
+      grantSelectedBots = [...grantSelectedBots, botId];
+    }
+  }
+
+  function selectAllGrantBots() {
+    grantSelectedBots = STORE_BOTS.map((b) => b.id);
+  }
+
+  function clearAllGrantBots() {
+    grantSelectedBots = [];
+  }
+
+  function fillMyCurrentEmail() {
+    if ($currentUser?.email) {
+      selectUserForGrant($currentUser.email, $currentUser.name);
+    }
+  }
+
+  function selectUserForGrant(email: string, fallbackName?: string) {
+    const clean = email.trim().toLowerCase();
+    grantEmail = clean;
+    const existingGrant = userGrantsMap[clean];
+    const existingReg = registeredUsersMap[clean];
+
+    if (existingGrant) {
+      grantName = existingGrant.name || existingReg?.name || fallbackName || '';
+      grantIsSubscribed = existingGrant.isSubscribed;
+      grantTier = existingGrant.tier === 'managed' ? 'managed' : 'byok';
+      grantInterval = existingGrant.interval === 'yearly' ? 'yearly' : 'monthly';
+      grantSelectedBots = [...(existingGrant.unlockedStoreBots || [])];
+      grantNote = existingGrant.note || '';
+    } else if (existingReg) {
+      grantName = existingReg.name || fallbackName || '';
+      grantIsSubscribed = existingReg.isSubscribed ?? true;
+      grantTier = existingReg.tier === 'managed' ? 'managed' : 'byok';
+      grantInterval = 'yearly';
+      grantSelectedBots = [...(existingReg.unlockedStoreBots || [])];
+      grantNote = '';
+    } else {
+      grantName = fallbackName || '';
+      grantIsSubscribed = true;
+    }
+  }
+
+  async function handleGrantUserAccess() {
+    if (!grantEmail.trim() || !grantEmail.includes('@')) {
+      grantFeedback = 'অনুগ্রহ করে একটি সঠিক ইমেইল অ্যাড্রেস লিখুন (Valid user email is required).';
+      grantFeedbackType = 'error';
+      return;
+    }
+
+    isGrantingUser = true;
+    grantFeedback = '';
+    try {
+      const secretToUse = authSecret.trim() || 'ezbo-admin-2026';
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret: secretToUse,
+          action: 'grant',
+          email: grantEmail.trim(),
+          name: grantName.trim(),
+          isSubscribed: grantIsSubscribed,
+          tier: grantTier,
+          interval: grantInterval,
+          unlockedStoreBots: grantSelectedBots,
+          note: grantNote.trim()
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.userGrants) userGrantsMap = data.userGrants;
+        if (data.registeredUsers) registeredUsersMap = data.registeredUsers;
+        if (data.grant) {
+          applyAdminGrantLocally(data.grant);
+        }
+        grantFeedback = data.message || 'ইউজারের প্ল্যান এবং বট অ্যাক্সেস সফলভাবে চালু করা হয়েছে!';
+        grantFeedbackType = 'success';
+      } else {
+        grantFeedback = data.error || 'Failed to update user access.';
+        grantFeedbackType = 'error';
+      }
+    } catch (e: any) {
+      grantFeedback = e.message || 'Network error while assigning user access.';
+      grantFeedbackType = 'error';
+    } finally {
+      isGrantingUser = false;
+      setTimeout(() => {
+        grantFeedback = '';
+      }, 6000);
+    }
+  }
+
+  async function handleQuickUnlockAllBots(email: string, name?: string) {
+    grantEmail = email;
+    if (name) grantName = name;
+    grantIsSubscribed = true;
+    grantSelectedBots = STORE_BOTS.map((b) => b.id);
+    await handleGrantUserAccess();
+  }
+
+  async function handleRevokeUserAccess(email: string) {
+    isGrantingUser = true;
+    grantFeedback = '';
+    try {
+      const secretToUse = authSecret.trim() || 'ezbo-admin-2026';
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret: secretToUse,
+          action: 'revoke',
+          email
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.userGrants) userGrantsMap = data.userGrants;
+        if (data.registeredUsers) registeredUsersMap = data.registeredUsers;
+        if (data.grant) {
+          applyAdminGrantLocally(data.grant);
+        }
+        grantFeedback = data.message || `${email} এর অ্যাক্সেস বাতিল করা হয়েছে।`;
+        grantFeedbackType = 'success';
+      }
+    } catch (e: any) {
+      grantFeedback = e.message || 'Error revoking access.';
+      grantFeedbackType = 'error';
+    } finally {
+      isGrantingUser = false;
+    }
+  }
+
+  const combinedUsersList = $derived.by(() => {
+    const map = new Map<string, {
+      email: string;
+      name: string;
+      isSubscribed: boolean;
+      tier: 'byok' | 'managed';
+      interval: 'monthly' | 'yearly';
+      unlockedStoreBots: string[];
+      hasAdminGrant: boolean;
+      note?: string;
+      updatedAt?: string;
+    }>();
+
+    // 1. Local browser users
+    const localList = typeof window !== 'undefined' ? getAllLocalRegisteredUsers() : [];
+    for (const u of localList) {
+      const clean = u.email.toLowerCase();
+      map.set(clean, {
+        email: clean,
+        name: u.name || clean.split('@')[0],
+        isSubscribed: !!u.isSubscribed,
+        tier: u.tier === 'managed' ? 'managed' : 'byok',
+        interval: u.plan === 'yearly' ? 'yearly' : 'monthly',
+        unlockedStoreBots: [],
+        hasAdminGrant: false
+      });
+    }
+
+    // 2. Server registered users
+    for (const [emailKey, reg] of Object.entries(registeredUsersMap)) {
+      const clean = emailKey.toLowerCase();
+      const prev = map.get(clean);
+      map.set(clean, {
+        email: clean,
+        name: reg.name || prev?.name || clean.split('@')[0],
+        isSubscribed: reg.isSubscribed ?? prev?.isSubscribed ?? false,
+        tier: reg.tier === 'managed' ? 'managed' : (prev?.tier || 'byok'),
+        interval: prev?.interval || 'monthly',
+        unlockedStoreBots: reg.unlockedStoreBots || prev?.unlockedStoreBots || [],
+        hasAdminGrant: false,
+        updatedAt: reg.lastSeenAt
+      });
+    }
+
+    // 3. Admin grants override
+    for (const [emailKey, g] of Object.entries(userGrantsMap)) {
+      const clean = emailKey.toLowerCase();
+      const prev = map.get(clean);
+      map.set(clean, {
+        email: clean,
+        name: g.name || prev?.name || clean.split('@')[0],
+        isSubscribed: g.isSubscribed,
+        tier: g.tier === 'managed' ? 'managed' : 'byok',
+        interval: g.interval === 'yearly' ? 'yearly' : 'monthly',
+        unlockedStoreBots: g.unlockedStoreBots || [],
+        hasAdminGrant: true,
+        note: g.note,
+        updatedAt: g.updatedAt
+      });
+    }
+
+    const q = userSearchQuery.trim().toLowerCase();
+    const arr = Array.from(map.values());
+    if (!q) return arr;
+    return arr.filter((u) => u.email.includes(q) || u.name.toLowerCase().includes(q));
+  });
 
   function addPlanFeature(planId: 'byok' | 'managed') {
     if (!newFeatureText.trim()) return;
@@ -666,6 +928,8 @@
             <div class="flex items-center gap-2.5">
               <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                 {#if activeAdminTab === 'overview'}Overview Dashboard
+                {:else if activeAdminTab === 'users'}User Access &amp; Bot Assignment
+                {:else if activeAdminTab === 'plans'}Plans &amp; Pricing Manager
                 {:else if activeAdminTab === 'payment'}OPayBD Payment Gateway
                 {:else if activeAdminTab === 'ai-keys'}AI Engines Vault
                 {:else if activeAdminTab === 'models'}AI Models Roster
@@ -750,11 +1014,19 @@
                       Platform Operations Overview
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                      Unified dashboard for live payment settlements, multi-engine AI models, transactional email OTP delivery, and omni-channel synchronization.
+                      Unified dashboard for live payment settlements, user plan &amp; bot store access grants, multi-engine AI models, and omni-channel synchronization.
                     </p>
                   </div>
 
-                  <div class="flex flex-col sm:flex-row gap-3">
+                  <div class="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onclick={() => activeAdminTab = 'users'}
+                      class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer"
+                    >
+                      <Icon name="UserCheck" size={15} />
+                      <span>Assign Plan &amp; Bots</span>
+                    </button>
                     <button
                       type="button"
                       onclick={() => activeAdminTab = 'ai-keys'}
@@ -777,6 +1049,27 @@
 
               <!-- Top KPI Metric Cards (5 Cards) -->
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- User Access & Bots KPI -->
+                <button
+                  type="button"
+                  onclick={() => activeAdminTab = 'users'}
+                  class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-left group cursor-pointer"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
+                      <Icon name="UserCheck" size={20} />
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                      {combinedUsersList.length} Users
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 font-medium">User Access &amp; Bots</p>
+                  <h3 class="text-base font-extrabold text-slate-900 mt-0.5 truncate">
+                    Assign Plan &amp; Bots
+                  </h3>
+                  <p class="text-[11px] text-slate-400 mt-1">Grant VIP &amp; Store Bots</p>
+                </button>
+
                 <!-- Plans & Pricing KPI -->
                 <button
                   type="button"
@@ -859,27 +1152,6 @@
                     {activeModelsCount === MODELS_CATALOG.length ? '100% Available' : `${activeModelsCount} Models Enabled`}
                   </h3>
                   <p class="text-[11px] text-slate-400 mt-1">Latency Avg ~650ms</p>
-                </button>
-
-                <!-- Channels KPI -->
-                <button
-                  type="button"
-                  onclick={() => activeAdminTab = 'telegram'}
-                  class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all text-left group cursor-pointer"
-                >
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 group-hover:scale-105 transition-transform">
-                      <Icon name="Send" size={20} />
-                    </div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {hasTelegramBot || telegramBotToken ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
-                      {hasTelegramBot || telegramBotToken ? 'Live Bot' : 'Pending'}
-                    </span>
-                  </div>
-                  <p class="text-xs text-slate-500 font-medium">Omni-Channel Sync</p>
-                  <h3 class="text-base font-extrabold text-slate-900 mt-0.5 truncate">
-                    Telegram &amp; WhatsApp
-                  </h3>
-                  <p class="text-[11px] text-slate-400 mt-1">@{telegramBotUsername || 'EzboAgentsBot'}</p>
                 </button>
               </div>
 
@@ -993,22 +1265,22 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <button
                     type="button"
-                    onclick={() => activeAdminTab = 'smtp'}
+                    onclick={() => activeAdminTab = 'users'}
                     class="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-all cursor-pointer group"
                   >
-                    <Icon name="Mail" size={16} class="text-amber-400 mb-1.5" />
-                    <h4 class="text-xs font-bold text-white">Send Test OTP</h4>
-                    <p class="text-[10px] text-slate-400">Dispatch 6-digit test email</p>
+                    <Icon name="UserCheck" size={16} class="text-amber-400 mb-1.5" />
+                    <h4 class="text-xs font-bold text-white">Assign User Access</h4>
+                    <p class="text-[10px] text-slate-400">Grant Plan &amp; Store Bots to any email</p>
                   </button>
 
                   <button
                     type="button"
-                    onclick={() => activeAdminTab = 'telegram'}
+                    onclick={() => activeAdminTab = 'smtp'}
                     class="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-all cursor-pointer group"
                   >
-                    <Icon name="Send" size={16} class="text-sky-400 mb-1.5" />
-                    <h4 class="text-xs font-bold text-white">Ping Telegram</h4>
-                    <p class="text-[10px] text-slate-400">Check @{telegramBotUsername} ping</p>
+                    <Icon name="Mail" size={16} class="text-sky-400 mb-1.5" />
+                    <h4 class="text-xs font-bold text-white">Send Test OTP</h4>
+                    <p class="text-[10px] text-slate-400">Dispatch 6-digit test email</p>
                   </button>
 
                   <button
@@ -1037,10 +1309,403 @@
           {/if}
 
           <!-- ======================================================== -->
+          <!-- 1a. USER ACCESS & BOT STORE ASSIGNMENT TAB -->
+          <!-- ======================================================== -->
+          {#if activeAdminTab === 'users'}
+            <div class="space-y-6 animate-in fade-in duration-200">
+              <!-- Header Banner -->
+              <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-3.5">
+                  <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+                    <Icon name="UserCheck" size={22} />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">User Access Control</span>
+                      <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Assign Plans &amp; Bot Store Agents to Any User</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">
+                      যেকোনো ইউজারের ইমেইল দিয়ে সরাসরি সাবস্ক্রিপশন প্ল্যান (BYOK / All-Inclusive Cloud) এবং বট স্টোরের যেকোনো বট আনলক বা অ্যাক্সেস প্রদান করুন।
+                    </p>
+                  </div>
+                </div>
+
+                {#if $currentUser?.email}
+                  <button
+                    type="button"
+                    onclick={fillMyCurrentEmail}
+                    class="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                  >
+                    <Icon name="User" size={14} />
+                    <span>Use My Account ({$currentUser.email})</span>
+                  </button>
+                {/if}
+              </div>
+
+              {#if grantFeedback}
+                <div class="p-4 rounded-2xl text-xs font-bold flex items-center justify-between gap-3 shadow-sm {grantFeedbackType === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-rose-50 border border-rose-200 text-rose-800'}">
+                  <div class="flex items-center gap-2">
+                    <Icon name={grantFeedbackType === 'success' ? 'CheckCircle2' : 'AlertCircle'} size={18} />
+                    <span>{grantFeedback}</span>
+                  </div>
+                  <button type="button" onclick={() => grantFeedback = ''} class="p-1 rounded-lg hover:bg-black/5">
+                    <Icon name="X" size={14} />
+                  </button>
+                </div>
+              {/if}
+
+              <!-- Main 2-Column Layout -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- LEFT: GRANT FORM (7 COLUMNS) -->
+                <div class="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                  <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-2">
+                      <Icon name="Crown" size={18} class="text-amber-500" />
+                      <h3 class="text-sm font-bold text-slate-900">1. User Account &amp; Plan Assignment</h3>
+                    </div>
+                    <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Instant Activation
+                    </span>
+                  </div>
+
+                  <!-- User Email & Name -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                      <label for="grant-email" class="text-xs font-bold text-slate-700">
+                        User Email Address <span class="text-rose-500">*</span>
+                      </label>
+                      <input
+                        id="grant-email"
+                        type="email"
+                        bind:value={grantEmail}
+                        placeholder="user@gmail.com (যেকোনো ইউজারের ইমেইল)"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white text-xs font-semibold text-slate-900 outline-none"
+                      />
+                      <p class="text-[10px] text-slate-400">ইউজার লগইন করলেই অটোমেটিক এই প্ল্যান ও বট পেয়ে যাবে।</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label for="grant-name" class="text-xs font-bold text-slate-700">
+                        User Name <span class="text-slate-400 font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        id="grant-name"
+                        type="text"
+                        bind:value={grantName}
+                        placeholder="e.g. Farhan Ayan"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white text-xs text-slate-900 outline-none"
+                      />
+                      <p class="text-[10px] text-slate-400">ডিরেক্টরিতে চেনার সুবিধার্থে নাম দিতে পারেন।</p>
+                    </div>
+                  </div>
+
+                  <!-- Plan Status & Tier Selector -->
+                  <div class="space-y-4 pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Select Subscription Plan (প্ল্যান সিলেক্ট করুন)</h4>
+                      <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" bind:checked={grantIsSubscribed} class="rounded text-blue-600 focus:ring-blue-500" />
+                        <span class="text-xs font-bold {grantIsSubscribed ? 'text-emerald-600' : 'text-rose-600'}">
+                          {grantIsSubscribed ? '● Plan Active (সক্রিয়)' : '○ Plan Inactive (বন্ধ)'}
+                        </span>
+                      </label>
+                    </div>
+
+                    <!-- Plan Tier Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <!-- BYOK Tier -->
+                      <button
+                        type="button"
+                        onclick={() => { grantTier = 'byok'; grantIsSubscribed = true; }}
+                        class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer {grantTier === 'byok' && grantIsSubscribed ? 'border-blue-600 bg-blue-50/40 shadow-sm' : 'border-slate-200 bg-slate-50/60 hover:border-slate-300'}"
+                      >
+                        <div class="flex items-center justify-between mb-1.5">
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-800">
+                            {editablePlans.byok.badge}
+                          </span>
+                          {#if grantTier === 'byok' && grantIsSubscribed}
+                            <Icon name="CheckCircle2" size={16} class="text-blue-600" />
+                          {/if}
+                        </div>
+                        <h5 class="text-sm font-extrabold text-slate-900">{editablePlans.byok.name}</h5>
+                        <p class="text-[11px] text-slate-500 mt-0.5">৳{editablePlans.byok.monthlyPrice}/mo • Multi-Engine BYOK</p>
+                      </button>
+
+                      <!-- Managed All-Inclusive Tier -->
+                      <button
+                        type="button"
+                        onclick={() => { grantTier = 'managed'; grantIsSubscribed = true; }}
+                        class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer {grantTier === 'managed' && grantIsSubscribed ? 'border-blue-600 bg-blue-50/40 shadow-sm' : 'border-slate-200 bg-slate-50/60 hover:border-slate-300'}"
+                      >
+                        <div class="flex items-center justify-between mb-1.5">
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                            {editablePlans.managed.badge}
+                          </span>
+                          {#if grantTier === 'managed' && grantIsSubscribed}
+                            <Icon name="CheckCircle2" size={16} class="text-blue-600" />
+                          {/if}
+                        </div>
+                        <h5 class="text-sm font-extrabold text-slate-900">{editablePlans.managed.name}</h5>
+                        <p class="text-[11px] text-slate-500 mt-0.5">৳{editablePlans.managed.monthlyPrice}/mo • Zero API Keys Needed</p>
+                      </button>
+                    </div>
+
+                    <!-- Billing Duration Selector -->
+                    <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                      <div>
+                        <span class="text-xs font-bold text-slate-800 block">Plan Validity / Billing Cycle</span>
+                        <span class="text-[11px] text-slate-500">প্ল্যানের মেয়াদ নির্ধারণ করুন (মাসিক বা বাৎসরিক)</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onclick={() => grantInterval = 'monthly'}
+                          class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer {grantInterval === 'monthly' ? 'bg-slate-900 text-white shadow-xs' : 'bg-white text-slate-600 border border-slate-200'}"
+                        >
+                          1 Month (30d)
+                        </button>
+                        <button
+                          type="button"
+                          onclick={() => grantInterval = 'yearly'}
+                          class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer {grantInterval === 'yearly' ? 'bg-blue-600 text-white shadow-xs' : 'bg-white text-slate-600 border border-slate-200'}"
+                        >
+                          1 Year VIP (365d)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Bot Store Bots Selector -->
+                  <div class="space-y-4 pt-2 border-t border-slate-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          3. Assign Bot Store Add-on Agents ({grantSelectedBots.length} / {STORE_BOTS.length} Selected)
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                          বট স্টোরের যে বটগুলোতে টিক দেবেন, সেগুলো ইউজারের "My Agents" এবং চ্যাটে আনলক হয়ে যাবে।
+                        </p>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onclick={selectAllGrantBots}
+                          class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold cursor-pointer transition-colors"
+                        >
+                          Select All 6 Bots
+                        </button>
+                        <button
+                          type="button"
+                          onclick={clearAllGrantBots}
+                          class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold cursor-pointer transition-colors"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {#each STORE_BOTS as bot (bot.id)}
+                        {@const isBotSelected = grantSelectedBots.includes(bot.id)}
+                        <button
+                          type="button"
+                          onclick={() => toggleGrantBot(bot.id)}
+                          class="p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer {isBotSelected ? 'border-blue-600 bg-blue-50/30 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 opacity-75'}"
+                        >
+                          <img src={bot.avatar} alt={bot.name} class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 mt-0.5" />
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                              <span class="text-xs font-extrabold text-slate-900 truncate">{bot.name}</span>
+                              <span class="w-4 h-4 rounded-md flex items-center justify-center shrink-0 {isBotSelected ? 'bg-blue-600 text-white' : 'border border-slate-300 bg-slate-50'}">
+                                {#if isBotSelected}
+                                  <Icon name="Check" size={11} />
+                                {/if}
+                              </span>
+                            </div>
+                            <p class="text-[11px] text-blue-600 font-semibold truncate">{bot.role}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Store Value: ৳{bot.monthlyPrice}/mo</p>
+                          </div>
+                        </button>
+                      {/each}
+                    </div>
+                  </div>
+
+                  <!-- Optional Admin Note -->
+                  <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                    <label for="grant-note" class="text-xs font-bold text-slate-700">Admin Note / Reference (ঐচ্ছিক)</label>
+                    <input
+                      id="grant-note"
+                      type="text"
+                      bind:value={grantNote}
+                      placeholder="e.g. Manual bKash payment / Partner VIP Access"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white text-xs text-slate-900 outline-none"
+                    />
+                  </div>
+
+                  <!-- Submit Action Footer -->
+                  <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p class="text-[11px] text-slate-500">
+                      Changes apply immediately across Web, WhatsApp &amp; Telegram.
+                    </p>
+                    <button
+                      type="button"
+                      onclick={handleGrantUserAccess}
+                      disabled={isGrantingUser}
+                      class="w-full sm:w-auto px-6 py-3 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {#if isGrantingUser}
+                        <Icon name="Loader2" size={15} class="animate-spin" />
+                        <span>Activating Access...</span>
+                      {:else}
+                        <Icon name="UserCheck" size={15} />
+                        <span>Grant Plan &amp; Bot Access Now</span>
+                      {/if}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- RIGHT: USERS & ACTIVE GRANTS DIRECTORY (5 COLUMNS) -->
+                <div class="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                  <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <Icon name="User" size={16} class="text-blue-600" />
+                        <span>Users &amp; Granted Access ({combinedUsersList.length})</span>
+                      </h3>
+                      <p class="text-[11px] text-slate-500 mt-0.5">যেকোনো ইউজারের উপর ক্লিক করে প্ল্যান বা বট এডিট করুন।</p>
+                    </div>
+                  </div>
+
+                  <!-- Search Input -->
+                  <div class="relative">
+                    <input
+                      type="text"
+                      bind:value={userSearchQuery}
+                      placeholder="Search user by email or name..."
+                      class="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white text-xs text-slate-900 outline-none"
+                    />
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Icon name="Search" size={14} />
+                    </div>
+                  </div>
+
+                  <!-- Users List -->
+                  {#if combinedUsersList.length === 0}
+                    <div class="text-center py-12 px-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-2">
+                      <Icon name="UserCheck" size={28} class="text-slate-400 mx-auto" />
+                      <p class="text-xs font-bold text-slate-700">এখনো কোনো ইউজার তালিকাভুক্ত নেই</p>
+                      <p class="text-[11px] text-slate-500">
+                        বাম পাশের ফর্মে যেকোনো ইউজারের ইমেইল লিখে প্ল্যান ও বট অ্যাসাইন করলেই এখানে চলে আসবে।
+                      </p>
+                    </div>
+                  {:else}
+                    <div class="space-y-3 max-h-[560px] overflow-y-auto pr-1">
+                      {#each combinedUsersList as u (u.email)}
+                        <div class="p-4 rounded-2xl border transition-all {grantEmail.toLowerCase() === u.email ? 'border-blue-600 bg-blue-50/20 shadow-xs' : 'border-slate-200 bg-slate-50/60 hover:border-slate-300'} space-y-3">
+                          <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                              <div class="flex items-center gap-1.5 flex-wrap">
+                                <h4 class="text-xs font-bold text-slate-900 truncate">{u.name}</h4>
+                                {#if u.isSubscribed}
+                                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase {u.tier === 'managed' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                                    {u.tier === 'managed' ? 'All-Inclusive Cloud' : 'BYOK Multi-Engine'} ({u.interval})
+                                  </span>
+                                {:else}
+                                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                                    No Active Plan
+                                  </span>
+                                {/if}
+                              </div>
+                              <p class="text-[11px] font-mono text-slate-600 truncate mt-0.5">{u.email}</p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onclick={() => selectUserForGrant(u.email, u.name)}
+                              class="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-50 text-blue-600 border border-slate-200 hover:border-blue-200 text-[11px] font-bold shrink-0 cursor-pointer transition-colors"
+                            >
+                              Edit
+                            </button>
+                          </div>
+
+                          <!-- Unlocked Store Bots Badges -->
+                          <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-[10px] font-bold text-slate-400">Store Bots ({u.unlockedStoreBots.length}/{STORE_BOTS.length}):</span>
+                            {#if u.unlockedStoreBots.length === 0}
+                              <span class="text-[10px] text-slate-400 italic">None unlocked</span>
+                            {:else}
+                              {#each u.unlockedStoreBots as botId}
+                                {@const botObj = STORE_BOTS.find((b) => b.id === botId)}
+                                {#if botObj}
+                                  <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-700">
+                                    {botObj.name}
+                                  </span>
+                                {/if}
+                              {/each}
+                            {/if}
+                          </div>
+
+                          {#if u.note}
+                            <p class="text-[10px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-100">
+                              📝 {u.note}
+                            </p>
+                          {/if}
+
+                          <!-- Quick Row Actions -->
+                          <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onclick={() => handleQuickUnlockAllBots(u.email, u.name)}
+                              class="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+                            >
+                              <Icon name="Zap" size={12} />
+                              <span>Unlock Plan + All 6 Bots</span>
+                            </button>
+
+                            {#if u.isSubscribed || u.unlockedStoreBots.length > 0}
+                              <button
+                                type="button"
+                                onclick={() => handleRevokeUserAccess(u.email)}
+                                class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 cursor-pointer"
+                              >
+                                Revoke Access
+                              </button>
+                            {/if}
+                          </div>
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+
+              </div>
+            </div>
+          {/if}
+
+          <!-- ======================================================== -->
           <!-- 1b. PLANS & PRICING TAB -->
           <!-- ======================================================== -->
           {#if activeAdminTab === 'plans'}
             <div class="space-y-6 animate-in fade-in duration-200">
+              <!-- Quick Banner to Assign Plan to a Specific User -->
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 text-xs text-amber-900">
+                  <Icon name="UserCheck" size={18} class="text-amber-600 shrink-0" />
+                  <span>
+                    <strong>কোনো নির্দিষ্ট ইউজারকে ফ্রিতে বা ম্যানুয়ালি প্ল্যান ও বট স্টোরের বট অ্যাসাইন করতে চান?</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onclick={() => activeAdminTab = 'users'}
+                  class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors shrink-0 cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Go to User Access &amp; Bots</span>
+                  <Icon name="ArrowRight" size={13} />
+                </button>
+              </div>
+
               <!-- Header Card -->
               <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-start gap-3">

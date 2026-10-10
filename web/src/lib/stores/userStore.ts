@@ -378,6 +378,122 @@ function saveUserToDb(email: string, account: StoredUserAccount) {
   }
 }
 
+export function getAllLocalRegisteredUsers(): UserProfile[] {
+  const db = getStoredUsersDb();
+  const list = Object.values(db).map((a) => a.user);
+  const curr = get(currentUser);
+  if (curr && !list.some((u) => u.email.toLowerCase() === curr.email.toLowerCase())) {
+    list.push(curr);
+  }
+  return list;
+}
+
+export interface ServerUserGrant {
+  email: string;
+  name?: string;
+  isSubscribed: boolean;
+  tier: 'byok' | 'managed';
+  interval: 'monthly' | 'yearly';
+  unlockedStoreBots: string[];
+  expiresAt: string;
+  grantedAt?: string;
+  updatedAt?: string;
+  note?: string;
+}
+
+export function applyAdminGrantLocally(grant: ServerUserGrant): void {
+  if (typeof window === 'undefined' || !grant || !grant.email) return;
+  const cleanEmail = grant.email.trim().toLowerCase();
+
+  // 1. Update in local registered users DB if exists
+  const db = getStoredUsersDb();
+  if (db[cleanEmail]) {
+    db[cleanEmail].user = {
+      ...db[cleanEmail].user,
+      name: grant.name || db[cleanEmail].user.name,
+      isSubscribed: grant.isSubscribed,
+      tier: grant.tier,
+      plan: grant.interval
+    };
+    localStorage.setItem('superai_registered_users', JSON.stringify(db));
+  }
+
+  // 2. If this grant is for the currently logged-in user, update active stores & session
+  const curr = get(currentUser);
+  if (curr && curr.email.trim().toLowerCase() === cleanEmail) {
+    const updatedUser: UserProfile = {
+      ...curr,
+      name: grant.name || curr.name,
+      isSubscribed: grant.isSubscribed,
+      tier: grant.tier,
+      plan: grant.interval
+    };
+    saveUserSession(updatedUser);
+
+    subscription.update((sub) => {
+      const monthlyUsedReset = new Date();
+      monthlyUsedReset.setMonth(monthlyUsedReset.getMonth() + 1);
+      const days = grant.interval === 'yearly' ? 365 : 30;
+      const updatedSub: SubscriptionState = {
+        ...sub,
+        tier: grant.tier,
+        interval: grant.interval,
+        status: grant.isSubscribed ? 'active' : 'expired',
+        expiresAt: grant.expiresAt || (grant.isSubscribed ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString() : new Date(0).toISOString()),
+        autoRenew: grant.isSubscribed,
+        plan: grant.interval,
+        isVip: grant.isSubscribed,
+        unlockedStoreBots: Array.from(new Set(grant.unlockedStoreBots || [])),
+        managedUsage: grant.tier === 'managed' ? (sub.managedUsage || {
+          usedThisMonth: 0,
+          monthlyLimit: 5000,
+          resetsAt: monthlyUsedReset.toISOString()
+        }) : undefined
+      };
+      localStorage.setItem('superai_subscription', JSON.stringify(updatedSub));
+      return updatedSub;
+    });
+  }
+}
+
+export async function syncUserAccessWithServer(overrideUser?: UserProfile): Promise<{ hasGrant: boolean; grant?: ServerUserGrant }> {
+  if (typeof window === 'undefined') return { hasGrant: false };
+  const targetUser = overrideUser || get(currentUser);
+  if (!targetUser || !targetUser.email) return { hasGrant: false };
+
+  try {
+    const sub = get(subscription);
+    const allLocalUsers = getAllLocalRegisteredUsers();
+    const res = await fetch('/api/user/access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: targetUser.id,
+        name: targetUser.name,
+        email: targetUser.email,
+        provider: targetUser.provider,
+        isSubscribed: targetUser.isSubscribed,
+        tier: targetUser.tier,
+        unlockedStoreBots: sub.unlockedStoreBots || [],
+        createdAt: targetUser.createdAt,
+        allLocalUsers
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.hasGrant && data.grant) {
+        applyAdminGrantLocally(data.grant);
+        return { hasGrant: true, grant: data.grant };
+      }
+    }
+  } catch (e) {
+    console.warn('Could not sync user access with server:', e);
+  }
+
+  return { hasGrant: false };
+}
+
 export async function loginWithEmail(email: string, pass: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanEmail || !pass) {
@@ -400,7 +516,8 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ suc
         localStorage.setItem('superai_subscription', JSON.stringify(sub));
       }
     }
-    return { success: true, user: account.user };
+    await syncUserAccessWithServer(account.user);
+    return { success: true, user: get(currentUser) || account.user };
   } catch (err: any) {
     return { success: false, error: err.message || 'Login failed.' };
   }
@@ -447,6 +564,7 @@ export async function signupWithEmail(name: string, email: string, pass: string)
     if (typeof window !== 'undefined') {
       localStorage.setItem('superai_subscription', JSON.stringify(unpaidSub));
     }
+    await syncUserAccessWithServer(user);
     if (typeof window !== 'undefined') {
       fetch('/api/auth/send-email', {
         method: 'POST',
@@ -454,7 +572,7 @@ export async function signupWithEmail(name: string, email: string, pass: string)
         body: JSON.stringify({ to: user.email, name: user.name, type: 'welcome' })
       }).catch((e) => console.warn('Welcome email trigger:', e));
     }
-    return { success: true, user };
+    return { success: true, user: get(currentUser) || user };
   } catch (err: any) {
     return { success: false, error: err.message || 'Sign up failed.' };
   }
@@ -548,7 +666,8 @@ export async function loginOrCreateWithGoogle(payload: GoogleAuthPayload): Promi
           localStorage.setItem('superai_subscription', JSON.stringify(sub));
         }
       }
-      return { success: true, isNewUser: false, user: existing.user };
+      await syncUserAccessWithServer(existing.user);
+      return { success: true, isNewUser: false, user: get(currentUser) || existing.user };
     }
     const derivedName = payload.name?.trim() || cleanEmail.split('@')[0];
     const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
@@ -580,6 +699,7 @@ export async function loginOrCreateWithGoogle(payload: GoogleAuthPayload): Promi
     if (typeof window !== 'undefined') {
       localStorage.setItem('superai_subscription', JSON.stringify(unpaidSub));
     }
+    await syncUserAccessWithServer(newUser);
     if (typeof window !== 'undefined') {
       fetch('/api/auth/send-email', {
         method: 'POST',
@@ -587,7 +707,7 @@ export async function loginOrCreateWithGoogle(payload: GoogleAuthPayload): Promi
         body: JSON.stringify({ to: newUser.email, name: newUser.name, type: 'welcome' })
       }).catch((e) => console.warn('Welcome email trigger:', e));
     }
-    return { success: true, isNewUser: true, user: newUser };
+    return { success: true, isNewUser: true, user: get(currentUser) || newUser };
   } catch (err: any) {
     return { success: false, isNewUser: false, error: err.message || 'Google login failed.' };
   }

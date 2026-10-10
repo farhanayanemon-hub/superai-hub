@@ -13,6 +13,31 @@ export interface AdminModelToggles {
   'flux-schnell': boolean;
 }
 
+export interface UserAccessGrant {
+  email: string;
+  name?: string;
+  isSubscribed: boolean;
+  tier: 'byok' | 'managed';
+  interval: 'monthly' | 'yearly';
+  unlockedStoreBots: string[];
+  expiresAt: string;
+  grantedAt: string;
+  updatedAt: string;
+  note?: string;
+}
+
+export interface RegisteredUserSummary {
+  id: string;
+  name: string;
+  email: string;
+  provider: string;
+  isSubscribed: boolean;
+  tier: string;
+  unlockedStoreBots: string[];
+  createdAt: string;
+  lastSeenAt: string;
+}
+
 export interface AdminConfig {
   adminPassphrase?: string;
   opayApiKey: string;
@@ -35,6 +60,8 @@ export interface AdminConfig {
   telegramBotToken?: string;
   telegramBotUsername?: string;
   plans?: PlansSettings;
+  userGrants?: Record<string, UserAccessGrant>;
+  registeredUsers?: Record<string, RegisteredUserSummary>;
 }
 
 const DEFAULT_MODELS: AdminModelToggles = {
@@ -77,7 +104,9 @@ function loadConfigFromStorage(): AdminConfig {
     smtpSecure: process.env.SMTP_SECURE === 'true',
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
     telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot',
-    plans: DEFAULT_PLANS
+    plans: DEFAULT_PLANS,
+    userGrants: {},
+    registeredUsers: {}
   };
 
   try {
@@ -108,7 +137,9 @@ function loadConfigFromStorage(): AdminConfig {
         smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure,
         telegramBotToken: saved.telegramBotToken ?? envConfig.telegramBotToken,
         telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername,
-        plans: saved.plans || DEFAULT_PLANS
+        plans: saved.plans || DEFAULT_PLANS,
+        userGrants: saved.userGrants || {},
+        registeredUsers: saved.registeredUsers || {}
       };
     }
   } catch (err) {
@@ -137,7 +168,9 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
     plans: patch.plans ? {
       byok: { ...(current.plans?.byok || DEFAULT_PLANS.byok), ...patch.plans.byok },
       managed: { ...(current.plans?.managed || DEFAULT_PLANS.managed), ...patch.plans.managed }
-    } : (current.plans || DEFAULT_PLANS)
+    } : (current.plans || DEFAULT_PLANS),
+    userGrants: patch.userGrants ?? current.userGrants ?? {},
+    registeredUsers: patch.registeredUsers ?? current.registeredUsers ?? {}
   };
 
   memoryConfig = updated;
@@ -149,6 +182,119 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
   }
 
   return updated;
+}
+
+export function upsertUserGrant(input: {
+  email: string;
+  name?: string;
+  isSubscribed: boolean;
+  tier: 'byok' | 'managed';
+  interval: 'monthly' | 'yearly';
+  unlockedStoreBots: string[];
+  note?: string;
+}): UserAccessGrant {
+  const config = getAdminConfig();
+  const cleanEmail = input.email.trim().toLowerCase();
+  const existing = config.userGrants?.[cleanEmail];
+  const now = new Date().toISOString();
+  const days = input.interval === 'yearly' ? 365 : 30;
+  const expiresAt = input.isSubscribed
+    ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+    : new Date(0).toISOString();
+
+  const grant: UserAccessGrant = {
+    email: cleanEmail,
+    name: input.name?.trim() || existing?.name || config.registeredUsers?.[cleanEmail]?.name || cleanEmail.split('@')[0],
+    isSubscribed: input.isSubscribed,
+    tier: input.tier || 'byok',
+    interval: input.interval || 'monthly',
+    unlockedStoreBots: Array.from(new Set(input.unlockedStoreBots || [])),
+    expiresAt,
+    grantedAt: existing?.grantedAt || now,
+    updatedAt: now,
+    note: input.note !== undefined ? input.note : existing?.note
+  };
+
+  const updatedGrants = { ...(config.userGrants || {}), [cleanEmail]: grant };
+  const updatedUsers = { ...(config.registeredUsers || {}) };
+
+  if (updatedUsers[cleanEmail]) {
+    updatedUsers[cleanEmail] = {
+      ...updatedUsers[cleanEmail],
+      name: grant.name || updatedUsers[cleanEmail].name,
+      isSubscribed: grant.isSubscribed,
+      tier: grant.tier,
+      unlockedStoreBots: grant.unlockedStoreBots,
+      lastSeenAt: now
+    };
+  } else {
+    updatedUsers[cleanEmail] = {
+      id: `usr-${Date.now().toString(36)}`,
+      name: grant.name || cleanEmail.split('@')[0],
+      email: cleanEmail,
+      provider: 'admin-assigned',
+      isSubscribed: grant.isSubscribed,
+      tier: grant.tier,
+      unlockedStoreBots: grant.unlockedStoreBots,
+      createdAt: now,
+      lastSeenAt: now
+    };
+  }
+
+  updateAdminConfig({
+    userGrants: updatedGrants,
+    registeredUsers: updatedUsers
+  });
+
+  return grant;
+}
+
+export function deleteUserGrant(email: string): void {
+  const config = getAdminConfig();
+  const cleanEmail = email.trim().toLowerCase();
+  const updatedGrants = { ...(config.userGrants || {}) };
+  delete updatedGrants[cleanEmail];
+  updateAdminConfig({ userGrants: updatedGrants });
+}
+
+export function getUserGrant(email: string): UserAccessGrant | null {
+  if (!email) return null;
+  const config = getAdminConfig();
+  const cleanEmail = email.trim().toLowerCase();
+  return config.userGrants?.[cleanEmail] || null;
+}
+
+export function recordRegisteredUser(user: {
+  id?: string;
+  name?: string;
+  email: string;
+  provider?: string;
+  isSubscribed?: boolean;
+  tier?: string;
+  unlockedStoreBots?: string[];
+  createdAt?: string;
+}): RegisteredUserSummary {
+  const config = getAdminConfig();
+  const cleanEmail = user.email.trim().toLowerCase();
+  const existing = config.registeredUsers?.[cleanEmail];
+  const grant = config.userGrants?.[cleanEmail];
+  const now = new Date().toISOString();
+
+  const summary: RegisteredUserSummary = {
+    id: user.id || existing?.id || `usr-${Date.now().toString(36)}`,
+    name: user.name?.trim() || existing?.name || grant?.name || cleanEmail.split('@')[0],
+    email: cleanEmail,
+    provider: user.provider || existing?.provider || 'email',
+    isSubscribed: grant ? grant.isSubscribed : (user.isSubscribed ?? existing?.isSubscribed ?? false),
+    tier: grant ? grant.tier : (user.tier || existing?.tier || 'byok'),
+    unlockedStoreBots: grant ? grant.unlockedStoreBots : (user.unlockedStoreBots || existing?.unlockedStoreBots || []),
+    createdAt: user.createdAt || existing?.createdAt || now,
+    lastSeenAt: now
+  };
+
+  const updatedUsers = { ...(config.registeredUsers || {}), [cleanEmail]: summary };
+  updateAdminConfig({ registeredUsers: updatedUsers });
+  return summary;
 }
 
 function maskKey(key?: string): string {
@@ -187,6 +333,8 @@ export function getMaskedAdminConfig() {
     telegramBotToken: maskKey(config.telegramBotToken),
     telegramBotUsername: config.telegramBotUsername || 'EzboAgentsBot',
     hasTelegramBot: !!config.telegramBotToken,
-    plans: config.plans || DEFAULT_PLANS
+    plans: config.plans || DEFAULT_PLANS,
+    userGrants: config.userGrants || {},
+    registeredUsers: config.registeredUsers || {}
   };
 }

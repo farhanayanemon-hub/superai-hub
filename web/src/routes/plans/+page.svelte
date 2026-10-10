@@ -5,6 +5,7 @@
     isAuthenticated,
     subscription,
     logout,
+    syncUserAccessWithServer,
     type PlanTier,
     type BillingInterval
   } from '$lib/stores/userStore';
@@ -20,8 +21,12 @@
   let paymentError = $state('');
   let paymentNotice = $state('');
 
-  onMount(() => {
+  onMount(async () => {
     loadPublicPlans();
+
+    if ($isAuthenticated && $currentUser) {
+      await syncUserAccessWithServer();
+    }
 
     // If the user is already authenticated and subscribed, redirect to dashboard
     if ($isAuthenticated && $currentUser?.isSubscribed && $subscription.status === 'active') {

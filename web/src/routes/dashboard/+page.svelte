@@ -30,12 +30,14 @@
     reactivateSubscription,
     switchPlan,
     unlockStoreBot,
+    syncUserAccessWithServer,
     apiVault,
     type DashboardTab,
     type PlanTier
   } from '$lib/stores/userStore';
 
   let mobileSidebarOpen = $state(false);
+  let hasCheckedServerAccess = $state(false);
 
   // BYOK Tab local state
   let inputKey = $state($apiKey || '');
@@ -182,7 +184,7 @@
     setTimeout(() => { telegramCopied = false; }, 3000);
   }
 
-  onMount(() => {
+  onMount(async () => {
     loadPublicPlans();
 
     // Production Auth Protection: Redirect unauthenticated visitors to login
@@ -190,6 +192,10 @@
       goto('/login');
       return;
     }
+
+    // Sync any admin-assigned plan or store bot grants from server
+    await syncUserAccessWithServer();
+    hasCheckedServerAccess = true;
 
     // Mandatory Paywall Gate: If user has not subscribed or plan expired, redirect to /plans
     if (!$currentUser.isSubscribed || $subscription.status !== 'active') {
@@ -211,7 +217,7 @@
   });
 
   $effect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && hasCheckedServerAccess) {
       if (!$isAuthenticated) {
         goto('/login');
       } else if ($currentUser && (!$currentUser.isSubscribed || $subscription.status !== 'active')) {
