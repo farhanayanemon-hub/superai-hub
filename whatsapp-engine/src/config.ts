@@ -7,16 +7,17 @@ export const PORT = parseInt(process.env.PORT || '4000', 10);
 export const WEB_ORIGIN = process.env.WEB_ORIGIN || 'http://localhost:5173';
 export const AUTH_DIR = path.resolve(process.cwd(), 'auth_info_baileys');
 
-// Ensure auth dir exists
 if (!fs.existsSync(AUTH_DIR)) {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 }
 
-// Load 50+ tools definitions
 export interface ToolItem {
   id: string;
+  code?: string;
   name: string;
   nameEn: string;
+  shortDesc?: string;
+  badge?: string;
   category: string;
   categoryName: string;
   description: string;

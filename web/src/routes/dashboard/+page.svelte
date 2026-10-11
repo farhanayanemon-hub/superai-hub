@@ -277,7 +277,9 @@
       return (
         matchCategory &&
         (tool.name.toLowerCase().includes(query) ||
+          tool.code.toLowerCase().includes(query) ||
           tool.nameEn.toLowerCase().includes(query) ||
+          tool.shortDesc.toLowerCase().includes(query) ||
           tool.description.toLowerCase().includes(query) ||
           tool.keywords.some((k) => k.toLowerCase().includes(query)))
       );
@@ -295,7 +297,7 @@
 
 <svelte:head>
   <title>Executive Console • EzboAgents (ezboagents.com)</title>
-  <meta name="description" content="EzboAgents Executive Console - Central Brain AI Assistant, 50+ Specialized AI Executives, WhatsApp Encryption Sync, and BYOK Gemini Engine." />
+  <meta name="description" content="EzboAgents Executive Console - Master AI CEO Orchestrator, 75 Business & Freelancer AI Helpers, WhatsApp & Telegram Sync, and Multi-Provider AI Vault." />
 </svelte:head>
 
 <div class="h-screen w-screen bg-[#f8fafc] text-slate-900 flex overflow-hidden font-sans selection:bg-blue-600 selection:text-white">
@@ -347,22 +349,22 @@
 
       <!-- Navigation Menu Items -->
       <nav class="p-3 space-y-1.5">
-        <!-- 1. AI Assistant Chat (Main Interface) -->
+        <!-- 1. AI CEO Executive Chat (Main Interface) -->
         <button
           type="button"
           onclick={() => switchTab('chat')}
           class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'chat' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="MessageSquare" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-blue-600'} />
-            <span>Executive Chat</span>
+            <Icon name="Crown" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-blue-600'} />
+            <span>AI CEO Chat</span>
           </div>
           <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'chat' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
-            Main
+            Master
           </span>
         </button>
 
-        <!-- 2. My Agents (Renamed from AI Agents) -->
+        <!-- 2. 75 AI Helpers -->
         <button
           type="button"
           onclick={() => switchTab('agents')}
@@ -370,14 +372,14 @@
         >
           <div class="flex items-center gap-3">
             <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'text-white' : 'text-blue-600'} />
-            <span>My Agents</span>
+            <span>AI Helpers (75)</span>
           </div>
           <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
-            {TOOLS.length + unlockedBotsList.length}
+            {TOOLS.length}
           </span>
         </button>
 
-        <!-- 3. Agents Store (Directly below My Agents) -->
+        <!-- 3. Agents Store (Autonomous Agents) -->
         <button
           type="button"
           onclick={() => switchTab('store')}
@@ -388,7 +390,7 @@
             <span>Agents Store</span>
           </div>
           <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'store' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
-            Add-ons
+            Autonomous
           </span>
         </button>
 
@@ -500,32 +502,44 @@
         </div>
 
       <!-- ==================================================== -->
-      <!-- TAB 2: MY AGENTS (CUSTOM AGENTS + UNLOCKED STORE BOTS) -->
+      <!-- TAB 2: 75 AI HELPERS STUDIO + UNLOCKED STORE BOTS -->
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'agents' || $activeDashboardTab === 'tools'}
         <div class="h-full flex flex-col space-y-4 overflow-y-auto pr-1">
-          <!-- Header and Search -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-4 sm:p-6 rounded-3xl shadow-sm">
-            <div>
-              <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
-                <span>My Agents</span>
-                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200">
-                  {filteredTools.length + unlockedBotsList.length} Active
+          <!-- Master AI CEO Banner + Search -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-5 sm:p-6 rounded-3xl shadow-md">
+            <div class="space-y-1">
+              <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-[10px] font-extrabold uppercase tracking-wider">
+                <Icon name="Crown" size={12} />
+                <span>1 Master AI CEO + 75 Business & Freelancer AI Helpers</span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
+                <span>75 Specialized AI Helpers</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
+                  {filteredTools.length} Ready
                 </span>
               </h2>
-              <p class="text-xs text-slate-500 mt-1">
-                Your specialized AI Robot agents and directives. Launch real-time sessions anytime.
+              <p class="text-xs text-slate-300 max-w-2xl">
+                প্রতিটি হেল্পারের নিজস্ব কাস্টম অপশন ও চ্যাট স্টুডিও রয়েছে। আলাদাভাবে চ্যাট করতে না চাইলে মেইন <strong>AI CEO</strong>-কে বলুন — অথবা <strong>WhatsApp / Telegram</strong> থেকে নিয়ন্ত্রণ করুন!
               </p>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+              <div class="relative">
+                <input
+                  type="text"
+                  bind:value={$searchQuery}
+                  placeholder="Search #01-#75 or helper name..."
+                  class="w-full sm:w-60 bg-slate-800/90 border border-slate-700 focus:border-blue-400 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-400 outline-none"
+                />
+              </div>
               <button
                 type="button"
-                onclick={() => switchTab('store')}
-                class="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                onclick={() => switchTab('chat')}
+                class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
-                <Icon name="ShoppingBag" size={14} />
-                <span>Agents Store</span>
+                <Icon name="Crown" size={14} />
+                <span>Command via AI CEO</span>
               </button>
             </div>
           </div>
@@ -535,7 +549,7 @@
             <div class="space-y-3">
               <div class="flex items-center gap-2">
                 <Icon name="Crown" size={16} class="text-blue-600" />
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Unlocked Add-on Robot Specialists</h3>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Unlocked Autonomous Store Agents (Web-Only Setup)</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {#each unlockedBotsList as bot}
@@ -546,7 +560,7 @@
                         <div>
                           <div class="flex items-center gap-1.5">
                             <h4 class="font-bold text-sm text-slate-900">{bot.name}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ACTIVE</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">AUTONOMOUS</span>
                           </div>
                           <p class="text-xs text-blue-600 font-semibold">{bot.role}</p>
                         </div>
@@ -562,14 +576,9 @@
                         {/each}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onclick={() => switchTab('chat')}
-                      class="w-full py-2.5 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-blue-500/20"
-                    >
-                      <Icon name="MessageSquare" size={14} />
-                      <span>Launch in Executive Chat</span>
-                    </button>
+                    <div class="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 font-medium">
+                      ⚙️ Web-Only Autonomous Agent (Not controlled via WhatsApp/Telegram)
+                    </div>
                   </div>
                 {/each}
               </div>
@@ -583,18 +592,17 @@
                 <Icon name="Sparkles" size={28} />
               </div>
               <div class="space-y-1">
-                <h3 class="text-base font-bold text-slate-900">Your AI Executives Desk</h3>
+                <h3 class="text-base font-bold text-slate-900">No Matching AI Helper Found</h3>
                 <p class="text-xs text-slate-500 max-w-md mx-auto">
-                  You can subscribe to specialized AI robot add-ons from the Agents Store, or request custom agent directives.
+                  Try clearing your search filter or ask the Master AI CEO directly.
                 </p>
               </div>
               <button
                 type="button"
-                onclick={() => switchTab('store')}
+                onclick={() => { $searchQuery = ''; activeCategory.set('all'); }}
                 class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 inline-flex items-center gap-2 cursor-pointer"
               >
-                <Icon name="ShoppingBag" size={14} />
-                <span>Explore Agents Store</span>
+                <span>Show All 75 Helpers</span>
               </button>
             </div>
           {:else if filteredTools.length > 0}
@@ -606,7 +614,7 @@
                   onclick={() => activeCategory.set(cat.id)}
                   class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {$activeCategory === cat.id ? 'bg-blue-600 text-white shadow-sm font-bold' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600'}"
                 >
-                  {cat.name}
+                  {cat.name} ({cat.count})
                 </button>
               {/each}
             </div>
@@ -621,20 +629,20 @@
         </div>
 
       <!-- ==================================================== -->
-      <!-- TAB 3: AGENTS STORE (SPECIALIZED AI ROBOT ADD-ONS) -->
+      <!-- TAB 3: AGENTS STORE (AUTONOMOUS WEB-ONLY AGENTS) -->
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'store'}
         <div class="h-full flex flex-col space-y-5 overflow-y-auto pr-1 pb-12">
           <!-- Store Header -->
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
             <div>
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-2">
-                <Icon name="ShoppingBag" size={13} />
-                <span>Specialized Robot Executives Desk</span>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-2">
+                <Icon name="Cpu" size={13} />
+                <span>Standalone Autonomous Agents • Web Dashboard Setup Only</span>
               </div>
-              <h2 class="text-xl font-black text-slate-900 tracking-tight">Agents Store</h2>
-              <p class="text-xs text-slate-500 mt-1 max-w-xl">
-                Add-on AI robot agents with dedicated cognitive skills. Available for 1-Month or 1-Year access. Full features and execution tools unlock immediately upon verified payment.
+              <h2 class="text-xl font-black text-slate-900 tracking-tight">Autonomous Agents Store</h2>
+              <p class="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                Agents Store-এর এজেন্টগুলো সম্পূর্ণ <strong>Autonomous Agent</strong> স্টাইলে কাজ করে। এগুলো কিনলে সরাসরি এই ওয়েব ড্যাশবোর্ডে আলাদাভাবে সেটআপ ও ব্যবহার করতে হবে — <strong>এগুলো WhatsApp বা Telegram থেকে কন্ট্রোল করা যাবে না</strong> (শুধুমাত্র মেইন AI CEO এবং ৭৫টি AI Helper হোয়াটসঅ্যাপ ও টেলিগ্রাম থেকে কন্ট্রোল করা যাবে)।
               </p>
             </div>
 

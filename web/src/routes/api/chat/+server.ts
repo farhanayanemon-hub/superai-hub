@@ -1,13 +1,29 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
+import {
+  matchHelperForMessage,
+  buildCeoOrHelperSystemPrompt,
+  isVisualGenerationHelper
+} from '$lib/services/ceoRouter';
 
-const RAILWAY_ENGINE_URL = process.env.WHATSAPP_ENGINE_URL || 'https://whatsapp-engine-production-04f4.up.railway.app';
+const RAILWAY_ENGINE_URL =
+  process.env.WHATSAPP_ENGINE_URL || 'https://whatsapp-engine-production-04f4.up.railway.app';
 const PLATFORM_GEMINI_KEY = process.env.PLATFORM_GEMINI_KEY || '';
 
 type AIProvider = 'gemini' | 'openai' | 'grok' | 'deepseek' | 'openrouter' | 'replicate';
 
+interface ChatHistoryTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 interface ChatRequest {
   message: string;
+  helperId?: string;
+  mode?: 'ceo' | 'helper';
+  language?: string;
+  tone?: string;
+  history?: ChatHistoryTurn[];
   // BYOK single key (Pro / legacy)
   apiKey?: string;
   // Multi-vault (Ultra)
@@ -38,46 +54,165 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const adminConfig = getAdminConfig();
     const body: ChatRequest = await request.json();
-    const { message, apiKey, vaultKey, usePlatformKey } = body;
+    const {
+      message,
+      helperId,
+      mode = 'ceo',
+      language,
+      tone,
+      history = [],
+      apiKey,
+      vaultKey,
+      usePlatformKey
+    } = body;
 
     if (!message) {
       return json({ success: false, error: 'Message is required' }, { status: 400 });
     }
+
+    // Match helper via AI CEO router or explicit helperId
+    const matchedHelper = matchHelperForMessage(message, helperId);
+    const delegatedHelperMeta = matchedHelper
+      ? {
+          id: matchedHelper.id,
+          code: matchedHelper.code,
+          name: matchedHelper.name,
+          icon: matchedHelper.icon,
+          badge: matchedHelper.badge,
+          category: matchedHelper.category
+        }
+      : null;
+
+    const systemPrompt = buildCeoOrHelperSystemPrompt(matchedHelper, {
+      language,
+      tone,
+      mode
+    });
 
     // Determine the key and provider to use
     let resolvedApiKey: string | undefined = undefined;
     let resolvedProvider: AIProvider = 'gemini';
 
     if (usePlatformKey) {
-      // Managed plan: check platform keys configured by Admin
-      resolvedApiKey = adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY || adminConfig.openaiApiKey;
-      resolvedProvider = adminConfig.geminiApiKey ? 'gemini' : (adminConfig.openaiApiKey ? 'openai' : 'gemini');
+      resolvedApiKey =
+        adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY || adminConfig.openaiApiKey;
+      resolvedProvider = adminConfig.geminiApiKey
+        ? 'gemini'
+        : adminConfig.openaiApiKey
+          ? 'openai'
+          : 'gemini';
     } else if (vaultKey?.key) {
-      // Vault key provided by user
       resolvedApiKey = vaultKey.key;
       resolvedProvider = vaultKey.provider;
     } else if (apiKey) {
-      // BYOK Gemini Key
       resolvedApiKey = apiKey;
       resolvedProvider = 'gemini';
-    } else if (adminConfig.geminiApiKey) {
-      // Fallback to platform gemini key if available
-      resolvedApiKey = adminConfig.geminiApiKey;
+    } else if (adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY) {
+      resolvedApiKey = adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY;
       resolvedProvider = 'gemini';
     }
 
-    const requestedModel = vaultKey?.model || (resolvedProvider in DEFAULT_MODELS ? DEFAULT_MODELS[resolvedProvider] : 'gemini-2.0-flash');
+    const requestedModel =
+      vaultKey?.model ||
+      (resolvedProvider in DEFAULT_MODELS
+        ? DEFAULT_MODELS[resolvedProvider]
+        : 'gemini-2.0-flash');
 
-    // Check if the model is toggled OFF by admin
     const modelKey = requestedModel as keyof typeof adminConfig.modelsEnabled;
     if (adminConfig.modelsEnabled && adminConfig.modelsEnabled[modelKey] === false) {
-      return json({
-        success: false,
-        error: `Model "${requestedModel}" has been temporarily disabled by the platform administrator in the Admin Panel.`
-      }, { status: 403 });
+      return json(
+        {
+          success: false,
+          error: `Model "${requestedModel}" has been temporarily disabled by the platform administrator in the Admin Panel.`
+        },
+        { status: 403 }
+      );
     }
 
-    // Direct native execution for OpenAI-compatible providers
+    // Visual Image / Logo generation support (#34 AI Commercial Image Generator, #35 AI Business Logo Generator)
+    if (isVisualGenerationHelper(matchedHelper, message)) {
+      const cleanPrompt = message
+        .replace(/^\/img\s+/i, '')
+        .replace(/^generate image:\s*/i, '')
+        .replace(/^create logo:\s*/i, '')
+        .trim();
+      const encodedPrompt = encodeURIComponent(
+        `${cleanPrompt}, ultra detailed commercial quality, 8k resolution, professional lighting`
+      );
+      const seed = Math.floor(Math.random() * 999999);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
+
+      const captionHeader = matchedHelper
+        ? `⚡ **AI CEO → Delegated to [${matchedHelper.code}] ${matchedHelper.name}**\n\nআপনার ভিজ্যুয়াল রেন্ডার তৈরি হয়েছে। নিচে ডাউনলোড বা প্রিভিউ করুন:`
+        : `✨ আপনার ভিজ্যুয়াল ইমেজ তৈরি হয়েছে:`;
+
+      return json({
+        success: true,
+        input: message,
+        delegatedHelper: delegatedHelperMeta,
+        result: {
+          type: 'image',
+          url: imageUrl,
+          caption: `${captionHeader}\n\n**Prompt:** ${cleanPrompt}`
+        },
+        provider: resolvedProvider,
+        model: 'flux-pro-visual'
+      });
+    }
+
+    // 1. Native Gemini Execution if Gemini API Key is present
+    if (resolvedApiKey && resolvedProvider === 'gemini') {
+      const geminiModel = vaultKey?.model || 'gemini-2.0-flash';
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${resolvedApiKey}`;
+
+      const contents = [
+        ...history.slice(-8).map((turn) => ({
+          role: turn.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: turn.content }]
+        })),
+        {
+          role: 'user',
+          parts: [{ text: message }]
+        }
+      ];
+
+      const geminiRes = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents,
+          generationConfig: {
+            temperature: 0.75,
+            maxOutputTokens: 2048
+          }
+        })
+      });
+
+      if (geminiRes.ok) {
+        const geminiData = await geminiRes.json();
+        const reply =
+          geminiData?.candidates?.[0]?.content?.parts
+            ?.map((p: any) => p.text || '')
+            .join('\n') || 'No output received from Gemini.';
+
+        return json({
+          success: true,
+          input: message,
+          delegatedHelper: delegatedHelperMeta,
+          result: {
+            type: 'text',
+            text: reply
+          },
+          provider: 'gemini',
+          model: geminiModel
+        });
+      }
+    }
+
+    // 2. Direct native execution for OpenAI-compatible providers
     if (resolvedApiKey && resolvedProvider in OPENAI_COMPATIBLE_ENDPOINTS) {
       const endpoint = OPENAI_COMPATIBLE_ENDPOINTS[resolvedProvider];
       const model = vaultKey?.model || DEFAULT_MODELS[resolvedProvider] || 'gpt-4o';
@@ -86,16 +221,19 @@ export const POST: RequestHandler = async ({ request }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${resolvedApiKey}`,
-          ...(resolvedProvider === 'openrouter' ? { 'HTTP-Referer': 'https://ezboagents.com', 'X-Title': 'EzboAgents' } : {})
+          Authorization: `Bearer ${resolvedApiKey}`,
+          ...(resolvedProvider === 'openrouter'
+            ? { 'HTTP-Referer': 'https://ezboagents.com', 'X-Title': 'EzboAgents' }
+            : {})
         },
         body: JSON.stringify({
           model,
           messages: [
-            {
-              role: 'system',
-              content: 'You are an elite, executive-level AI assistant on the EzboAgents platform. Deliver concise, highly structured, actionable, and world-class business responses.'
-            },
+            { role: 'system', content: systemPrompt },
+            ...history.slice(-8).map((turn) => ({
+              role: turn.role,
+              content: turn.content
+            })),
             { role: 'user', content: message }
           ]
         })
@@ -103,14 +241,20 @@ export const POST: RequestHandler = async ({ request }) => {
 
       const providerData = await providerRes.json().catch(() => ({}));
       if (!providerRes.ok) {
-        const errorMsg = providerData?.error?.message || `Provider returned HTTP ${providerRes.status}`;
-        return json({ success: false, error: `${resolvedProvider.toUpperCase()} Error: ${errorMsg}` }, { status: providerRes.status });
+        const errorMsg =
+          providerData?.error?.message || `Provider returned HTTP ${providerRes.status}`;
+        return json(
+          { success: false, error: `${resolvedProvider.toUpperCase()} Error: ${errorMsg}` },
+          { status: providerRes.status }
+        );
       }
 
-      const reply = providerData.choices?.[0]?.message?.content || 'No output received from model.';
+      const reply =
+        providerData.choices?.[0]?.message?.content || 'No output received from model.';
       return json({
         success: true,
         input: message,
+        delegatedHelper: delegatedHelperMeta,
         result: {
           type: 'text',
           text: reply
@@ -120,12 +264,12 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Forward to Railway engine for Gemini / Image / Native tools
+    // 3. Forward to Railway engine fallback
     const engineResponse = await fetch(`${RAILWAY_ENGINE_URL}/api/chat/test`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message,
+        message: `${systemPrompt}\n\nUSER REQUEST:\n${message}`,
         apiKey: resolvedApiKey
       })
     });
@@ -133,13 +277,20 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!engineResponse.ok) {
       const errText = await engineResponse.text();
       return json(
-        { success: false, error: `Engine responded with status ${engineResponse.status}: ${errText}` },
+        {
+          success: false,
+          error: `Engine responded with status ${engineResponse.status}: ${errText}`
+        },
         { status: engineResponse.status }
       );
     }
 
     const data = await engineResponse.json();
-    return json({ ...data, provider: resolvedProvider });
+    return json({
+      ...data,
+      delegatedHelper: delegatedHelperMeta,
+      provider: resolvedProvider
+    });
   } catch (error: any) {
     console.error('Error forwarding chat message:', error);
     return json(

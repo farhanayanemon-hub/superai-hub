@@ -18,27 +18,40 @@ export class CentralBrainRouter {
 
   /**
    * Main entry point to process an incoming self-chat WhatsApp message.
+   * Powered by the Master AI CEO Orchestrator + 75 Business & Freelancer AI Helpers (#01-#75).
    */
   async processMessage(userMessage: string, customApiKey?: string): Promise<BrainResponse> {
     const query = userMessage.trim();
     if (!query) {
       return {
         type: 'text',
-        text: 'Please write a prompt! For example: "Write a Facebook ad for sneakers", "Draft sick leave email to my boss", or "/image a futuristic cybernetic tiger".'
+        text: '👑 *EzboAgents Master AI CEO*\n\nযেকোনো কাজের নির্দেশ লিখুন অথবা `#01` থেকে `#75` কোড দিয়ে নির্দিষ্ট AI Helper ব্যবহার করুন! উদাহরণ:\n• `#01 Write a Facebook ad for a clothing brand`\n• `#24 Humanize this AI text`\n• `#34 Luxury perfume commercial photo`'
       };
     }
 
-    // 1. Image Generation Intent Check
+    // Enforce strict separation: Autonomous Store Agents are Web-Only and cannot be controlled via WhatsApp
+    if (
+      query.toLowerCase().startsWith('/store') ||
+      query.toLowerCase().includes('store agent')
+    ) {
+      return {
+        type: 'text',
+        text: `🔒 *Autonomous Store Agents Notice*\n\nAgents Store থেকে কেনা এজেন্টগুলো সম্পূর্ণ *Autonomous Agent* স্টাইলে কাজ করে। সেগুলো শুধুমাত্র ওয়েব ড্যাশবোর্ডে (https://ezboagents.com/dashboard) গিয়ে আলাদাভাবে সেটআপ ও ব্যবহার করতে হবে — হোয়াটসঅ্যাপ বা টেলিগ্রাম থেকে কন্ট্রোল করা যাবে না।\n\nতবে আমাদের মেইন *AI CEO* এবং সব *৭৫টি AI Helper (#01–#75)* সরাসরি হোয়াটসঅ্যাপ থেকে নিয়ন্ত্রণ করতে পারবেন!`
+      };
+    }
+
+    // 1. Image Generation Intent Check (#34 / #35 or /image)
     if (this.isImageIntent(query)) {
-      const imageResult = await generateAiImage(query);
+      const cleanPrompt = query.replace(/^#3[45]\s*/i, '');
+      const imageResult = await generateAiImage(cleanPrompt);
       return {
         type: 'image',
         image: imageResult,
-        toolMatched: 'ai_image_generator'
+        toolMatched: 'ai_commercial_image_gen'
       };
     }
 
-    // 2. Help / Menu Intent Check
+    // 2. Help / Menu / Helpers List Intent Check
     if (this.isHelpIntent(query)) {
       return {
         type: 'text',
@@ -46,15 +59,15 @@ export class CentralBrainRouter {
       };
     }
 
-    // 3. Match against 50+ Tools Catalog
+    // 3. Match against 75 AI Helpers Catalog (#01-#75 or keyword)
     const matchedTool = this.findMatchingTool(query);
 
-    // 4. Execute with Gemini Flash
+    // 4. Execute with Gemini
     const apiKey = customApiKey || this.defaultApiKey;
     if (!apiKey) {
       return {
         type: 'text',
-        text: `⚠️ *Gemini API Key Missing!*\n\nPlease connect your free Google AI Studio API key in your SuperAI web dashboard, or configure \`GEMINI_API_KEY\` in your engine \`.env\`.\n\n(Get your free key here: https://aistudio.google.com/app/apikey)`
+        text: `⚠️ *Gemini API Key Missing!*\n\nঅনুগ্রহ করে আপনার EzboAgents ওয়েব ড্যাশবোর্ডের API Vault ট্যাবে ফ্রি Google AI Studio API key যুক্ত করুন।\n\n👉 ফ্রি কী নিন: https://aistudio.google.com/app/apikey`
       };
     }
 
@@ -62,7 +75,7 @@ export class CentralBrainRouter {
     return {
       type: 'text',
       text: aiText,
-      toolMatched: matchedTool?.id
+      toolMatched: matchedTool ? `${matchedTool.code || ''} ${matchedTool.name}`.trim() : 'ai_ceo'
     };
   }
 
@@ -70,6 +83,8 @@ export class CentralBrainRouter {
     const lower = query.toLowerCase();
     return (
       lower.startsWith('/image') ||
+      lower.startsWith('#34 ') ||
+      lower.startsWith('#35 ') ||
       lower.startsWith('generate image') ||
       lower.startsWith('draw a ') ||
       lower.startsWith('create photo') ||
@@ -79,13 +94,20 @@ export class CentralBrainRouter {
 
   private isHelpIntent(query: string): boolean {
     const clean = query.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return ['help', 'menu', 'commands', 'tools', 'start'].includes(clean);
+    return ['help', 'menu', 'commands', 'tools', 'helpers', 'ceo', 'start'].includes(clean);
   }
 
   private findMatchingTool(query: string): ToolItem | undefined {
+    const codeMatch = query.match(/#(\d{1,2})\b/);
+    if (codeMatch) {
+      const targetCode = `#${codeMatch[1].padStart(2, '0')}`;
+      const byCode = TOOLS.find((t) => t.code === targetCode);
+      if (byCode) return byCode;
+    }
+
     const lower = query.toLowerCase();
     for (const tool of TOOLS) {
-      for (const kw of tool.keywords) {
+      for (const kw of tool.keywords || []) {
         if (lower.includes(kw.toLowerCase())) {
           return tool;
         }
@@ -102,7 +124,7 @@ export class CentralBrainRouter {
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash',
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 2048
@@ -111,21 +133,21 @@ export class CentralBrainRouter {
 
       let systemContext = '';
       if (tool) {
-        systemContext = `You are a domain expert using the SuperAI Hub tool "${tool.name}" (${tool.nameEn}).
-Tool Category: ${tool.categoryName}
-Instructions:
+        systemContext = `You are the Master AI CEO of EzboAgents, delegating this task to specialist helper [${tool.code || ''}] "${tool.name}" (${tool.categoryName}).
+Begin your response with:
+"⚡ *AI CEO → Delegated to [${tool.code || ''}] ${tool.name}*"
+
+Helper Instructions:
 ${tool.systemPrompt}
 
-Important Formatting Guidelines for WhatsApp:
-- Use WhatsApp markdown (*bold*, _italics_, ~strike~, \`\`\`monospace\`\`\`).
-- Use appealing bullet points and emojis.
-- Write directly in polished, high-converting English.
-- Avoid generic filler text. Jump straight into high-value actionable output.`;
+Formatting Guidelines for WhatsApp:
+- Use clean WhatsApp markdown (*bold*, _italics_, bullet points).
+- Respond in the language requested by the user (Bangla, English, or Banglish).
+- Jump straight into high-value, copy-paste ready output.`;
       } else {
-        systemContext = `You are the Central AI Brain of SuperAI Hub, assisting a user directly inside their WhatsApp self-chat.
-You have mastery over E-Commerce sales, social media growth, career communications, and technical workflows.
+        systemContext = `You are the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
 Format with clean WhatsApp markdown (*bold*, _italics_, emojis, bullet points).
-Respond in natural, persuasive, and executive-level English.`;
+Respond in the same language the user used (Bangla, English, or Banglish) with executive, ready-to-use output.`;
       }
 
       const prompt = `${systemContext}\n\nUser Message:\n"${userQuery}"\n\nPlease output the response now:`;
@@ -135,35 +157,29 @@ Respond in natural, persuasive, and executive-level English.`;
       return text || 'Sorry, no response was generated. Please try again.';
     } catch (err: any) {
       console.error('Gemini generation error:', err);
-      return `❌ *SuperAI Brain Error:* ${err.message || 'Error processing request.'}`;
+      return `❌ *AI CEO Brain Error:* ${err.message || 'Error processing request.'}`;
     }
   }
 
   private getHelpMenuText(): string {
-    return `🤖 *SuperAI Hub - 50+ AI Personal Assistant* 🚀
+    return `👑 *EzboAgents — 1 Master AI CEO + 75 AI Helpers* 🚀
 
-Message yourself directly in WhatsApp, and our Central Brain automatically selects the right tool to deliver instant results.
+আপনি আলাদা করে কোনো হেল্পারে না ঢুকে সরাসরি এখানে যেকোনো কাজের কথা লিখুন — *Master AI CEO* নিজেই ৭৫টি হেল্পার থেকে সঠিক হেল্পারকে দিয়ে কাজ করিয়ে দেবে!
 
-📌 *Popular Commands & Usage Examples:*
-1️⃣ *E-Commerce & Sales:*
-   • "Write a viral Facebook ad copy for oversized cotton T-shirts"
-   • "How to respond when customer says price is too high?"
-   • "Plan a 20% OFF flash sale campaign"
+📌 *৭টি ক্যাটাগরি ও কোড (#01 থেকে #75):*
+1️⃣ *Ads & Marketing (#01–#12):* FB/IG Ads (#01), Google Ads (#02), TikTok Script (#03), Target Audience (#04), 360° Marketing (#05)
+2️⃣ *Social Media & Content (#13–#23):* Post Ideas (#13), 30-Day Calendar (#14), Viral Hooks (#15), Captions (#16), YouTube Script (#19)
+3️⃣ *Writing & AI Humanizer (#24–#33):* 100% Humanizer (#24), Grammar (#25), Paraphraser (#26), Bangla-English Translator (#28)
+4️⃣ *Image, Logo & Design (#34–#41):* Commercial Image Gen (#34), Business Logo Gen (#35), Thumbnail (#37), Poster (#38)
+5️⃣ *SEO & Traffic (#42–#50):* Keyword Research (#42), SEO Blog (#43), E-Com Product SEO (#45)
+6️⃣ *Freelancing (#51–#62):* Upwork Proposal (#51), Fiverr Gig SEO (#52), Client Closer (#53), Price Negotiation (#54)
+7️⃣ *Business & Productivity (#63–#75):* Time Management (#63), Inbox Sales (#64), Excel Formula (#66), Profit Calculator (#67)
 
-2️⃣ *Social Media & Content:*
-   • \`/image a futuristic cybernetic tiger prowling neon city streets\`
-   • "30s viral TikTok script on time management"
-   • "YouTube SEO title and tags for SvelteKit tutorial"
+✨ *উদাহরণ:*
+• \`#01 আমার ক্লোদিং ব্র্যান্ডের জন্য ফেসবুক এড কপি লিখে দাও\`
+• \`#24 Humanize this paragraph: [your text]\`
+• \`#34 Luxury watch product photography on marble\`
 
-3️⃣ *Career & Productivity:*
-   • "Draft a professional 3-day sick leave email to my manager"
-   • "Rewrite this draft into executive corporate English: [your text]"
-   • "Evaluate this IELTS Writing Task-2 essay"
-
-4️⃣ *Technical & Freelancing:*
-   • "Excel: Formula to find duplicate values between Column A & B"
-   • "Winning Upwork proposal for Full-Stack Developer job"
-
-✨ *Tip:* Send \`/image [prompt]\` at any time to generate high-resolution AI art directly in chat!`;
+🔒 *নোট:* Agents Store-এর অটোনোমাস এজেন্টগুলো শুধুমাত্র ওয়েব ড্যাশবোর্ডে সেটআপ করে ব্যবহার করতে হয়, হোয়াটসঅ্যাপ বা টেলিগ্রাম থেকে কন্ট্রোল করা যায় না।`;
   }
 }
