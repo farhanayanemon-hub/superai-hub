@@ -25,7 +25,7 @@ export class CentralBrainRouter {
     if (!query) {
       return {
         type: 'text',
-        text: '👑 *EzboAgents Master AI CEO*\n\nযেকোনো কাজের নির্দেশ লিখুন অথবা `#01` থেকে `#75` কোড দিয়ে নির্দিষ্ট AI Helper ব্যবহার করুন! উদাহরণ:\n• `#01 Write a Facebook ad for a clothing brand`\n• `#24 Humanize this AI text`\n• `#34 Luxury perfume commercial photo`'
+        text: '👑 *EzboAgents Master AI CEO*\n\nSend any instruction in plain language, or use `#01` to `#75` to invoke a specific AI Helper! Examples:\n• `#01 Write a Facebook ad for a clothing brand`\n• `#24 Humanize this AI text`\n• `#34 Luxury perfume commercial photo`'
       };
     }
 
@@ -36,7 +36,7 @@ export class CentralBrainRouter {
     ) {
       return {
         type: 'text',
-        text: `🔒 *Autonomous Store Agents Notice*\n\nAgents Store থেকে কেনা এজেন্টগুলো সম্পূর্ণ *Autonomous Agent* স্টাইলে কাজ করে। সেগুলো শুধুমাত্র ওয়েব ড্যাশবোর্ডে (https://ezboagents.com/dashboard) গিয়ে আলাদাভাবে সেটআপ ও ব্যবহার করতে হবে — হোয়াটসঅ্যাপ বা টেলিগ্রাম থেকে কন্ট্রোল করা যাবে না।\n\nতবে আমাদের মেইন *AI CEO* এবং সব *৭৫টি AI Helper (#01–#75)* সরাসরি হোয়াটসঅ্যাপ থেকে নিয়ন্ত্রণ করতে পারবেন!`
+        text: `🔒 *Autonomous Store Agents Notice*\n\nAgents unlocked from the *Agents Store* operate as standalone *Autonomous Agents*. They must be configured and used directly inside the Web Dashboard (https://ezboagents.com/dashboard) and cannot be controlled via WhatsApp or Telegram.\n\nHowever, you can control the *Master AI CEO* and all *75 AI Helpers (#01–#75)* right here in WhatsApp!`
       };
     }
 
@@ -67,7 +67,7 @@ export class CentralBrainRouter {
     if (!apiKey) {
       return {
         type: 'text',
-        text: `⚠️ *Gemini API Key Missing!*\n\nঅনুগ্রহ করে আপনার EzboAgents ওয়েব ড্যাশবোর্ডের API Vault ট্যাবে ফ্রি Google AI Studio API key যুক্ত করুন।\n\n👉 ফ্রি কী নিন: https://aistudio.google.com/app/apikey`
+        text: `⚠️ *Gemini API Key Missing!*\n\nPlease connect your free Google AI Studio API key in the API Vault tab of your EzboAgents web dashboard.\n\n👉 Get your free key: https://aistudio.google.com/app/apikey`
       };
     }
 
@@ -142,12 +142,12 @@ ${tool.systemPrompt}
 
 Formatting Guidelines for WhatsApp:
 - Use clean WhatsApp markdown (*bold*, _italics_, bullet points).
-- Respond in the language requested by the user (Bangla, English, or Banglish).
+- Respond in the language requested by the user.
 - Jump straight into high-value, copy-paste ready output.`;
       } else {
         systemContext = `You are the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
 Format with clean WhatsApp markdown (*bold*, _italics_, emojis, bullet points).
-Respond in the same language the user used (Bangla, English, or Banglish) with executive, ready-to-use output.`;
+Respond with executive, ready-to-use output.`;
       }
 
       const prompt = `${systemContext}\n\nUser Message:\n"${userQuery}"\n\nPlease output the response now:`;
@@ -164,22 +164,22 @@ Respond in the same language the user used (Bangla, English, or Banglish) with e
   private getHelpMenuText(): string {
     return `👑 *EzboAgents — 1 Master AI CEO + 75 AI Helpers* 🚀
 
-আপনি আলাদা করে কোনো হেল্পারে না ঢুকে সরাসরি এখানে যেকোনো কাজের কথা লিখুন — *Master AI CEO* নিজেই ৭৫টি হেল্পার থেকে সঠিক হেল্পারকে দিয়ে কাজ করিয়ে দেবে!
+Simply write any task in plain language — the *Master AI CEO* will automatically select and command the right specialist from all 75 helpers!
 
-📌 *৭টি ক্যাটাগরি ও কোড (#01 থেকে #75):*
+📌 *7 Categories & Codes (#01 to #75):*
 1️⃣ *Ads & Marketing (#01–#12):* FB/IG Ads (#01), Google Ads (#02), TikTok Script (#03), Target Audience (#04), 360° Marketing (#05)
 2️⃣ *Social Media & Content (#13–#23):* Post Ideas (#13), 30-Day Calendar (#14), Viral Hooks (#15), Captions (#16), YouTube Script (#19)
-3️⃣ *Writing & AI Humanizer (#24–#33):* 100% Humanizer (#24), Grammar (#25), Paraphraser (#26), Bangla-English Translator (#28)
+3️⃣ *Writing & AI Humanizer (#24–#33):* 100% Humanizer (#24), Grammar (#25), Paraphraser (#26), Business Translator (#28)
 4️⃣ *Image, Logo & Design (#34–#41):* Commercial Image Gen (#34), Business Logo Gen (#35), Thumbnail (#37), Poster (#38)
 5️⃣ *SEO & Traffic (#42–#50):* Keyword Research (#42), SEO Blog (#43), E-Com Product SEO (#45)
 6️⃣ *Freelancing (#51–#62):* Upwork Proposal (#51), Fiverr Gig SEO (#52), Client Closer (#53), Price Negotiation (#54)
 7️⃣ *Business & Productivity (#63–#75):* Time Management (#63), Inbox Sales (#64), Excel Formula (#66), Profit Calculator (#67)
 
-✨ *উদাহরণ:*
-• \`#01 আমার ক্লোদিং ব্র্যান্ডের জন্য ফেসবুক এড কপি লিখে দাও\`
+✨ *Examples:*
+• \`#01 Write a high-converting Facebook ad copy for a clothing brand\`
 • \`#24 Humanize this paragraph: [your text]\`
 • \`#34 Luxury watch product photography on marble\`
 
-🔒 *নোট:* Agents Store-এর অটোনোমাস এজেন্টগুলো শুধুমাত্র ওয়েব ড্যাশবোর্ডে সেটআপ করে ব্যবহার করতে হয়, হোয়াটসঅ্যাপ বা টেলিগ্রাম থেকে কন্ট্রোল করা যায় না।`;
+🔒 *Note:* Autonomous Agents from the Agents Store are configured and used exclusively on the Web Dashboard and cannot be controlled via WhatsApp or Telegram.`;
   }
 }

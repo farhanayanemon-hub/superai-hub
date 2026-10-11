@@ -57,7 +57,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return json({ success: false, error: 'একটি সঠিক ইমেইল অ্যাড্রেস প্রদান করুন (Valid email address is required).' }, { status: 400 });
+      return json({ success: false, error: 'A valid user email address is required.' }, { status: 400 });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -80,7 +80,7 @@ export const POST: RequestHandler = async ({ request }) => {
       const updatedConfig = getAdminConfig();
       return json({
         success: true,
-        message: `${cleanEmail} ইউজারের জন্য প্ল্যান ও বট অ্যাক্সেস সফলভাবে আপডেট করা হয়েছে!`,
+        message: `Plan and bot access updated successfully for ${cleanEmail}!`,
         grant,
         userGrants: updatedConfig.userGrants || {},
         registeredUsers: updatedConfig.registeredUsers || {}
@@ -101,7 +101,7 @@ export const POST: RequestHandler = async ({ request }) => {
       const updatedConfig = getAdminConfig();
       return json({
         success: true,
-        message: `${cleanEmail} ইউজারের প্ল্যান এবং বট অ্যাক্সেস বাতিল (Revoke) করা হয়েছে।`,
+        message: `Plan and bot access revoked for ${cleanEmail}.`,
         grant,
         userGrants: updatedConfig.userGrants || {},
         registeredUsers: updatedConfig.registeredUsers || {}
@@ -113,7 +113,7 @@ export const POST: RequestHandler = async ({ request }) => {
       const updatedConfig = getAdminConfig();
       return json({
         success: true,
-        message: `${cleanEmail} এর কাস্টম অ্যাক্সেস রেকর্ড মুছে ফেলা হয়েছে।`,
+        message: `Custom access record deleted for ${cleanEmail}.`,
         userGrants: updatedConfig.userGrants || {},
         registeredUsers: updatedConfig.registeredUsers || {}
       });

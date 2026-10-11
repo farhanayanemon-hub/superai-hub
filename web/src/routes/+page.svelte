@@ -26,7 +26,7 @@
   const faqs = [
     {
       q: 'What is the Master AI CEO and how does it control all 75+ AI Helpers?',
-      a: 'You do not have to open 75 separate chat windows if you do not want to! Simply tell the Master AI CEO what you need (in Bangla, English, or Banglish) from the Web Console, WhatsApp, or Telegram — and the AI CEO automatically selects and commands the right helper (#01 to #75) for you. Or, if you prefer custom dropdowns and fields, you can open any helper’s dedicated Studio anytime.'
+      a: 'You do not have to open 75 separate chat windows if you do not want to! Simply tell the Master AI CEO what you need from the Web Console, WhatsApp, or Telegram — and the AI CEO automatically selects and commands the right helper (#01 to #75) for you. Or, if you prefer custom dropdowns and fields, you can open any helper’s dedicated Studio anytime.'
     },
     {
       q: 'Will I get newly added AI Helpers in the same subscription?',
@@ -80,7 +80,7 @@
           >
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
             <span>
-              👑 ১টি Master AI CEO + ৭৫+ AI Helpers • প্রতি মাসে নতুন AI Helper যুক্ত হয় এক সাবস্ক্রিপশনেই!
+              👑 1 Master AI CEO + 75+ AI Helpers • New AI Bots Added Regularly in 1 Subscription!
             </span>
           </div>
 
@@ -95,7 +95,7 @@
 
           <!-- Subtitle -->
           <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            প্রতিটি হেল্পারের জন্য রয়েছে আলাদা কাস্টম অপশন ও চ্যাট স্টুডিও — আর আলাদাভাবে চ্যাট করতে না চাইলে সরাসরি মেইন <strong>AI CEO</strong>-কে বলুন (ওয়েব, <strong>WhatsApp</strong> বা <strong>Telegram</strong> থেকে), সে নিজেই সব হেল্পার কন্ট্রোল করে কাজ করে দেবে!
+            Every helper features its own custom options and interactive Studio chat — or skip individual chats altogether and command the <strong>Master AI CEO</strong> directly from Web, <strong>WhatsApp</strong>, or <strong>Telegram</strong> to orchestrate all 75+ helpers for you.
           </p>
 
           <!-- Primary CTAs -->
@@ -139,7 +139,7 @@
                 <span>1 Master AI CEO Orchestrator</span>
               </div>
               <p class="text-[11px] text-slate-500 mt-1">
-                এক চ্যাটেই সব ৭৫+ হেল্পারকে কমান্ড ও কন্ট্রোল করুন
+                Command and control all 75+ specialized helpers from a single chat
               </p>
             </div>
 
@@ -151,7 +151,7 @@
                 <span>WhatsApp & Telegram Control</span>
               </div>
               <p class="text-[11px] text-slate-500 mt-1">
-                হোয়াটসঅ্যাপ ও টেলিগ্রাম থেকেই AI CEO ও ৭৫টি হেল্পার নিয়ন্ত্রণ
+                Instruct the AI CEO and all 75 helpers directly via WhatsApp & Telegram
               </p>
             </div>
 
@@ -163,7 +163,7 @@
                 <span>Regular New Bots in 1 Plan</span>
               </div>
               <p class="text-[11px] text-slate-500 mt-1">
-                নিয়মিত নতুন AI Helper যুক্ত হবে — এক সাবস্ক্রিপশনেই ফ্রি অ্যাক্সেস
+                New AI helpers added regularly — unlocked automatically in one subscription
               </p>
             </div>
           </div>
@@ -199,7 +199,7 @@
             Meet Your <span class="blue-gradient-text">AI CEO</span> & 75+ AI Helpers
           </h2>
           <p class="text-sm sm:text-base text-slate-600">
-            নিচের সবগুলো হেল্পার মাত্র <strong>১টি সাবস্ক্রিপশনেই</strong> আনলকড থাকে এবং প্রতি মাসে নতুন বট যুক্ত হয়।
+            All 75+ helpers below are unlocked inside <strong>1 single subscription</strong>, with new bots added regularly at zero extra cost.
           </p>
         </div>
 
@@ -237,7 +237,7 @@
                   </span>
                 </div>
                 <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                  প্রতিটি হেল্পারের জন্য আলাদা চ্যাট ইন্টারফেসে যেতে না চাইলে সরাসরি এই মেইন <strong>AI CEO</strong>-কে মেসেজ দিন — সে নিজেই নিচের ৭৫টি হেল্পারকে কন্ট্রোল করে আপনার কাজ সম্পন্ন করে দেবে।
+                  Don’t want to open individual helper chats? Simply instruct the main <strong>AI CEO</strong> — it automatically delegates to and controls all 75+ helpers across Web, WhatsApp, and Telegram.
                 </p>
               </div>
             </div>
@@ -361,10 +361,10 @@
             <span>Continuous Expansion Guarantee</span>
           </div>
           <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900">
-            নিয়মিত নতুন AI Bots ও Helpers যুক্ত হচ্ছে — সব পাচ্ছেন মাত্র ১টি সাবস্ক্রিপশনেই!
+            New AI Bots & Helpers Added Regularly — All Included in 1 Subscription!
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
-            আপনার বিজনেস ও ফ্রিল্যান্সিংয়ের জন্য প্রতি মাসে নতুন নতুন স্পেশালাইজড AI Helper যুক্ত করা হয়। আলাদা কোনো চার্জ ছাড়াই আপনার এক সাবস্ক্রিপশনে সবগুলো আনলক হয়ে যাবে।
+            We continuously build and release new specialized AI Helpers for business growth, marketing, and freelancing. Every new helper is unlocked automatically in your existing plan at zero extra cost.
           </p>
         </div>
       </div>
@@ -380,7 +380,7 @@
             Control Your AI CEO & 75+ Helpers via WhatsApp & Telegram
           </h2>
           <p class="text-sm sm:text-base text-slate-600">
-            ওয়েব ড্যাশবোর্ডের পাশাপাশি আপনার পার্সোনাল WhatsApp এবং Telegram বট থেকেই মেইন AI CEO এবং ৭৫টি হেল্পারকে নির্দেশ দিতে পারবেন।
+            Alongside the Web Console, you can command the Master AI CEO and all 75 AI Helpers directly from your personal WhatsApp and Telegram.
           </p>
         </div>
 
@@ -393,7 +393,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-900">Link WhatsApp or Telegram</h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              ড্যাশবোর্ডের Channels ট্যাব থেকে মাত্র ১০ সেকেন্ডে আপনার WhatsApp QR বা Telegram একাউন্ট কানেক্ট করুন।
+              Connect your WhatsApp QR or Telegram account in under 10 seconds from the Channels tab in your dashboard.
             </p>
           </div>
 
@@ -405,9 +405,9 @@
             </div>
             <h3 class="text-lg font-bold text-slate-900">Instruct AI CEO or #01–#75</h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              যেকোনো কাজের কথা সাধারণ ভাষায় লিখুন — মেইন AI CEO নিজেই উপযুক্ত হেল্পার দিয়ে কাজ করিয়ে নেবে, অথবা সরাসরি <code
+              Describe any task in plain language and the Master AI CEO will automatically route it to the right helper, or type <code
                 class="text-blue-600 font-mono font-bold">#01</code
-              > থেকে <code class="text-blue-600 font-mono font-bold">#75</code> কোড ব্যবহার করুন।
+              > through <code class="text-blue-600 font-mono font-bold">#75</code> to target a specific helper.
             </p>
           </div>
 
@@ -419,7 +419,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-900">Instant Executive Output</h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              কয়েক সেকেন্ডের মধ্যে সম্পূর্ণ রেডি-টু-ইউজ কপি, প্রপোজাল, গ্রাফিক্স বা প্ল্যান আপনার চ্যাটে চলে আসবে।
+              Receive ready-to-use ad copies, proposals, humanized articles, graphics, and strategies directly in your chat within seconds.
             </p>
           </div>
         </div>
@@ -436,7 +436,7 @@
             One Subscription. All 75+ Helpers + Future Bots Included.
           </h2>
           <p class="text-sm sm:text-base text-slate-600">
-            নিজের API Key ব্যবহার করুন (BYOK) অথবা আমাদের 100% Managed Cloud বেছে নিন — উভয় প্ল্যানেই মেইন AI CEO ও সব ৭৫+ হেল্পার আনলকড!
+            Bring your own API keys (BYOK) or choose our 100% Managed Cloud — both plans unlock the Master AI CEO and all 75+ AI Helpers.
           </p>
 
           <!-- Monthly / Yearly Toggle -->

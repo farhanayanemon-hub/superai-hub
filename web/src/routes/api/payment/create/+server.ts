@@ -103,7 +103,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
       console.error(`OPay fetch failed for endpoint ${targetEndpoint}:`, networkErr);
       return json({
         success: false,
-        error: `OPayBD গেটওয়ে সার্ভারে সংযোগ করা যায়নি (${networkErr.message || 'DNS/Network Error'})। Endpoint: ${targetEndpoint}। দয়া করে এডমিন প্যানেলে (/admin) সঠিক OPay API Endpoint চেক বা আপডেট করুন।`
+        error: `Could not connect to OPayBD Gateway server (${networkErr.message || 'DNS/Network Error'}). Endpoint: ${targetEndpoint}. Please verify or update your OPay API Endpoint in the Admin Panel (/admin).`
       }, { status: 502 });
     }
 

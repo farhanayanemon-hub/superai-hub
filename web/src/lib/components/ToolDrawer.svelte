@@ -25,7 +25,7 @@
   }
 
   let formValues = $state<Record<string, string>>({});
-  let outputLanguage = $state('Bangla & English Mix');
+  let outputLanguage = $state('Professional English');
   let outputTone = $state('High-Converting & Persuasive');
   let isGenerating = $state(false);
   let outputText = $state('');
@@ -36,11 +36,26 @@
   let studioChatHistory = $state<StudioTurn[]>([]);
 
   const refinementChips = [
-    { label: '✨ 100% Humanize করুন', prompt: 'Rewrite this output so it sounds 100% natural, human-written, and bypasses AI detectors.' },
-    { label: '🇧🇩 বাংলায় অনুবাদ করুন', prompt: 'Translate and adapt this entire output into natural, high-converting Bengali.' },
-    { label: '🇺🇸 English Version দিন', prompt: 'Provide a polished, international-standard English version of this output.' },
-    { label: '🔥 আরও Persuasive করুন', prompt: 'Make this more persuasive, punchy, and conversion-focused with stronger hooks.' },
-    { label: '📏 সংক্ষিপ্ত ও পয়েন্ট আকারে দিন', prompt: 'Condense this into crisp, high-impact bullet points.' }
+    {
+      label: '✨ 100% Humanize',
+      prompt: 'Rewrite this output so it sounds 100% natural, human-written, and bypasses AI detectors.'
+    },
+    {
+      label: '🔥 Make More Persuasive',
+      prompt: 'Make this more persuasive, punchy, and conversion-focused with stronger hooks.'
+    },
+    {
+      label: '📏 Condense into Bullet Points',
+      prompt: 'Condense this into crisp, high-impact executive bullet points.'
+    },
+    {
+      label: '🇧🇩 Translate to Bengali',
+      prompt: 'Translate and adapt this entire output into natural, high-converting Bengali.'
+    },
+    {
+      label: '🇺🇸 Polish Executive English',
+      prompt: 'Provide a polished, international-standard executive English version of this output.'
+    }
   ];
 
   $effect(() => {
@@ -133,7 +148,7 @@
       if (res.ok && data.success && data.result) {
         if (data.result.type === 'image') {
           outputImageUrl = data.result.url || '';
-          outputText = data.result.caption || '✨ ভিজ্যুয়াল রেন্ডার সম্পন্ন হয়েছে।';
+          outputText = data.result.caption || '✨ Visual render completed successfully.';
         } else {
           outputText = data.result.text || '';
         }
@@ -177,10 +192,10 @@
       } else {
         errorMessage =
           data.error ||
-          'অনুগ্রহ করে ড্যাশবোর্ডের API Vault / BYOK ট্যাব থেকে আপনার ফ্রি Gemini API Key যুক্ত করুন অথবা Managed Plan ব্যবহার করুন।';
+          'Please connect your free Google Gemini API Key in the Settings / API Vault tab, or upgrade to the All-Inclusive Managed Plan.';
       }
     } catch (err: any) {
-      errorMessage = err.message || 'নেটওয়ার্ক ত্রুটি হয়েছে। আবার চেষ্টা করুন।';
+      errorMessage = err.message || 'Network error occurred. Please try again.';
     } finally {
       isGenerating = false;
     }
@@ -284,11 +299,11 @@
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span>
-          <strong>AI CEO / WhatsApp / Telegram কমান্ড:</strong> মেসেজে শুধু
+          <strong>AI CEO / WhatsApp / Telegram Command:</strong> Simply include
           <code class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 font-mono"
             >{$activeTool.code}</code
           >
-          বা টাস্ক লিখলেই এই হেল্পার কাজ করবে!
+          in your message to trigger this helper directly!
         </span>
       </div>
       {#if !$isKeyValid && $subscription?.tier !== 'complete'}
@@ -370,22 +385,22 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/70">
           <div>
             <label for="studio-lang" class="block text-[11px] font-semibold text-slate-600 mb-1">
-              Output Language (ভাষা)
+              Output Language
             </label>
             <select
               id="studio-lang"
               bind:value={outputLanguage}
               class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
             >
-              <option value="Bangla & English Mix">🇧🇩/🇺🇸 Bangla & English Mix</option>
-              <option value="Pure Bangla (বাংলা)">🇧🇩 সম্পূর্ণ বাংলা (Pure Bangla)</option>
               <option value="Professional English">🇺🇸 Professional English</option>
+              <option value="Bangla & English Mix">🇧🇩/🇺🇸 Bangla & English Mix</option>
+              <option value="Pure Bengali">🇧🇩 Pure Bengali</option>
               <option value="Banglish">💬 Banglish (Social Style)</option>
             </select>
           </div>
           <div>
             <label for="studio-tone" class="block text-[11px] font-semibold text-slate-600 mb-1">
-              Execution Tone (টোন)
+              Execution Tone
             </label>
             <select
               id="studio-tone"
@@ -519,7 +534,7 @@
             <input
               type="text"
               bind:value={followUpInput}
-              placeholder="এই হেল্পারকে আরও নির্দেশনা দিন (যেমন: আরও ছোট করো, ২য় অপশনটি পরিবর্তন করো)..."
+              placeholder="Give follow-up instructions to this helper (e.g. Make it shorter, revise option 2)..."
               class="flex-1 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none"
             />
             <button

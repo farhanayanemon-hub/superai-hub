@@ -520,7 +520,7 @@
                 </span>
               </h2>
               <p class="text-xs text-slate-300 max-w-2xl">
-                প্রতিটি হেল্পারের নিজস্ব কাস্টম অপশন ও চ্যাট স্টুডিও রয়েছে। আলাদাভাবে চ্যাট করতে না চাইলে মেইন <strong>AI CEO</strong>-কে বলুন — অথবা <strong>WhatsApp / Telegram</strong> থেকে নিয়ন্ত্রণ করুন!
+                Every helper includes custom input options and a dedicated chat studio — or skip individual chats and command the <strong>Master AI CEO</strong> from Web, <strong>WhatsApp</strong>, or <strong>Telegram</strong>!
               </p>
             </div>
 
@@ -642,7 +642,7 @@
               </div>
               <h2 class="text-xl font-black text-slate-900 tracking-tight">Autonomous Agents Store</h2>
               <p class="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
-                Agents Store-এর এজেন্টগুলো সম্পূর্ণ <strong>Autonomous Agent</strong> স্টাইলে কাজ করে। এগুলো কিনলে সরাসরি এই ওয়েব ড্যাশবোর্ডে আলাদাভাবে সেটআপ ও ব্যবহার করতে হবে — <strong>এগুলো WhatsApp বা Telegram থেকে কন্ট্রোল করা যাবে না</strong> (শুধুমাত্র মেইন AI CEO এবং ৭৫টি AI Helper হোয়াটসঅ্যাপ ও টেলিগ্রাম থেকে কন্ট্রোল করা যাবে)।
+                Agents in the <strong>Agents Store</strong> operate as standalone <strong>Autonomous Agents</strong>. Once unlocked, they are configured and operated exclusively inside this Web Dashboard — <strong>they cannot be controlled via WhatsApp or Telegram</strong> (only the Master AI CEO and the 75 AI Helpers are controllable via WhatsApp and Telegram).
               </p>
             </div>
 

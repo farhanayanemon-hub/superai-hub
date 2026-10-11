@@ -1385,7 +1385,7 @@
         "name": "inputText",
         "label": "Write in Bangla, Banglish, or English",
         "type": "textarea",
-        "placeholder": "e.g. ক্লায়েন্টকে বলো প্রজেক্টের প্রথম পার্ট রেডি, ফিডব্যাক দিলে কাল ফাইনাল ডেলিভারি দিব...",
+        "placeholder": "e.g. Tell the client that Phase 1 of the project is ready and we will deliver the final build tomorrow after their feedback...",
         "required": true
       },
       {
@@ -2960,7 +2960,7 @@
         "name": "customerObjection",
         "label": "Customer Objection or Question",
         "type": "textarea",
-        "placeholder": "e.g. \"দাম বেশি মনে হচ্ছে\" or \"Delivery charge free dewa jabe?\"",
+        "placeholder": "e.g. \"The price seems a bit high\" or \"Delivery charge free dewa jabe?\"",
         "required": true
       },
       {

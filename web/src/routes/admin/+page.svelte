@@ -319,7 +319,7 @@
 
   async function handleGrantUserAccess() {
     if (!grantEmail.trim() || !grantEmail.includes('@')) {
-      grantFeedback = 'অনুগ্রহ করে একটি সঠিক ইমেইল অ্যাড্রেস লিখুন (Valid user email is required).';
+      grantFeedback = 'Please enter a valid user email address.';
       grantFeedbackType = 'error';
       return;
     }
@@ -351,7 +351,7 @@
         if (data.grant) {
           applyAdminGrantLocally(data.grant);
         }
-        grantFeedback = data.message || 'ইউজারের প্ল্যান এবং বট অ্যাক্সেস সফলভাবে চালু করা হয়েছে!';
+        grantFeedback = data.message || 'User plan and bot access activated successfully!';
         grantFeedbackType = 'success';
       } else {
         grantFeedback = data.error || 'Failed to update user access.';
@@ -397,7 +397,7 @@
         if (data.grant) {
           applyAdminGrantLocally(data.grant);
         }
-        grantFeedback = data.message || `${email} এর অ্যাক্সেস বাতিল করা হয়েছে।`;
+        grantFeedback = data.message || `Access revoked for ${email}.`;
         grantFeedbackType = 'success';
       }
     } catch (e: any) {
@@ -1325,7 +1325,7 @@
                       <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Assign Plans &amp; Bot Store Agents to Any User</h2>
                     </div>
                     <p class="text-xs text-slate-500 mt-1">
-                      যেকোনো ইউজারের ইমেইল দিয়ে সরাসরি সাবস্ক্রিপশন প্ল্যান (BYOK / All-Inclusive Cloud) এবং বট স্টোরের যেকোনো বট আনলক বা অ্যাক্সেস প্রদান করুন।
+                      Directly assign a subscription plan (BYOK / All-Inclusive Cloud) and unlock any Bot Store agent for any user by email.
                     </p>
                   </div>
                 </div>
@@ -1379,10 +1379,10 @@
                         id="grant-email"
                         type="email"
                         bind:value={grantEmail}
-                        placeholder="user@gmail.com (যেকোনো ইউজারের ইমেইল)"
+                        placeholder="user@gmail.com (Any user email)"
                         class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white text-xs font-semibold text-slate-900 outline-none"
                       />
-                      <p class="text-[10px] text-slate-400">ইউজার লগইন করলেই অটোমেটিক এই প্ল্যান ও বট পেয়ে যাবে।</p>
+                      <p class="text-[10px] text-slate-400">The user will automatically receive this plan &amp; bot access upon login.</p>
                     </div>
 
                     <div class="space-y-1.5">
@@ -1396,18 +1396,18 @@
                         placeholder="e.g. Farhan Ayan"
                         class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white text-xs text-slate-900 outline-none"
                       />
-                      <p class="text-[10px] text-slate-400">ডিরেক্টরিতে চেনার সুবিধার্থে নাম দিতে পারেন।</p>
+                      <p class="text-[10px] text-slate-400">Optional display name for the user directory.</p>
                     </div>
                   </div>
 
                   <!-- Plan Status & Tier Selector -->
                   <div class="space-y-4 pt-2 border-t border-slate-100">
                     <div class="flex items-center justify-between">
-                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Select Subscription Plan (প্ল্যান সিলেক্ট করুন)</h4>
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Select Subscription Plan</h4>
                       <label class="inline-flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" bind:checked={grantIsSubscribed} class="rounded text-blue-600 focus:ring-blue-500" />
                         <span class="text-xs font-bold {grantIsSubscribed ? 'text-emerald-600' : 'text-rose-600'}">
-                          {grantIsSubscribed ? '● Plan Active (সক্রিয়)' : '○ Plan Inactive (বন্ধ)'}
+                          {grantIsSubscribed ? '● Plan Active' : '○ Plan Inactive'}
                         </span>
                       </label>
                     </div>
@@ -1429,7 +1429,7 @@
                           {/if}
                         </div>
                         <h5 class="text-sm font-extrabold text-slate-900">{editablePlans.byok.name}</h5>
-                        <p class="text-[11px] text-slate-500 mt-0.5">৳{editablePlans.byok.monthlyPrice}/mo • Multi-Engine BYOK</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">BDT {editablePlans.byok.monthlyPrice}/mo • Multi-Engine BYOK</p>
                       </button>
 
                       <!-- Managed All-Inclusive Tier -->
@@ -1447,7 +1447,7 @@
                           {/if}
                         </div>
                         <h5 class="text-sm font-extrabold text-slate-900">{editablePlans.managed.name}</h5>
-                        <p class="text-[11px] text-slate-500 mt-0.5">৳{editablePlans.managed.monthlyPrice}/mo • Zero API Keys Needed</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">BDT {editablePlans.managed.monthlyPrice}/mo • Zero API Keys Needed</p>
                       </button>
                     </div>
 
@@ -1455,7 +1455,7 @@
                     <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                       <div>
                         <span class="text-xs font-bold text-slate-800 block">Plan Validity / Billing Cycle</span>
-                        <span class="text-[11px] text-slate-500">প্ল্যানের মেয়াদ নির্ধারণ করুন (মাসিক বা বাৎসরিক)</span>
+                        <span class="text-[11px] text-slate-500">Select monthly or annual billing cycle</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <button
@@ -1484,7 +1484,7 @@
                           3. Assign Bot Store Add-on Agents ({grantSelectedBots.length} / {STORE_BOTS.length} Selected)
                         </h4>
                         <p class="text-[11px] text-slate-500 mt-0.5">
-                          বট স্টোরের যে বটগুলোতে টিক দেবেন, সেগুলো ইউজারের "My Agents" এবং চ্যাটে আনলক হয়ে যাবে।
+                          Selected store bots will be unlocked inside the user's Web Dashboard.
                         </p>
                       </div>
                       {#if STORE_BOTS.length > 0}
@@ -1509,8 +1509,8 @@
 
                     {#if STORE_BOTS.length === 0}
                       <div class="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-1">
-                        <p class="text-xs font-bold text-slate-700">বট স্টোরে বর্তমানে কোনো ডেমো বট নেই (0 Bots)</p>
-                        <p class="text-[11px] text-slate-500">কাস্টম বট যুক্ত করা হলে সেগুলো এখান থেকে যেকোনো ইউজারকে অ্যাসাইন করা যাবে।</p>
+                        <p class="text-xs font-bold text-slate-700">No Add-on Bots in Store Yet (0 Bots)</p>
+                        <p class="text-[11px] text-slate-500">Once custom autonomous bots are added to the store, they can be assigned to any user here.</p>
                       </div>
                     {:else}
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1532,7 +1532,7 @@
                                 </span>
                               </div>
                               <p class="text-[11px] text-blue-600 font-semibold truncate">{bot.role}</p>
-                              <p class="text-[10px] text-slate-400 mt-0.5">Store Value: ৳{bot.monthlyPrice}/mo</p>
+                              <p class="text-[10px] text-slate-400 mt-0.5">Store Value: BDT {bot.monthlyPrice}/mo</p>
                             </div>
                           </button>
                         {/each}
@@ -1542,7 +1542,7 @@
 
                   <!-- Optional Admin Note -->
                   <div class="space-y-1.5 pt-2 border-t border-slate-100">
-                    <label for="grant-note" class="text-xs font-bold text-slate-700">Admin Note / Reference (ঐচ্ছিক)</label>
+                    <label for="grant-note" class="text-xs font-bold text-slate-700">Admin Note / Reference (Optional)</label>
                     <input
                       id="grant-note"
                       type="text"
@@ -1582,7 +1582,7 @@
                         <Icon name="User" size={16} class="text-blue-600" />
                         <span>Users &amp; Granted Access ({combinedUsersList.length})</span>
                       </h3>
-                      <p class="text-[11px] text-slate-500 mt-0.5">যেকোনো ইউজারের উপর ক্লিক করে প্ল্যান বা বট এডিট করুন।</p>
+                      <p class="text-[11px] text-slate-500 mt-0.5">Click Edit on any user to modify their plan or bot access.</p>
                     </div>
                   </div>
 
@@ -1603,9 +1603,9 @@
                   {#if combinedUsersList.length === 0}
                     <div class="text-center py-12 px-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-2">
                       <Icon name="UserCheck" size={28} class="text-slate-400 mx-auto" />
-                      <p class="text-xs font-bold text-slate-700">এখনো কোনো ইউজার তালিকাভুক্ত নেই</p>
+                      <p class="text-xs font-bold text-slate-700">No users listed yet</p>
                       <p class="text-[11px] text-slate-500">
-                        বাম পাশের ফর্মে যেকোনো ইউজারের ইমেইল লিখে প্ল্যান ও বট অ্যাসাইন করলেই এখানে চলে আসবে।
+                        Enter any user's email in the form on the left to assign a plan and bots.
                       </p>
                     </div>
                   {:else}
@@ -1704,7 +1704,7 @@
                 <div class="flex items-center gap-2.5 text-xs text-amber-900">
                   <Icon name="UserCheck" size={18} class="text-amber-600 shrink-0" />
                   <span>
-                    <strong>কোনো নির্দিষ্ট ইউজারকে ফ্রিতে বা ম্যানুয়ালি প্ল্যান ও বট স্টোরের বট অ্যাসাইন করতে চান?</strong>
+                    <strong>Want to manually assign a plan or store bots to a specific user for free?</strong>
                   </span>
                 </div>
                 <button
@@ -1729,7 +1729,7 @@
                       <h2 class="text-base font-bold text-slate-900">Subscription Plans &amp; Details Manager</h2>
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">
-                      প্ল্যানের মূল্য, বিবরণ এবং ফিচারের তালিকা এডমিন প্যানেল থেকে সরাসরি পরিবর্তন করুন। হোমপেজ ও ড্যাশবোর্ডে সাথে সাথে কার্যকর হবে।
+                      Customize plan pricing, descriptions, and feature bullet points directly from the Admin Panel. Updates take effect immediately on the homepage and dashboard.
                     </p>
                   </div>
                 </div>
@@ -1836,14 +1836,14 @@
 
                   <!-- Pricing Structure Group (BDT) -->
                   <div class="space-y-4 pt-2 border-t border-slate-100">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Pricing Rates (BDT ৳)</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Pricing Rates (BDT)</h4>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <!-- Monthly Price -->
                       <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
                         <label for="monthly-price" class="text-[11px] font-bold text-slate-700 block">Monthly Price (BDT)</label>
                         <div class="flex items-center gap-1.5">
-                          <span class="text-xs font-bold text-slate-400">৳</span>
+                          <span class="text-xs font-bold text-slate-400">BDT</span>
                           <input
                             id="monthly-price"
                             type="number"
@@ -1852,14 +1852,14 @@
                             class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
                           />
                         </div>
-                        <span class="text-[10px] text-slate-400 block">গ্রাহকের মাসিক বিল</span>
+                        <span class="text-[10px] text-slate-400 block">Monthly billing rate</span>
                       </div>
 
                       <!-- Yearly Monthly Equivalent -->
                       <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
                         <label for="yearly-monthly" class="text-[11px] font-bold text-slate-700 block">Yearly Rate (/mo)</label>
                         <div class="flex items-center gap-1.5">
-                          <span class="text-xs font-bold text-slate-400">৳</span>
+                          <span class="text-xs font-bold text-slate-400">BDT</span>
                           <input
                             id="yearly-monthly"
                             type="number"
@@ -1868,14 +1868,14 @@
                             class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
                           />
                         </div>
-                        <span class="text-[10px] text-slate-400 block">বাৎসরিকে প্রতি মাসের রেট</span>
+                        <span class="text-[10px] text-slate-400 block">Monthly equivalent on annual plan</span>
                       </div>
 
                       <!-- Yearly Total Billed -->
                       <div class="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-1.5">
                         <label for="yearly-total" class="text-[11px] font-bold text-blue-900 block">Yearly Total Billed</label>
                         <div class="flex items-center gap-1.5">
-                          <span class="text-xs font-bold text-blue-500">৳</span>
+                          <span class="text-xs font-bold text-blue-500">BDT</span>
                           <input
                             id="yearly-total"
                             type="number"
@@ -1884,7 +1884,7 @@
                             class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-blue-300 text-sm font-bold text-blue-900 outline-none focus:border-blue-600"
                           />
                         </div>
-                        <span class="text-[10px] text-blue-600 block">চেকআউটে কাটা হবে</span>
+                        <span class="text-[10px] text-blue-600 block">Charged at annual checkout</span>
                       </div>
                     </div>
                   </div>
@@ -2030,10 +2030,10 @@
                   <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs space-y-1">
                     <p class="font-bold flex items-center gap-1.5">
                       <Icon name="Sparkles" size={14} class="text-amber-600" />
-                      <span>রিয়েল-টাইম সিনক্রোনাইজেশন:</span>
+                      <span>Real-Time Synchronization:</span>
                     </p>
                     <p class="text-[11px] text-amber-700 leading-relaxed">
-                      "Save Plan Changes" বাটনে ক্লিক করার সাথে সাথে আপনার হোমপেজ, <code>/plans</code> পেজ এবং ইউজার ড্যাশবোর্ডের বিলিং সেকশনে নতুন মূল্য ও ফিচার স্বয়ংক্রিয়ভাবে কার্যকর হয়ে যাবে।
+                      Clicking "Save Plan Changes" immediately updates pricing and features across the homepage, <code>/plans</code> page, and user dashboard billing section.
                     </p>
                   </div>
 
@@ -2077,7 +2077,7 @@
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <label for="opay-api-key" class="text-sm font-bold text-slate-900">
-                      Primary OPayBD API Key (একমাত্র প্রয়োজনীয় Key)
+                      Primary OPayBD API Key (Required)
                     </label>
                   </div>
                   <button
@@ -2102,9 +2102,9 @@
                 <div class="p-3.5 rounded-xl bg-white border border-emerald-200/80 flex items-start gap-2.5 text-xs text-slate-700 shadow-xs">
                   <Icon name="CheckCircle2" size={17} class="text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <span class="font-bold text-emerald-950 block mb-0.5">OPayBD-তে শুধুমাত্র এই ১টি Key ব্যবহার করলেই যথেষ্ট!</span>
+                    <span class="font-bold text-emerald-950 block mb-0.5">Only this 1 API Key is required for OPayBD!</span>
                     <p class="text-slate-600 leading-relaxed">
-                      আপনার OPayBD মার্চেন্ট প্যানেল (<a href="http://verify.opaybd.com" target="_blank" rel="noreferrer" class="text-blue-600 underline font-semibold">verify.opaybd.com</a>) থেকে পাওয়া এই একটিমাত্র <strong>API Key</strong> সেভ করলেই bKash, Nagad, Rocket ও কার্ড পেমেন্ট সম্পূর্ণ সক্রিয় হয়ে যাবে।
+                      Saving your single <strong>API Key</strong> from your OPayBD Merchant Panel (<a href="https://verify.opaybd.com" target="_blank" rel="noreferrer" class="text-blue-600 underline font-semibold">verify.opaybd.com</a>) activates bKash, Nagad, Rocket, and Card checkout immediately.
                     </p>
                   </div>
                 </div>
@@ -2119,7 +2119,7 @@
                 >
                   <span class="flex items-center gap-2">
                     <Icon name="Sliders" size={14} class="text-slate-500" />
-                    <span>Advanced / Optional Fields (ঐচ্ছিক — সাধারণ ব্যবহারে ফাঁকা রাখুন)</span>
+                    <span>Advanced / Optional Fields (Leave blank for standard usage)</span>
                   </span>
                   <div class="flex items-center gap-1.5 text-slate-500">
                     <span class="text-[11px] font-normal">{showAdvancedPayment ? 'Hide' : 'Expand (Optional)'}</span>
@@ -2150,7 +2150,7 @@
                         placeholder="Leave blank if not provided by OPay"
                         class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
                       />
-                      <p class="text-[10px] text-slate-400">শুধুমাত্র বিশেষ HMAC প্যাকেজের জন্য। সাধারণ মার্চেন্টে এটি ফাঁকা থাকে।</p>
+                      <p class="text-[10px] text-slate-400">Only used for custom HMAC packages. Leave blank for standard merchants.</p>
                     </div>
 
                     <!-- Brand Key -->
@@ -2174,7 +2174,7 @@
                         placeholder="Leave blank if not provided by OPay"
                         class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
                       />
-                      <p class="text-[10px] text-slate-400">কাস্টম চেকআউট ব্র্যান্ডিং আইডির জন্য (ঐচ্ছিক)।</p>
+                      <p class="text-[10px] text-slate-400">Optional custom checkout branding identifier.</p>
                     </div>
 
                     <!-- Custom API Endpoint URL -->
@@ -2192,7 +2192,7 @@
                         class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-blue-600 text-xs font-mono text-slate-900 placeholder-slate-400 outline-none"
                       />
                       <p class="text-[10px] text-slate-500">
-                        ডিফল্ট: <code>https://verify.opaybd.com/api/payment/create</code>। OPayBD থেকে নতুন ডোমেন বা আপডেট পেলে এখানে সরাসরি পরিবর্তন করতে পারবেন।
+                        Default: <code>https://verify.opaybd.com/api/payment/create</code>. Update here anytime if OPayBD changes its gateway domain.
                       </p>
                     </div>
                   </div>

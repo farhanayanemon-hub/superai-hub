@@ -143,8 +143,8 @@ export const POST: RequestHandler = async ({ request }) => {
       const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
       const captionHeader = matchedHelper
-        ? `⚡ **AI CEO → Delegated to [${matchedHelper.code}] ${matchedHelper.name}**\n\nআপনার ভিজ্যুয়াল রেন্ডার তৈরি হয়েছে। নিচে ডাউনলোড বা প্রিভিউ করুন:`
-        : `✨ আপনার ভিজ্যুয়াল ইমেজ তৈরি হয়েছে:`;
+        ? `⚡ **AI CEO → Delegated to [${matchedHelper.code}] ${matchedHelper.name}**\n\nYour commercial visual render is ready. Preview or download below:`
+        : `✨ Your AI visual render is ready:`;
 
       return json({
         success: true,

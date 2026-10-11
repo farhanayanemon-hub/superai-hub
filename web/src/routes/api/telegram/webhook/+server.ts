@@ -67,22 +67,22 @@ export const POST: RequestHandler = async ({ request }) => {
                 : user.planTier.toUpperCase();
 
           const welcomeMsg =
-            `<b>🎉 অভিনন্দন ${escapeHtml(user.userName)}!</b>\n\nআপনার <b>EzboAgents</b> অ্যাকাউন্ট সফলভাবে টেলিগ্রামের সাথে সিঙ্ক হয়েছে!\n\n` +
-            `💎 <b>সাবস্ক্রিপশন প্ল্যান:</b> ${escapeHtml(tierLabel)}\n` +
-            `🟢 <b>স্ট্যাটাস:</b> ${user.isSubscribed ? 'সক্রিয় (Active)' : 'নিষ্ক্রিয় (Inactive)'}\n` +
-            `👑 <b>অ্যাক্টিভ কমান্ডার:</b> ${escapeHtml(AI_CEO_PROFILE.name)} (Controls All 75 AI Helpers)\n\n` +
-            `<b>প্রয়োজনীয় কমান্ডসমূহ:</b>\n` +
-            `• <code>/ceo</code> - মেইন AI CEO মোড সক্রিয় করুন (সব ৭৫টি হেল্পার অটো-কন্ট্রোল)\n` +
-            `• <code>/helpers</code> - ৭৫টি AI Helper-এর ক্যাটাগরি ও কোড (#01–#75) দেখুন\n` +
-            `• <code>/helper #01</code> - নির্দিষ্ট হেল্পার সিলেক্ট করুন\n` +
-            `• <code>/image [prompt]</code> - কমার্শিয়াল AI ছবি তৈরি (#34)\n` +
-            `• <code>/status</code> - আপনার অ্যাকাউন্ট ও প্ল্যানের তথ্য\n\n` +
-            `<i>ℹ️ নোট: Agents Store-এর অটোনোমাস এজেন্টগুলো শুধুমাত্র ওয়েব ড্যাশবোর্ডে কাজ করে, টেলিগ্রাম বা হোয়াটসঅ্যাপ থেকে কন্ট্রোল করা যায় না।</i>`;
+            `<b>🎉 Welcome ${escapeHtml(user.userName)}!</b>\n\nYour <b>EzboAgents</b> account is now synced with Telegram!\n\n` +
+            `💎 <b>Subscription Plan:</b> ${escapeHtml(tierLabel)}\n` +
+            `🟢 <b>Status:</b> ${user.isSubscribed ? 'Active' : 'Inactive'}\n` +
+            `👑 <b>Active Commander:</b> ${escapeHtml(AI_CEO_PROFILE.name)} (Controls All 75 AI Helpers)\n\n` +
+            `<b>Available Commands:</b>\n` +
+            `• <code>/ceo</code> - Activate Master AI CEO Mode (Auto-controls all 75 helpers)\n` +
+            `• <code>/helpers</code> - View all 75 AI Helpers by category (#01–#75)\n` +
+            `• <code>/helper #01</code> - Pin a specific AI Helper\n` +
+            `• <code>/image [prompt]</code> - Generate commercial AI visuals (#34)\n` +
+            `• <code>/status</code> - View your account and plan status\n\n` +
+            `<i>ℹ️ Note: Autonomous Agents from the "Agents Store" operate exclusively on the Web Dashboard and cannot be controlled via Telegram or WhatsApp.</i>`;
 
           await sendTelegramMessage(botToken, chatId, welcomeMsg);
           return json({ ok: true });
         } else {
-          const errMsg = `⚠️ <b>লিঙ্ক ব্যর্থ হয়েছে:</b>\n${escapeHtml(linkRes.error || 'ভুল বা মেয়াদোত্তীর্ণ সিঙ্ক কোড।')}\n\nদয়া করে আপনার ড্যাশবোর্ডের <b>Channels &gt; Telegram</b> ট্যাব থেকে ফ্রেশ কোড নিয়ে পুনরায় চেষ্টা করুন।`;
+          const errMsg = `⚠️ <b>Link Failed:</b>\n${escapeHtml(linkRes.error || 'Invalid or expired sync code.')}\n\nPlease generate a fresh code from your Dashboard under <b>Channels &gt; Telegram</b>.`;
           await sendTelegramMessage(botToken, chatId, errMsg);
           return json({ ok: true });
         }
@@ -91,19 +91,19 @@ export const POST: RequestHandler = async ({ request }) => {
       const existingUser = getLinkedUserByChatId(chatId);
       if (existingUser) {
         const msg =
-          `👋 <b>ওয়েলকাম ব্যাক, ${escapeHtml(existingUser.userName)}!</b>\n\n` +
-          `👑 আপনার <b>Master AI CEO</b> এবং <b>৭৫টি AI Helper (#01–#75)</b> প্রস্তুত।\n` +
-          `যেকোনো কাজের নির্দেশ সরাসরি লিখে পাঠান অথবা <code>/helpers</code> লিখে তালিকা দেখুন।`;
+          `👋 <b>Welcome back, ${escapeHtml(existingUser.userName)}!</b>\n\n` +
+          `👑 Your <b>Master AI CEO</b> and <b>75 AI Helpers (#01–#75)</b> are online.\n` +
+          `Send any instruction directly or type <code>/helpers</code> to browse the catalog.`;
         await sendTelegramMessage(botToken, chatId, msg);
         return json({ ok: true });
       }
 
       const unlinkedMsg =
-        `👋 <b>স্বাগতম EzboAgents Telegram Bot-এ!</b>\n\n` +
-        `আপনার টেলিগ্রাম অ্যাকাউন্টটি এখনও EzboAgents-এর সাথে লিঙ্ক করা হয়নি।\n\n` +
-        `<b>কীভাবে লিঙ্ক করবেন:</b>\n` +
-        `১. ড্যাশবোর্ডে লগইন করুন: <a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>\n` +
-        `২. <b>Channels &gt; Telegram</b> অপশন থেকে ৬-সংখ্যার Sync কোডটি এখানে পাঠিয়ে দিন (যেমন: <code>EZBO-8492</code>)।`;
+        `👋 <b>Welcome to the EzboAgents Telegram Bot!</b>\n\n` +
+        `Your Telegram account is not linked to EzboAgents yet.\n\n` +
+        `<b>How to link:</b>\n` +
+        `1. Sign in to your dashboard: <a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>\n` +
+        `2. Open <b>Channels &gt; Telegram</b> and send your 6-digit Sync Code here (e.g. <code>EZBO-8492</code>).`;
       await sendTelegramMessage(botToken, chatId, unlinkedMsg);
       return json({ ok: true });
     }
@@ -119,14 +119,14 @@ export const POST: RequestHandler = async ({ request }) => {
 
       if (linkRes.success && linkRes.user) {
         const user = linkRes.user;
-        const msg = `<b>✅ অ্যাকাউন্ট সফলভাবে লিঙ্ক হয়েছে!</b>\n\nস্বাগতম, <b>${escapeHtml(user.userName)}</b>!\nআপনার মেইন <b>AI CEO</b> এবং <b>৭৫টি AI Helper</b> এখন টেলিগ্রামে প্রস্তুত।`;
+        const msg = `<b>✅ Account Linked Successfully!</b>\n\nWelcome, <b>${escapeHtml(user.userName)}</b>!\nYour <b>Master AI CEO</b> and all <b>75 AI Helpers</b> are ready on Telegram.`;
         await sendTelegramMessage(botToken, chatId, msg);
         return json({ ok: true });
       } else {
         await sendTelegramMessage(
           botToken,
           chatId,
-          `⚠️ ${escapeHtml(linkRes.error || 'অবৈধ কোড।')}`
+          `⚠️ ${escapeHtml(linkRes.error || 'Invalid sync code.')}`
         );
         return json({ ok: true });
       }
@@ -141,7 +141,7 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `🔒 <b>Autonomous Store Agents Notice:</b>\n\nAgents Store থেকে কেনা এজেন্টগুলো সম্পূর্ণ <b>Autonomous Agent</b> স্টাইলে কাজ করে। সেগুলো শুধুমাত্র ওয়েব ড্যাশবোর্ডে (<a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>) গিয়ে আলাদাভাবে সেটআপ ও ব্যবহার করতে হবে — টেলিগ্রাম বা হোয়াটসঅ্যাপ থেকে কন্ট্রোল করা যাবে না।\n\nতবে মেইন <b>AI CEO</b> এবং সব <b>৭৫টি AI Helper (#01–#75)</b> এখান থেকে পূর্ণ নিয়ন্ত্রণ করতে পারবেন!`
+        `🔒 <b>Autonomous Store Agents Notice:</b>\n\nAgents unlocked from the <b>Agents Store</b> operate as standalone <b>Autonomous Agents</b>. They must be configured and used directly inside the Web Dashboard (<a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>) and cannot be controlled via Telegram or WhatsApp.\n\nHowever, you can control the <b>Master AI CEO</b> and all <b>75 AI Helpers (#01–#75)</b> right here!`
       );
       return json({ ok: true });
     }
@@ -154,7 +154,7 @@ export const POST: RequestHandler = async ({ request }) => {
         await sendTelegramMessage(
           botToken,
           chatId,
-          '⚠️ আপনার অ্যাকাউন্ট লিঙ্ক করা নেই। অনুগ্রহ করে ড্যাশবোর্ডের Channels ট্যাব থেকে Sync কোড পাঠান।'
+          '⚠️ Your account is not linked. Please send your Sync Code from the Channels tab in the dashboard.'
         );
         return json({ ok: true });
       }
@@ -172,13 +172,13 @@ export const POST: RequestHandler = async ({ request }) => {
         : `👑 ${AI_CEO_PROFILE.name} (Auto-Controls All 75 Helpers)`;
 
       const statusCard =
-        `<b>📊 আপনার EzboAgents অ্যাকাউন্ট স্ট্যাটাস</b>\n\n` +
-        `👤 <b>নাম:</b> ${escapeHtml(linkedUser.userName)}\n` +
-        `💎 <b>প্ল্যান:</b> ${escapeHtml(tierLabel)}\n` +
-        `🟢 <b>সাবস্ক্রিপশন:</b> ${linkedUser.isSubscribed ? 'সক্রিয় (Active)' : 'মেয়াদোত্তীর্ণ (Expired)'}\n` +
-        `🤖 <b>বর্তমান মোড:</b> ${escapeHtml(activeLabel)}\n` +
-        `✨ <b>উপলব্ধ AI Helpers:</b> ৭৫টি (#01 থেকে #75)\n\n` +
-        `<i>মেইন AI CEO মোডে ফিরতে <code>/ceo</code> লিখুন অথবা সব হেল্পার দেখতে <code>/helpers</code> লিখুন।</i>`;
+        `<b>📊 Your EzboAgents Account Status</b>\n\n` +
+        `👤 <b>Name:</b> ${escapeHtml(linkedUser.userName)}\n` +
+        `💎 <b>Plan:</b> ${escapeHtml(tierLabel)}\n` +
+        `🟢 <b>Subscription:</b> ${linkedUser.isSubscribed ? 'Active' : 'Expired'}\n` +
+        `🤖 <b>Current Mode:</b> ${escapeHtml(activeLabel)}\n` +
+        `✨ <b>Available AI Helpers:</b> 75 (#01 to #75)\n\n` +
+        `<i>Type <code>/ceo</code> for Master AI CEO mode or <code>/helpers</code> to browse all helpers.</i>`;
 
       await sendTelegramMessage(botToken, chatId, statusCard);
       return json({ ok: true });
@@ -194,7 +194,7 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `👑 <b>Master AI CEO Mode Activated!</b>\n\nএখন থেকে আপনার যেকোনো মেসেজ মেইন <b>AI CEO</b> রিসিভ করবে এবং ৭৫টি AI Helper (#01–#75) থেকে উপযুক্ত হেল্পারকে দিয়ে সাথে সাথে কাজ করিয়ে দেবে।`
+        `👑 <b>Master AI CEO Mode Activated!</b>\n\nSend any task or instruction — the <b>AI CEO</b> will automatically select and command the right specialist helper from all 75 AI Helpers (#01–#75).`
       );
       return json({ ok: true });
     }
@@ -205,7 +205,7 @@ export const POST: RequestHandler = async ({ request }) => {
           const items = TOOLS.filter((t) => t.category === cat.id);
           const firstCode = items[0]?.code || '';
           const lastCode = items[items.length - 1]?.code || '';
-          return `• <b>${escapeHtml(cat.name)}</b> (${firstCode}–${lastCode})\n  উদাহরণ: <code>${items
+          return `• <b>${escapeHtml(cat.name)}</b> (${firstCode}–${lastCode})\n  Examples: <code>${items
             .slice(0, 3)
             .map((i) => `${i.code} ${i.name}`)
             .join(', ')}</code>`;
@@ -215,11 +215,11 @@ export const POST: RequestHandler = async ({ request }) => {
       const helperListMsg =
         `<b>👑 1 Master AI CEO + 75 AI Helpers (#01–#75)</b>\n\n` +
         `${catLines}\n\n` +
-        `👉 <b>যেভাবে ব্যবহার করবেন:</b>\n` +
-        `• সরাসরি যেকোনো কাজের নির্দেশ লিখুন — <b>AI CEO</b> নিজেই সঠিক হেল্পার বেছে নেবে।\n` +
-        `• অথবা মেসেজের শুরুতে কোড লিখুন: যেমন <code>#01 ফ্যাশন ব্র্যান্ডের ফেসবুক এড লিখে দাও</code>\n` +
-        `• নির্দিষ্ট হেল্পার পিন করতে: <code>/helper #24</code>\n` +
-        `• মেইন AI CEO-তে ফিরতে: <code>/ceo</code>`;
+        `👉 <b>How to use:</b>\n` +
+        `• Just write your task in plain language — the <b>AI CEO</b> will automatically delegate to the best helper.\n` +
+        `• Or start your message with a code: e.g. <code>#01 Write Facebook ad copy for a clothing brand</code>\n` +
+        `• Pin a specific helper: <code>/helper #24</code>\n` +
+        `• Return to Master AI CEO: <code>/ceo</code>`;
 
       await sendTelegramMessage(botToken, chatId, helperListMsg);
       return json({ ok: true });
@@ -232,7 +232,7 @@ export const POST: RequestHandler = async ({ request }) => {
         await sendTelegramMessage(
           botToken,
           chatId,
-          `👑 <b>Master AI CEO</b> সক্রিয় করা হয়েছে! এখন যেকোনো কাজের নির্দেশ পাঠান।`
+          `👑 <b>Master AI CEO</b> activated! Send any task or instruction now.`
         );
         return json({ ok: true });
       }
@@ -242,7 +242,7 @@ export const POST: RequestHandler = async ({ request }) => {
         await sendTelegramMessage(
           botToken,
           chatId,
-          `⚠️ "${escapeHtml(target)}" কোড বা নামের কোনো AI Helper পাওয়া যায়নি। <code>#01</code> থেকে <code>#75</code> কোড ব্যবহার করুন অথবা <code>/helpers</code> লিখুন।`
+          `⚠️ Could not find an AI Helper matching "${escapeHtml(target)}". Use a code from <code>#01</code> to <code>#75</code> or type <code>/helpers</code>.`
         );
         return json({ ok: true });
       }
@@ -254,7 +254,7 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `✅ <b>AI Helper Selected: [${escapeHtml(matched.code)}] ${escapeHtml(matched.name)}</b>\n<i>${escapeHtml(matched.shortDesc)}</i>\n\nএখন আপনার টাস্ক লিখে পাঠান। (মেইন AI CEO মোডে ফিরতে <code>/ceo</code> লিখুন)`
+        `✅ <b>AI Helper Selected: [${escapeHtml(matched.code)}] ${escapeHtml(matched.name)}</b>\n<i>${escapeHtml(matched.shortDesc)}</i>\n\nSend your instruction now. (Type <code>/ceo</code> anytime to return to Master AI CEO mode)`
       );
       return json({ ok: true });
     }
@@ -268,7 +268,7 @@ export const POST: RequestHandler = async ({ request }) => {
         await sendTelegramMessage(
           botToken,
           chatId,
-          '⚠️ অনুগ্রহ করে প্রম্পট লিখুন। যেমন: <code>/image luxury perfume bottle commercial photo</code>'
+          '⚠️ Please provide an image prompt. Example: <code>/image luxury perfume bottle commercial photo</code>'
         );
         return json({ ok: true });
       }
@@ -277,7 +277,7 @@ export const POST: RequestHandler = async ({ request }) => {
         await sendTelegramMessage(
           botToken,
           chatId,
-          '⚠️ ইমেজ জেনারেশনের জন্য আপনার EzboAgents সাবস্ক্রিপশন সক্রিয় থাকা প্রয়োজন।'
+          '⚠️ An active EzboAgents subscription is required for image generation.'
         );
         return json({ ok: true });
       }
@@ -300,12 +300,12 @@ export const POST: RequestHandler = async ({ request }) => {
     if (text === '/help') {
       const helpMsg =
         `<b>💡 EzboAgents — Master AI CEO & 75 Helpers Guide</b>\n\n` +
-        `• <code>/ceo</code> - মেইন AI CEO মোড (সব ৭৫টি হেল্পার অটো-কন্ট্রোল)\n` +
-        `• <code>/helpers</code> - ৭৫টি AI Helper-এর ক্যাটাগরি ও কোড (#01–#75)\n` +
-        `• <code>/helper #01</code> - নির্দিষ্ট হেল্পার সিলেক্ট করা\n` +
-        `• <code>/image [প্রম্পট]</code> - কমার্শিয়াল AI ইমেজ জেনারেশন\n` +
-        `• <code>/status</code> - আপনার অ্যাকাউন্ট ও প্ল্যানের তথ্য\n\n` +
-        `<b>দ্রুত টিপস:</b> যেকোনো মেসেজে <code>#01</code> থেকে <code>#75</code> লিখলে সরাসরি সেই হেল্পার কাজ করবে, আর কিছু না লিখলে মেইন <b>AI CEO</b> নিজেই উপযুক্ত হেল্পার বেছে নেবে!`;
+        `• <code>/ceo</code> - Master AI CEO Mode (Auto-controls all 75 helpers)\n` +
+        `• <code>/helpers</code> - View all 75 AI Helpers by category (#01–#75)\n` +
+        `• <code>/helper #01</code> - Pin a specific helper\n` +
+        `• <code>/image [prompt]</code> - Commercial AI image generation\n` +
+        `• <code>/status</code> - View your account and plan status\n\n` +
+        `<b>Quick Tip:</b> Prefix any message with <code>#01</code> through <code>#75</code> to invoke that helper directly, or simply write your request and let the <b>Master AI CEO</b> route it automatically!`;
       await sendTelegramMessage(botToken, chatId, helpMsg);
       return json({ ok: true });
     }
@@ -317,7 +317,7 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        '⚠️ আপনার টেলিগ্রাম অ্যাকাউন্টটি এখনও EzboAgents-এ লিঙ্ক করা নেই!\nড্যাশবোর্ডের <b>Channels &gt; Telegram</b> ট্যাব থেকে আপনার Sync কোডটি এখানে মেসেজ করুন।'
+        '⚠️ Your Telegram account is not linked to EzboAgents yet!\nPlease send your Sync Code from <b>Channels &gt; Telegram</b> in your dashboard.'
       );
       return json({ ok: true });
     }
@@ -326,7 +326,7 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        '⚠️ <b>সাবস্ক্রিপশন মেয়াদোত্তীর্ণ:</b> অনুগ্রহ করে <a href="https://ezboagents.com/plans">ezboagents.com/plans</a> থেকে প্ল্যান রিনিউ করুন।'
+        '⚠️ <b>Subscription Expired:</b> Please renew your plan at <a href="https://ezboagents.com/plans">ezboagents.com/plans</a>.'
       );
       return json({ ok: true });
     }
@@ -423,11 +423,11 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     if (!aiReply) {
-      aiReply = `👑 <b>AI CEO:</b> আপনার বার্তাটি গৃহীত হয়েছে। অনুগ্রহ করে ড্যাশবোর্ডে বা অ্যাডমিন প্যানেলে API Key সংযুক্ত আছে কিনা যাচাই করুন।`;
+      aiReply = `👑 <b>AI CEO:</b> Your message was received. Please ensure an API Key is configured in your Dashboard or Admin Panel.`;
     }
 
     if (aiReply.length > 4000) {
-      aiReply = aiReply.slice(0, 3950) + '\n\n...(মেসেজ সংক্ষিপ্ত করা হয়েছে)';
+      aiReply = aiReply.slice(0, 3950) + '\n\n...(Message truncated)';
     }
 
     await sendTelegramMessage(botToken, chatId, aiReply);

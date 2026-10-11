@@ -27,11 +27,11 @@
   const quickPrompts = [
     {
       label: '👑 AI CEO: 360° Marketing Plan',
-      text: 'আমার ই-কমার্স ক্লোদিং ব্র্যান্ডের জন্য আগামী ৩০ দিনের Facebook Ads + Content + Offer প্ল্যান তৈরি করে দাও।'
+      text: 'Build a complete 30-day Facebook Ads + Social Content + Offer launch strategy for my e-commerce clothing brand.'
     },
     {
       label: '#01 Facebook Ad Copy',
-      text: '#01 Write 3 high-converting Facebook & Instagram ad copies for a premium wireless earbud in Bangla & English.'
+      text: '#01 Write 3 high-converting Facebook & Instagram ad copies for a premium wireless earbud.'
     },
     {
       label: '#24 AI Text Humanizer',
@@ -47,7 +47,7 @@
     },
     {
       label: '#63 Daily Time Block',
-      text: '#63 আমার আজকের কাজের রুটিন ও টাইম-ব্লকিং শিডিউল তৈরি করে দাও: ক্লায়েন্ট মিটিং, এড অপ্টিমাইজেশন, এবং কন্টেন্ট প্ল্যানিং।'
+      text: '#63 Build an optimized hour-by-hour daily time-block schedule for my top priorities: client meetings, ad optimization, and content planning.'
     }
   ];
 
@@ -146,7 +146,7 @@
         replyContent = `⚠️ **AI CEO Alert:** ${data.error}`;
       } else {
         replyContent =
-          'আপনার মেসেজ পাওয়া গেছে কিন্তু কোনো আউটপুট জেনারেট হয়নি। অনুগ্রহ করে API Vault / BYOK ট্যাবে আপনার ফ্রি Gemini API Key যাচাই করুন।';
+          'Your message was received, but no output was generated. Please verify your API Key in the API Vault / Settings tab.';
       }
 
       const botMsg: ChatMessage = {
@@ -166,7 +166,7 @@
       const errMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'assistant',
-        content: `❌ **Connection Issue:** AI CEO ইঞ্জিনে সংযোগ করা যায়নি।\n\nDetails: ${err.message}\n\nঅনুগ্রহ করে API Vault ট্যাবে আপনার ফ্রি Gemini API key যাচাই করুন।`,
+        content: `❌ **Connection Issue:** Unable to connect to the AI CEO Engine.\n\nDetails: ${err.message}\n\nPlease verify your API Key in the Settings / Vault tab.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'error'
       };
@@ -235,7 +235,7 @@
           </span>
         </div>
         <p class="text-[11px] text-slate-300 hidden sm:block">
-          আলাদা হেল্পারে না গিয়ে সরাসরি AI CEO-কে বলুন — অথবা WhatsApp ও Telegram থেকে কমান্ড দিন
+          Instruct the Master AI CEO directly to orchestrate any helper — or control via WhatsApp & Telegram
         </p>
       </div>
     </div>
@@ -393,7 +393,7 @@
             <span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"></span>
           </div>
           <span class="text-slate-600 font-semibold">
-            AI CEO উপযুক্ত হেল্পার সিলেক্ট করে আউটপুট তৈরি করছে...
+            AI CEO is delegating to the specialist helper and generating output...
           </span>
         </div>
       </div>
@@ -446,7 +446,7 @@
           bind:value={inputMessage}
           onkeydown={handleKeyDown}
           rows="1"
-          placeholder="AI CEO-কে যেকোনো কাজের নির্দেশ দিন অথবা #01 থেকে #75 কোড লিখে কমান্ড দিন..."
+          placeholder="Instruct the AI CEO on any task, or type #01 to #75 to command a specific helper..."
           class="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none resize-none transition-all max-h-32"
         ></textarea>
       </div>
