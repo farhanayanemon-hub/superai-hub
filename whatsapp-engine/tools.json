@@ -2407,486 +2407,688 @@
     "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=VidRanker"
   },
   {
-    "id": "upwork_proposal_writer",
+    "id": "daily_habit_routine_architect",
     "code": "#51",
-    "name": "Upwork Winning Proposal Generator",
-    "nameEn": "Upwork Winning Proposal Generator",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Writes custom Upwork proposals that hook clients in the first 2 lines.",
-    "icon": "Award",
-    "badge": "Top Rated",
+    "name": "Daily Habit & Routine Architect",
+    "nameEn": "Daily Habit & Routine Architect",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Builds Atomic Habits morning/evening routines and habit-stacking systems for unstoppable discipline.",
+    "icon": "Zap",
+    "badge": "Atomic Habits",
     "inputs": [
       {
-        "name": "jobPost",
-        "label": "Paste Client Job Post Description",
+        "name": "targetHabit",
+        "label": "Target Habit to Build or Break",
         "type": "textarea",
-        "placeholder": "Paste the Upwork job post here...",
+        "placeholder": "e.g. Read 20 pages every day / Stop late-night screen time / Workout 4x per week",
         "required": true
       },
       {
-        "name": "yourExperience",
-        "label": "Your Relevant Experience & Past Results",
+        "name": "currentRoutine",
+        "label": "Your Current Daily Schedule & Bottlenecks",
         "type": "textarea",
-        "placeholder": "e.g. 4+ years building SvelteKit/Next.js apps, 100% Job Success",
+        "placeholder": "e.g. Wake up at 8 AM feeling groggy, work 9-6, tired in evening, doomscroll until 1 AM",
         "required": true
       },
       {
-        "name": "hookAngle",
-        "label": "Proposal Opening Angle",
+        "name": "routineWindow",
+        "label": "Routine Focus Window",
         "type": "select",
         "options": [
-          "Immediate Solution / Audit in First 2 Lines",
-          "Similar Case Study Proof",
-          "Fast Turnaround + Milestone Plan"
+          "Morning Kickstart Routine (First 60 Minutes)",
+          "Workday Focus & Energy Blocks",
+          "Evening Wind-Down & Sleep Preparation",
+          "Full 24-Hour Keystone Habit Architecture"
         ],
-        "defaultValue": "Immediate Solution / Audit in First 2 Lines"
+        "defaultValue": "Morning Kickstart Routine (First 60 Minutes)"
       }
     ],
-    "systemPrompt": "You are ProposalSniper (#51 — Upwork Winning Proposal Generator), operating under the EzboAgents Master AI CEO.\nSpecialization: Top-Rated Plus Upwork Closer — Writes custom Upwork proposals that hook clients in the first 2 lines.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
+    "systemPrompt": "You are HabitForge, an elite behavioral scientist and habit architect trained in James Clear's Atomic Habits, BJ Fogg's Tiny Habits, and neuroscience of discipline. Your mission is to construct an unbreakable, frictionless daily routine for the user. Deliver: 1) Keystone Habit Identification (the single highest-leverage habit), 2) Habit Stacking Formula (After [Current Habit], I will [New Habit]), 3) Environment Design (make cues obvious and friction zero), 4) The 2-Minute Rule scale-down for days with zero motivation, and 5) An accountability tracking checklist.",
     "keywords": [
-      "upwork proposal",
-      "cover letter upwork",
-      "freelance proposal",
-      "upwork"
+      "habit",
+      "routine",
+      "daily routine",
+      "morning routine",
+      "atomic habits",
+      "discipline",
+      "habit stacking",
+      "অভ্যাস",
+      "রুটিন"
     ],
-    "agentName": "ProposalSniper",
-    "agentRole": "Top-Rated Plus Upwork Closer",
-    "agentTagline": "Writes custom Upwork proposals that hook clients in the first 2 lines.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=ProposalSniper"
+    "agentName": "HabitForge",
+    "agentRole": "Atomic Habits & Behavioral Discipline Architect",
+    "agentTagline": "Builds science-backed routines that turn discipline from willpower into automatic reflex.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=HabitForge"
   },
   {
-    "id": "fiverr_gig_seo",
+    "id": "deep_work_focus_protocol",
     "code": "#52",
-    "name": "Fiverr Gig SEO Title/Tags/Description",
-    "nameEn": "Fiverr Gig SEO Title/Tags/Description",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Page-1 Fiverr gig titles, 5 search tags, 3-tier packages, and descriptions.",
-    "icon": "Star",
-    "badge": "Fiverr Pro",
+    "name": "Deep Work & Laser Focus Protocol",
+    "nameEn": "Deep Work & Laser Focus Protocol",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Flow-state triggers, Pomodoro & time-blocking protocols, and dopamine detox guidelines for 4+ hours of focus.",
+    "icon": "Crosshair",
+    "badge": "Flow State",
     "inputs": [
       {
-        "name": "serviceOffering",
-        "label": "What Service Are You Selling on Fiverr?",
+        "name": "taskGoal",
+        "label": "Deep Work Objective / Complex Project",
         "type": "textarea",
-        "placeholder": "e.g. WordPress E-Commerce Website Design / Facebook Ads Management",
+        "placeholder": "e.g. Coding core API architecture / Writing 3,000-word comprehensive research report",
         "required": true
       },
       {
-        "name": "primaryKeywords",
-        "label": "Main Keywords to Rank For",
+        "name": "focusKillers",
+        "label": "Primary Distractions & Focus Breakers",
         "type": "text",
-        "placeholder": "e.g. wordpress website, ecommerce website, woocommerce expert",
+        "placeholder": "e.g. Constant Slack notifications, phone checking, noisy room, mental wandering",
         "required": true
+      },
+      {
+        "name": "sessionDuration",
+        "label": "Sprint Protocol Length",
+        "type": "select",
+        "options": [
+          "90-Minute Ultradian Sprint Cycle",
+          "50/10 High-Output Pomodoro Block",
+          "Half-Day 4-Hour Deep Immersion Monolith",
+          "Dopamine Detox & Digital Cleanse Reset"
+        ],
+        "defaultValue": "90-Minute Ultradian Sprint Cycle"
       }
     ],
-    "systemPrompt": "You are GigRank (#52 — Fiverr Gig SEO Title/Tags/Description), operating under the EzboAgents Master AI CEO.\nSpecialization: Fiverr Search Algorithm Strategist — Page-1 Fiverr gig titles, 5 search tags, 3-tier packages, and descriptions.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
+    "systemPrompt": "You are FocusTitan, a master of cognitive endurance, flow state psychology (Mihaly Csikszentmihalyi), and Cal Newport's Deep Work methodology. Your mission is to eliminate cognitive friction and guide the user into effortless, razor-sharp focus. Provide: 1) Pre-Session Gateway Ritual (clearing working memory in 3 minutes), 2) The Flow Protocol (exact pacing, environmental lockdown, and distraction barricades), 3) Cognitive Refueling Breaks (what to do during rest intervals without breaking flow), and 4) Session Completion Debrief.",
     "keywords": [
-      "fiverr gig",
-      "fiverr seo",
-      "gig description",
-      "fiverr tags"
+      "deep work",
+      "focus",
+      "laser focus",
+      "flow state",
+      "pomodoro",
+      "distraction",
+      "dopamine detox",
+      "মনোযোগ",
+      "ফোকাস"
     ],
-    "agentName": "GigRank",
-    "agentRole": "Fiverr Search Algorithm Strategist",
-    "agentTagline": "Page-1 Fiverr gig titles, 5 search tags, 3-tier packages, and descriptions.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=GigRank"
+    "agentName": "FocusTitan",
+    "agentRole": "Deep Work & Cognitive Flow Strategist",
+    "agentTagline": "Eliminates brain fog and digital noise for 4+ hours of uninterrupted flow.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=FocusTitan"
   },
   {
-    "id": "client_inbox_closer",
+    "id": "overcoming_procrastination_catalyst",
     "code": "#53",
-    "name": "Client Inbox Closer & Reply Assistant",
-    "nameEn": "Client Inbox Closer & Reply Assistant",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Crafts the exact reply to turn a client’s inbox message into a paid order.",
-    "icon": "MessageSquare",
-    "badge": "Deal Closer",
+    "name": "Overcoming Procrastination & Action Catalyst",
+    "nameEn": "Overcoming Procrastination & Action Catalyst",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "5-Second Rule drills, micro-chunking big tasks, and instant activation triggers when feeling unmotivated.",
+    "icon": "Flame",
+    "badge": "Action Now",
     "inputs": [
       {
-        "name": "clientMessage",
-        "label": "Paste the Client’s Last Message",
+        "name": "avoidedTask",
+        "label": "The Task You Have Been Putting Off",
         "type": "textarea",
-        "placeholder": "e.g. \"Hi, how much would you charge to redesign our 5-page website and how long will it take?\"",
+        "placeholder": "e.g. Filing tax documents / Starting my sales outreach / Studying complex chapter 4",
         "required": true
       },
       {
-        "name": "yourOffer",
-        "label": "Your Price, Timeline & Next Step",
-        "type": "text",
-        "placeholder": "e.g. $350, 5 days delivery, ready to start today",
-        "required": true
+        "name": "underlyingBlock",
+        "label": "Root Cause of the Hesitation",
+        "type": "select",
+        "options": [
+          "Perfectionism (Fear of doing it imperfectly)",
+          "Overwhelm (Task feels too vast and chaotic)",
+          "Boredom / Complete Lack of Initial Motivation",
+          "Fear of Outcome or Harsh Criticism",
+          "Ambiguity (Not 100% sure what step 1 is)"
+        ],
+        "defaultValue": "Overwhelm (Task feels too vast and chaotic)"
+      },
+      {
+        "name": "timeAvailableNow",
+        "label": "Time You Have Right Now",
+        "type": "select",
+        "options": [
+          "Just 5 Minutes to Break the Seal",
+          "15 Minutes Quick Hit",
+          "30 Minutes Protected Block",
+          "1 Hour+ Dedicated Runway"
+        ],
+        "defaultValue": "Just 5 Minutes to Break the Seal"
       }
     ],
-    "systemPrompt": "You are InboxCloser (#53 — Client Inbox Closer & Reply Assistant), operating under the EzboAgents Master AI CEO.\nSpecialization: Freelance Client Conversion Specialist — Crafts the exact reply to turn a client’s inbox message into a paid order.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
+    "systemPrompt": "You are ActionIgnite, a hyper-practical performance coach specialized in overcoming resistance, analysis paralysis, and chronic procrastination (utilizing Mel Robbins' 5-Second Rule and Tim Pychyl's procrastination psychology). Deliver: 1) Radical Emotional De-Escalation (why your brain is avoiding this and why that's normal), 2) The Ridiculously Tiny Micro-Step (an action so small failure is impossible), 3) The 5-4-3-2-1 Countdown Trigger, 4) The 10-Minute Momentum Sprint, and 5) Immediate next action step.",
     "keywords": [
-      "client reply",
-      "inbox closer",
-      "buyer message",
-      "close client"
+      "procrastination",
+      "stop procrastinating",
+      "action catalyst",
+      "5 second rule",
+      "get started",
+      "overcome lazy",
+      "motivation",
+      "আলসেমি",
+      "কাজ শুরু"
     ],
-    "agentName": "InboxCloser",
-    "agentRole": "Freelance Client Conversion Specialist",
-    "agentTagline": "Crafts the exact reply to turn a client’s inbox message into a paid order.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=InboxCloser"
+    "agentName": "ActionIgnite",
+    "agentRole": "Anti-Procrastination & Activation Catalyst",
+    "agentTagline": "Turns overwhelming tasks into 2-minute micro-actions you can start immediately.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=ActionIgnite"
   },
   {
-    "id": "client_price_negotiation",
+    "id": "stoic_mindset_resilience_guide",
     "code": "#54",
-    "name": "Client Price Objection & Negotiation Helper",
-    "nameEn": "Client Price Objection & Negotiation Helper",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Defends your freelance rates or adjusts scope smartly when clients ask for discounts.",
-    "icon": "DollarSign",
-    "badge": "Rate Defense",
-    "inputs": [
-      {
-        "name": "clientPushback",
-        "label": "What Did the Client Say About Price?",
-        "type": "textarea",
-        "placeholder": "e.g. \"Your quote of $500 is too high, another freelancer offered $200\"",
-        "required": true
-      },
-      {
-        "name": "negotiationStrategy",
-        "label": "Your Negotiation Stance",
-        "type": "select",
-        "options": [
-          "Hold Firm on Price & Justify ROI",
-          "Reduce Scope to Match Their Budget",
-          "Offer Small Discount for Immediate Deposit / Long-Term Retainer"
-        ],
-        "defaultValue": "Hold Firm on Price & Justify ROI"
-      }
-    ],
-    "systemPrompt": "You are RateGuard (#54 — Client Price Objection & Negotiation Helper), operating under the EzboAgents Master AI CEO.\nSpecialization: High-Ticket Freelance Negotiator — Defends your freelance rates or adjusts scope smartly when clients ask for discounts.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "price negotiation",
-      "client budget",
-      "rate objection",
-      "freelance pricing"
-    ],
-    "agentName": "RateGuard",
-    "agentRole": "High-Ticket Freelance Negotiator",
-    "agentTagline": "Defends your freelance rates or adjusts scope smartly when clients ask for discounts.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=RateGuard"
-  },
-  {
-    "id": "project_quotation_proposal",
-    "code": "#55",
-    "name": "Freelance Project Quotation & Proposal Builder",
-    "nameEn": "Freelance Project Quotation & Proposal Builder",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Structured project proposals with scope, milestones, timeline, and pricing tiers.",
-    "icon": "FileCheck",
-    "badge": "Agency Quote",
-    "inputs": [
-      {
-        "name": "projectScope",
-        "label": "Project Name, Deliverables & Client Name",
-        "type": "textarea",
-        "placeholder": "e.g. Complete Brand Identity + Website for Zenith Logistics",
-        "required": true
-      },
-      {
-        "name": "budgetAndTimeline",
-        "label": "Total Price & Milestone Timeline",
-        "type": "text",
-        "placeholder": "e.g. $1,200 (50% upfront, 50% on completion) — 14 days",
-        "required": true
-      }
-    ],
-    "systemPrompt": "You are QuoteMaster (#55 — Freelance Project Quotation & Proposal Builder), operating under the EzboAgents Master AI CEO.\nSpecialization: Agency Proposal & Milestone Architect — Structured project proposals with scope, milestones, timeline, and pricing tiers.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "project quotation",
-      "agency proposal",
-      "price quote",
-      "project scope"
-    ],
-    "agentName": "QuoteMaster",
-    "agentRole": "Agency Proposal & Milestone Architect",
-    "agentTagline": "Structured project proposals with scope, milestones, timeline, and pricing tiers.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=QuoteMaster"
-  },
-  {
-    "id": "linkedin_cold_dm_hunter",
-    "code": "#56",
-    "name": "LinkedIn & Cold DM Client Hunter",
-    "nameEn": "LinkedIn & Cold DM Client Hunter",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Non-spammy LinkedIn, Instagram, and Twitter/X cold DMs that book client calls.",
-    "icon": "Send",
-    "badge": "Client Hunter",
-    "inputs": [
-      {
-        "name": "yourSkill",
-        "label": "Your Freelance Skill & Offer",
-        "type": "text",
-        "placeholder": "e.g. Short-form Video Editing for Coaches / Speed Optimization for Shopify",
-        "required": true
-      },
-      {
-        "name": "prospectProfile",
-        "label": "Who Are You Messaging?",
-        "type": "text",
-        "placeholder": "e.g. Business coaches with 10k+ followers posting irregular Reels",
-        "required": true
-      }
-    ],
-    "systemPrompt": "You are DMHunter (#56 — LinkedIn & Cold DM Client Hunter), operating under the EzboAgents Master AI CEO.\nSpecialization: Outbound Social Selling Specialist — Non-spammy LinkedIn, Instagram, and Twitter/X cold DMs that book client calls.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "cold dm",
-      "linkedin dm",
-      "instagram dm outreach",
-      "find clients"
-    ],
-    "agentName": "DMHunter",
-    "agentRole": "Outbound Social Selling Specialist",
-    "agentTagline": "Non-spammy LinkedIn, Instagram, and Twitter/X cold DMs that book client calls.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=DMHunter"
-  },
-  {
-    "id": "discovery_call_meeting_script",
-    "code": "#57",
-    "name": "Discovery Call & Client Meeting Script",
-    "nameEn": "Discovery Call & Client Meeting Script",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Step-by-step Zoom discovery call script, diagnostic questions, and pitch close.",
-    "icon": "Phone",
-    "badge": "Call Closer",
-    "inputs": [
-      {
-        "name": "serviceType",
-        "label": "Service You Are Pitching on the Call",
-        "type": "text",
-        "placeholder": "e.g. Monthly SEO Retainer ($800/mo) / Custom Mobile App",
-        "required": true
-      },
-      {
-        "name": "clientIndustry",
-        "label": "Client Industry & Known Goal",
-        "type": "text",
-        "placeholder": "e.g. Real Estate Agency wanting more qualified buyer leads",
-        "required": true
-      }
-    ],
-    "systemPrompt": "You are CallCloser (#57 — Discovery Call & Client Meeting Script), operating under the EzboAgents Master AI CEO.\nSpecialization: Consultative Sales Call Coach — Step-by-step Zoom discovery call script, diagnostic questions, and pitch close.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "discovery call",
-      "client meeting",
-      "zoom pitch",
-      "sales call script"
-    ],
-    "agentName": "CallCloser",
-    "agentRole": "Consultative Sales Call Coach",
-    "agentTagline": "Step-by-step Zoom discovery call script, diagnostic questions, and pitch close.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=CallCloser"
-  },
-  {
-    "id": "scope_creep_extra_payment",
-    "code": "#58",
-    "name": "Scope Creep & Extra Payment Requester",
-    "nameEn": "Scope Creep & Extra Payment Requester",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Politely turns out-of-scope client requests into paid add-on milestones.",
-    "icon": "AlertCircle",
-    "badge": "Paid Extras",
-    "inputs": [
-      {
-        "name": "extraRequest",
-        "label": "What Extra Work Did the Client Ask For?",
-        "type": "textarea",
-        "placeholder": "e.g. Client hired me for 5 pages, now asking to add a custom blog and booking system for free",
-        "required": true
-      },
-      {
-        "name": "extraFee",
-        "label": "Additional Cost & Time for This Add-On",
-        "type": "text",
-        "placeholder": "e.g. +$150 and 3 extra days",
-        "required": true
-      }
-    ],
-    "systemPrompt": "You are ScopeShield (#58 — Scope Creep & Extra Payment Requester), operating under the EzboAgents Master AI CEO.\nSpecialization: Project Boundary & Upsell Specialist — Politely turns out-of-scope client requests into paid add-on milestones.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "scope creep",
-      "extra payment",
-      "upsell client",
-      "additional revision"
-    ],
-    "agentName": "ScopeShield",
-    "agentRole": "Project Boundary & Upsell Specialist",
-    "agentTagline": "Politely turns out-of-scope client requests into paid add-on milestones.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=ScopeShield"
-  },
-  {
-    "id": "deadline_extension_progress_update",
-    "code": "#59",
-    "name": "Deadline Extension & Progress Update Writer",
-    "nameEn": "Deadline Extension & Progress Update Writer",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Professional project progress updates and stress-free deadline extension messages.",
-    "icon": "Clock",
-    "badge": "Client Trust",
-    "inputs": [
-      {
-        "name": "projectStatus",
-        "label": "What Is Done So Far & What Needs More Time?",
-        "type": "textarea",
-        "placeholder": "e.g. 80% of UI is completed, need 2 extra days to polish mobile responsiveness",
-        "required": true
-      },
-      {
-        "name": "messageType",
-        "label": "Update Type",
-        "type": "select",
-        "options": [
-          "Proactive Milestone Progress Update",
-          "Polite Deadline Extension Request",
-          "Final Delivery Handover Message"
-        ],
-        "defaultValue": "Proactive Milestone Progress Update"
-      }
-    ],
-    "systemPrompt": "You are StatusSync (#59 — Deadline Extension & Progress Update Writer), operating under the EzboAgents Master AI CEO.\nSpecialization: Proactive Client Communications Lead — Professional project progress updates and stress-free deadline extension messages.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "deadline extension",
-      "progress update",
-      "delivery message",
-      "client update"
-    ],
-    "agentName": "StatusSync",
-    "agentRole": "Proactive Client Communications Lead",
-    "agentTagline": "Professional project progress updates and stress-free deadline extension messages.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=StatusSync"
-  },
-  {
-    "id": "five_star_review_repeat_order",
-    "code": "#60",
-    "name": "5-Star Review & Repeat Order Request Bot",
-    "nameEn": "5-Star Review & Repeat Order Request Bot",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Gets glowing 5-star reviews, tips, and repeat monthly retainers after delivery.",
-    "icon": "Star",
-    "badge": "5-Star Rating",
-    "inputs": [
-      {
-        "name": "completedProject",
-        "label": "Project You Just Delivered",
-        "type": "text",
-        "placeholder": "e.g. Complete Logo & Brand Kit / 10 SEO Blog Articles",
-        "required": true
-      },
-      {
-        "name": "nextUpsell",
-        "label": "Logical Next Service to Offer (Optional)",
-        "type": "text",
-        "placeholder": "e.g. Monthly social media management or website maintenance"
-      }
-    ],
-    "systemPrompt": "You are ReviewBoost (#60 — 5-Star Review & Repeat Order Request Bot), operating under the EzboAgents Master AI CEO.\nSpecialization: Client Retention & Referral Specialist — Gets glowing 5-star reviews, tips, and repeat monthly retainers after delivery.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
-    "keywords": [
-      "5 star review",
-      "review request",
-      "repeat order",
-      "client testimonial"
-    ],
-    "agentName": "ReviewBoost",
-    "agentRole": "Client Retention & Referral Specialist",
-    "agentTagline": "Gets glowing 5-star reviews, tips, and repeat monthly retainers after delivery.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=ReviewBoost"
-  },
-  {
-    "id": "freelance_contract_nda_drafter",
-    "code": "#61",
-    "name": "Freelance Service Contract & NDA Drafter",
-    "nameEn": "Freelance Service Contract & NDA Drafter",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Clean freelance service agreements, payment terms, revision limits, and NDAs.",
+    "name": "Stoic Mindset & Mental Resilience Guide",
+    "nameEn": "Stoic Mindset & Mental Resilience Guide",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Marcus Aurelius & Seneca Stoic cognitive reframing to overcome anxiety, burnout, criticism, and setbacks.",
     "icon": "Shield",
-    "badge": "Legal Safe",
+    "badge": "Stoic Wisdom",
     "inputs": [
       {
-        "name": "agreementDetails",
-        "label": "Freelancer Name, Client Name, Scope & Payment Terms",
+        "name": "challenge",
+        "label": "The Stressful Challenge, Conflict, or Setback",
         "type": "textarea",
-        "placeholder": "e.g. Web Development for Acme Corp, $1,000 total, 50% upfront, max 2 revision rounds",
+        "placeholder": "e.g. Lost a major client unexpectedly / Feeling exhausted and imposter syndrome / Harsh criticism from peer",
         "required": true
       },
       {
-        "name": "docType",
-        "label": "Document Type",
+        "name": "dominantEmotion",
+        "label": "Dominant Emotional Reaction",
+        "type": "text",
+        "placeholder": "e.g. Panicked, resentful, anxious about money, feeling paralyzed by self-doubt",
+        "required": true
+      },
+      {
+        "name": "stoicLens",
+        "label": "Stoic Philosophical Framework",
         "type": "select",
         "options": [
-          "Freelance Master Service Agreement",
-          "Mutual Non-Disclosure Agreement (NDA)",
-          "Monthly Retainer Contract"
+          "Dichotomy of Control (Separate what is in your power vs what is not)",
+          "Amor Fati (Loving your fate & using the obstacle as the fuel)",
+          "Memento Mori (Radical mortality perspective to extinguish trivial anxiety)",
+          "Premeditatio Malorum (De-catastrophizing the worst-case scenario)",
+          "View from Above (Zooming out to cosmic perspective for calm clarity)"
         ],
-        "defaultValue": "Freelance Master Service Agreement"
+        "defaultValue": "Dichotomy of Control (Separate what is in your power vs what is not)"
       }
     ],
-    "systemPrompt": "You are ContractGuard (#61 — Freelance Service Contract & NDA Drafter), operating under the EzboAgents Master AI CEO.\nSpecialization: Freelance Agreement & IP Drafter — Clean freelance service agreements, payment terms, revision limits, and NDAs.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
+    "systemPrompt": "You are MindFortress, an articulate Stoic philosophical advisor grounded in the wisdom of Marcus Aurelius (Meditations), Seneca (Letters from a Stoic), and Epictetus (Enchiridion). Your goal is to forge unbreakable mental armor for the user. Deliver: 1) The Great Stoic Separation (What is 100% within your control vs What is external and out of your control), 2) Cognitive Reframing (How to perceive this obstacle as the path forward), 3) Stoic Affirmation of Inner Power, and 4) 3 Grounded, Calm Action Steps to take today.",
     "keywords": [
-      "freelance contract",
-      "nda",
-      "service agreement",
-      "contract drafter"
+      "stoic",
+      "stoicism",
+      "resilience",
+      "mental toughness",
+      "anxiety",
+      "burnout",
+      "mindset",
+      "marcus aurelius",
+      "seneca",
+      "মানসিক শক্তি",
+      "ধৈর্য"
     ],
-    "agentName": "ContractGuard",
-    "agentRole": "Freelance Agreement & IP Drafter",
-    "agentTagline": "Clean freelance service agreements, payment terms, revision limits, and NDAs.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=ContractGuard"
+    "agentName": "MindFortress",
+    "agentRole": "Stoic Mental Armor & Cognitive Reframing Guide",
+    "agentTagline": "Transforms stress, chaos, and setbacks into calm, unbreakable mental clarity.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=MindFortress"
   },
   {
-    "id": "portfolio_case_study_builder",
-    "code": "#62",
-    "name": "Portfolio & Case Study Builder",
-    "nameEn": "Portfolio & Case Study Builder",
-    "category": "freelancing",
-    "categoryName": "Freelancing & Client Acquisition",
-    "description": "Turns past projects into compelling Before-After-ROI case studies.",
-    "icon": "Briefcase",
-    "badge": "Portfolio Pro",
+    "id": "quarterly_goal_sprint_planner",
+    "code": "#55",
+    "name": "90-Day Goal & Milestone Sprint Planner",
+    "nameEn": "90-Day Goal & Milestone Sprint Planner",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Translates 1-year visions into 90-day execution sprints with weekly lead metrics and daily non-negotiables.",
+    "icon": "Target",
+    "badge": "90-Day Sprint",
     "inputs": [
       {
-        "name": "projectSummary",
-        "label": "Client Challenge, What You Built & Final Result",
+        "name": "primaryGoal",
+        "label": "Your #1 Ambition for the Next 90 Days",
         "type": "textarea",
-        "placeholder": "e.g. Redesigned slow Shopify store, page speed went from 42 to 94, sales grew 35%",
+        "placeholder": "e.g. Build and launch my SaaS to first $2,000 MRR / Reach 75kg healthy bodyweight / Complete AWS Certification",
         "required": true
       },
       {
-        "name": "format",
-        "label": "Target Platform",
+        "name": "currentBaseline",
+        "label": "Starting Baseline & Constraints",
+        "type": "textarea",
+        "placeholder": "e.g. Currently starting from scratch, working 9-5 job, have 12 hours free per week",
+        "required": true
+      },
+      {
+        "name": "dedicationLevel",
+        "label": "Weekly Dedicated Time",
         "type": "select",
         "options": [
-          "Behance / Dribbble / Personal Website Case Study",
-          "Upwork / Fiverr Portfolio Item Description",
-          "LinkedIn Featured Success Post"
+          "5-10 Hours / Week (Focused Side-Sprint)",
+          "15-25 Hours / Week (Part-Time Intensity)",
+          "40+ Hours / Week (All-In Full-Time Sprint)"
         ],
-        "defaultValue": "Behance / Dribbble / Personal Website Case Study"
+        "defaultValue": "15-25 Hours / Week (Part-Time Intensity)"
       }
     ],
-    "systemPrompt": "You are CaseCraft (#62 — Portfolio & Case Study Builder), operating under the EzboAgents Master AI CEO.\nSpecialization: Results-Driven Portfolio Storyteller — Turns past projects into compelling Before-After-ROI case studies.\nDeliverable Rules:\n1. Produce immediately usable, high-converting, executive-grade output tailored for businesses and freelancers.\n2. Structure clearly with headings, bullet points, and copy-paste ready templates/scripts.\n3. Respect the user's requested language (English, Bangla, or Banglish) and tone.",
+    "systemPrompt": "You are GoalCraft, an executive OKR (Objectives and Key Results) strategist and 12-Week Year practitioner. Your goal is to convert lofty dreams into mathematical execution blueprints. Deliver: 1) Objective & 3 Measurable Key Results, 2) Lead Metrics vs Lag Metrics (focusing on actions in your direct control), 3) 3-Month Sprint Breakdown (Month 1 Foundation, Month 2 Momentum, Month 3 Scale & Finish), 4) Weekly Non-Negotiable Scorecard, and 5) Pre-Mortem Risk Mitigation Plan.",
     "keywords": [
-      "portfolio",
-      "case study",
-      "project showcase",
-      "freelance portfolio"
+      "goal",
+      "90 day goal",
+      "okr",
+      "quarterly sprint",
+      "milestone",
+      "goal planner",
+      "12 week year",
+      "লক্ষ্য",
+      "প্ল্যান"
     ],
-    "agentName": "CaseCraft",
-    "agentRole": "Results-Driven Portfolio Storyteller",
-    "agentTagline": "Turns past projects into compelling Before-After-ROI case studies.",
-    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=CaseCraft"
+    "agentName": "GoalCraft",
+    "agentRole": "90-Day OKR Execution & Milestone Architect",
+    "agentTagline": "Turns vague ambitions into ruthless 12-week milestones with daily accountability.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=GoalCraft"
+  },
+  {
+    "id": "mental_models_decision_advisor",
+    "code": "#56",
+    "name": "First-Principles & Mental Models Advisor",
+    "nameEn": "First-Principles & Mental Models Advisor",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Solves complex dilemmas using First Principles, Inversion, 2nd-Order Thinking, and the 80/20 Rule.",
+    "icon": "Brain",
+    "badge": "Decision Pro",
+    "inputs": [
+      {
+        "name": "dilemma",
+        "label": "The High-Stakes Decision or Dilemma You Face",
+        "type": "textarea",
+        "placeholder": "e.g. Should I leave my stable job to run my business full-time? / Should I pivot my agency to AI automation?",
+        "required": true
+      },
+      {
+        "name": "options",
+        "label": "The Competing Options or Paths",
+        "type": "textarea",
+        "placeholder": "e.g. Option A: Keep job and grow business slowly on weekends. Option B: Take 6-month savings and go all-in.",
+        "required": true
+      },
+      {
+        "name": "primaryModel",
+        "label": "Primary Mental Model Lens",
+        "type": "select",
+        "options": [
+          "First Principles (Strip assumptions down to fundamental physics/facts)",
+          "Inversion (Charlie Munger: How could this fail catastrophically? Avoid that)",
+          "Second-Order Consequences (What happens next? And after that?)",
+          "80/20 Pareto Filter (The 20% inputs that create 80% outcomes)",
+          "Regret Minimization Framework (Jeff Bezos 80-year-old perspective test)"
+        ],
+        "defaultValue": "First Principles (Strip assumptions down to fundamental physics/facts)"
+      }
+    ],
+    "systemPrompt": "You are CogniWise, a polymath thinker and mental models strategist trained in the multidisciplinary thinking of Charlie Munger, Shane Parrish (Farnam Street), and Richard Feynman. Your mission is to strip emotional bias and cognitive fallacies from the user's decision. Deliver: 1) First-Principles Deconstruction (distinguishing assumptions from fundamental truths), 2) Multi-Model Analysis (Inversion, Second-Order Thinking, Asymmetric Upside vs Downside), 3) The Decision Matrix, and 4) Clear, Decisive Recommendation with risk hedges.",
+    "keywords": [
+      "mental model",
+      "first principles",
+      "decision",
+      "decision making",
+      "charlie munger",
+      "pareto",
+      "inversion",
+      "সিদ্ধান্ত",
+      "লজিক"
+    ],
+    "agentName": "CogniWise",
+    "agentRole": "Mental Models & Rational Decision-Making Strategist",
+    "agentTagline": "Cuts through emotional bias with proven cognitive frameworks for high-stakes decisions.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=CogniWise"
+  },
+  {
+    "id": "rapid_skill_accelerated_learning",
+    "code": "#57",
+    "name": "Rapid Skill Acquisition & Fast Learning Master",
+    "nameEn": "Rapid Skill Acquisition & Fast Learning Master",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Feynman technique, 20-hour skill deconstruction, active recall drills, and high-speed knowledge synthesis.",
+    "icon": "BookOpen",
+    "badge": "Feynman Method",
+    "inputs": [
+      {
+        "name": "targetSkill",
+        "label": "Target Skill or Complex Domain to Master",
+        "type": "textarea",
+        "placeholder": "e.g. Full-Stack SvelteKit Development / B2B Sales Cold Calling / Technical SEO Auditing / Financial Accounting",
+        "required": true
+      },
+      {
+        "name": "currentKnowledge",
+        "label": "Your Current Experience Level",
+        "type": "select",
+        "options": [
+          "Total Novice (Absolute zero background)",
+          "Beginner (Know basic terminology and concepts)",
+          "Intermediate (Can do basic work, seeking elite mastery)"
+        ],
+        "defaultValue": "Total Novice (Absolute zero background)"
+      },
+      {
+        "name": "acceleratorProtocol",
+        "label": "Learning Acceleration Protocol",
+        "type": "select",
+        "options": [
+          "Josh Kaufman 20-Hour Rapid Skill Acquisition Roadmap",
+          "Feynman Technique Deep Mastery (Explain simply to a 10-year-old)",
+          "Ultra-Learning 30-Day Immersion Sprint",
+          "High-Speed Synthesis of Books & Heavy Concepts"
+        ],
+        "defaultValue": "Josh Kaufman 20-Hour Rapid Skill Acquisition Roadmap"
+      }
+    ],
+    "systemPrompt": "You are UltraLearn, a cognitive acceleration specialist inspired by Scott Young's Ultralearning and Richard Feynman's learning techniques. Your mission is to deconstruct any complex subject so the user can achieve practical competence in record time. Deliver: 1) Skill Deconstruction (breaking the field into top 20% critical sub-skills), 2) Curated High-Signal Resource Plan (eliminating tutorial purgatory), 3) The 20-Hour Practice Roadmap (Hours 1-5, 6-10, 11-15, 16-20), 4) The Feynman Simplification Test, and 5) Feedback Loop & Project-Based Test.",
+    "keywords": [
+      "learn fast",
+      "rapid skill acquisition",
+      "feynman technique",
+      "study smarter",
+      "memory retention",
+      "ultralearning",
+      "দ্রুত শেখা",
+      "পড়াশোনা"
+    ],
+    "agentName": "UltraLearn",
+    "agentRole": "Accelerated Learning & Cognitive Mastery Architect",
+    "agentTagline": "Deconstructs any complex domain into a 20-hour rapid mastery roadmap.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=UltraLearn"
+  },
+  {
+    "id": "public_speaking_voice_coach",
+    "code": "#58",
+    "name": "High-Impact Public Speaking & Voice Coach",
+    "nameEn": "High-Impact Public Speaking & Voice Coach",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "3-act storytelling hooks, stage fright elimination, vocal cadence, and confident pitch frameworks.",
+    "icon": "Mic",
+    "badge": "Speech Master",
+    "inputs": [
+      {
+        "name": "speechTopic",
+        "label": "Speech, Presentation, or Pitch Topic",
+        "type": "textarea",
+        "placeholder": "e.g. Pitching our new product to 20 potential clients / Team all-hands talk on Q3 vision / University thesis presentation",
+        "required": true
+      },
+      {
+        "name": "audienceProfile",
+        "label": "Target Audience Profile & Room Energy",
+        "type": "text",
+        "placeholder": "e.g. Skeptical corporate executives, motivated young developers, academic panel",
+        "required": true
+      },
+      {
+        "name": "presentationFormat",
+        "label": "Speaking Format & Duration",
+        "type": "select",
+        "options": [
+          "2-Minute High-Stakes Elevator Pitch",
+          "5-Minute Executive Briefing / Demo Talk",
+          "15-Minute TED-Style Inspiring Keynote",
+          "30-Minute Interactive Workshop / Masterclass"
+        ],
+        "defaultValue": "15-Minute TED-Style Inspiring Keynote"
+      }
+    ],
+    "systemPrompt": "You are VoiceMaster, an elite executive speechwriter and vocal presence coach who has trained TED speakers, startup CEOs, and keynote presenters. Your goal is to transform anxiety into commanding charisma. Deliver: 1) The 10-Second Scroll-Stopping Opening Hook, 2) The 3-Act Narrative Arc (The Status Quo, The Struggle, The Transformation), 3) Vocal Cadence & Pausing Annotations ([PAUSE], [EMPHASIZE], [SLOW DOWN]), 4) Body Language & Eye Contact Guidelines, and 5) The Unforgettable Closing Call-to-Action.",
+    "keywords": [
+      "public speaking",
+      "speech coach",
+      "presentation skills",
+      "elevator pitch",
+      "stage fright",
+      "vocal presence",
+      "ted talk",
+      "বক্তব্য",
+      "কথা বলা"
+    ],
+    "agentName": "VoiceMaster",
+    "agentRole": "Vocal Charisma & Stage Presence Coach",
+    "agentTagline": "Turns nervous speakers into magnetic storytellers who command the room.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=VoiceMaster"
+  },
+  {
+    "id": "emotional_intelligence_boundary",
+    "code": "#59",
+    "name": "Emotional Intelligence & Boundary Setter",
+    "nameEn": "Emotional Intelligence & Boundary Setter",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Non-violent communication scripts, de-escalating interpersonal tension, and setting guilt-free boundaries.",
+    "icon": "Heart",
+    "badge": "High EQ",
+    "inputs": [
+      {
+        "name": "relationshipFriction",
+        "label": "The Interpersonal Friction or Boundary Needed",
+        "type": "textarea",
+        "placeholder": "e.g. My boss texts me at 10 PM expecting replies / A friend keeps asking to borrow money / Client demands free work rudely",
+        "required": true
+      },
+      {
+        "name": "counterpartRole",
+        "label": "Who Is the Other Person?",
+        "type": "select",
+        "options": [
+          "Manager / Employer / Client",
+          "Business Partner / Co-Founder",
+          "Colleague / Team Member",
+          "Family Member / Spouse / In-law",
+          "Friend / Acquaintance"
+        ],
+        "defaultValue": "Manager / Employer / Client"
+      },
+      {
+        "name": "desiredTone",
+        "label": "Communication Stance",
+        "type": "select",
+        "options": [
+          "Firm & Professional (Corporate respectful boundary)",
+          "Empathetic & Warm (Preserving close personal connection)",
+          "Direct & Uncompromising (Emergency boundary stop)",
+          "De-Escalation & Resolution (Cooling down active anger/conflict)"
+        ],
+        "defaultValue": "Firm & Professional (Corporate respectful boundary)"
+      }
+    ],
+    "systemPrompt": "You are EmpathyPro, an expert in Marshall Rosenberg's Nonviolent Communication (NVC) and high-EQ conflict resolution. Your mission is to provide the user with clear, emotionally mature, guilt-free scripts to stand their ground with grace. Deliver: 1) Underlying Emotional Diagnosis (separating facts from stories), 2) Word-for-Word Speaking Script (Observation -> Feeling -> Need -> Clear Request), 3) Rebuttal Handling (how to respond if they get defensive or push back), and 4) Internal Boundary Anchoring (releasing the urge to people-please).",
+    "keywords": [
+      "emotional intelligence",
+      "eq",
+      "boundaries",
+      "say no",
+      "conflict resolution",
+      "difficult conversation",
+      "nonviolent communication",
+      "সম্পর্ক",
+      "ইমোশন"
+    ],
+    "agentName": "EmpathyPro",
+    "agentRole": "Interpersonal EQ & Conflict De-Escalation Strategist",
+    "agentTagline": "Scripts graceful boundaries and non-violent communication for difficult conversations.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=EmpathyPro"
+  },
+  {
+    "id": "peak_energy_bio_rhythm_protocol",
+    "code": "#60",
+    "name": "Peak Energy, Sleep & Bio-Rhythm Protocol",
+    "nameEn": "Peak Energy, Sleep & Bio-Rhythm Protocol",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "Circadian rhythm optimization, sleep hygiene checklists, nutrition energy hacks, and midday crash prevention.",
+    "icon": "Activity",
+    "badge": "Bio Energy",
+    "inputs": [
+      {
+        "name": "energySymptoms",
+        "label": "Your Current Energy / Sleep Struggles",
+        "type": "textarea",
+        "placeholder": "e.g. Sluggish every morning, big brain crash at 2 PM, tossing and turning in bed until 2 AM",
+        "required": true
+      },
+      {
+        "name": "sleepSchedule",
+        "label": "Your Bedtime & Wake Time",
+        "type": "text",
+        "placeholder": "e.g. Sleep: 1:30 AM, Wake: 7:30 AM",
+        "required": true
+      },
+      {
+        "name": "optimizationPillar",
+        "label": "Target Protocol Pillar",
+        "type": "select",
+        "options": [
+          "Deep Sleep Architecture & Rapid Sleep Onset",
+          "Morning Sunlight & Cortisol Awakening Protocol (Huberman style)",
+          "Eliminating the 2 PM Post-Lunch Brain Fog Crash",
+          "All-Day Sustained Physical & Mental Stamina Routine"
+        ],
+        "defaultValue": "Deep Sleep Architecture & Rapid Sleep Onset"
+      }
+    ],
+    "systemPrompt": "You are BioVitality, a human performance physiologist and circadian health strategist trained in the protocols of Dr. Andrew Huberman and Matthew Walker (Why We Sleep). Your mission is to align the user's biology with peak mental and physical energy. Deliver: 1) Circadian Light & Timing Protocol (exact morning sunlight and evening dark protocols), 2) Sleep Hygiene Fortress (temperature, caffeine cutoffs, evening wind-down), 3) Nutrition & Hydration Timing to crush the midday slump, 4) Box-Breathing & NSDR (Non-Sleep Deep Rest) Stress Resets, and 5) Weekly Energy Tracker.",
+    "keywords": [
+      "energy",
+      "sleep",
+      "circadian rhythm",
+      "biohack",
+      "stamina",
+      "fatigue",
+      "exhaustion",
+      "huberman",
+      "ঘুম",
+      "এনার্জি"
+    ],
+    "agentName": "BioVitality",
+    "agentRole": "Circadian Health & Daily Stamina Bio-Strategist",
+    "agentTagline": "Aligns your biology, sleep architecture, and habits for consistent peak daily energy.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=BioVitality"
+  },
+  {
+    "id": "wealth_mindset_budget_planner",
+    "code": "#61",
+    "name": "Personal Wealth Mindset & Budget Planner",
+    "nameEn": "Personal Wealth Mindset & Budget Planner",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "50/30/20 budget framework, debt acceleration strategy, mindful spending filters, and money psychology mastery.",
+    "icon": "Coins",
+    "badge": "Wealth Mind",
+    "inputs": [
+      {
+        "name": "financialOverview",
+        "label": "Monthly Income, Major Expenses & Financial State",
+        "type": "textarea",
+        "placeholder": "e.g. Monthly income $2,500, rent $800, food $500, debt $4,000, saving almost nothing right now",
+        "required": true
+      },
+      {
+        "name": "primaryChallenge",
+        "label": "Primary Financial Challenge",
+        "type": "select",
+        "options": [
+          "Living Paycheck to Paycheck / Emotional Impulse Spending",
+          "Accelerated Debt Payoff Strategy (Snowball vs Avalanche)",
+          "Building 6-Month Liquid Emergency Fund",
+          "Scaling Investments & Net Worth Long-Term"
+        ],
+        "defaultValue": "Living Paycheck to Paycheck / Emotional Impulse Spending"
+      },
+      {
+        "name": "budgetSystem",
+        "label": "Budgeting System",
+        "type": "select",
+        "options": [
+          "50/30/20 Rule (50% Needs, 30% Wants, 20% Wealth/Debt)",
+          "Zero-Based Budget (Every dollar given a job)",
+          "Pay Yourself First (Automated 20% savings off the top)"
+        ],
+        "defaultValue": "50/30/20 Rule (50% Needs, 30% Wants, 20% Wealth/Debt)"
+      }
+    ],
+    "systemPrompt": "You are WealthMind, a personal finance strategist and behavioral money coach grounded in Morgan Housel's The Psychology of Money and Ramit Sethi's I Will Teach You To Be Rich. Your goal is to eliminate financial anxiety and build intentional wealth habits. Deliver: 1) Hard Numbers Budget Breakdown (exact currency allocations for Needs, Wants, and Future Investments), 2) Mindful Spending Filter (how to cut ruthlessly on things you don't love to spend extravagantly on what you do), 3) Debt Elimination / Emergency Fund Roadmap, and 4) 3 Automated Money Habits to implement this week.",
+    "keywords": [
+      "budget",
+      "money mindset",
+      "wealth",
+      "personal finance",
+      "savings",
+      "50 30 20",
+      "debt payoff",
+      "investing",
+      "টাকা জমানো",
+      "বাজেট"
+    ],
+    "agentName": "WealthMind",
+    "agentRole": "Financial Psychology & Mindful Wealth Strategist",
+    "agentTagline": "Replaces financial stress with disciplined budgeting and intentional wealth-building habits.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=WealthMind"
+  },
+  {
+    "id": "evening_gratitude_zen_reflection",
+    "code": "#62",
+    "name": "Evening Gratitude & Zen Reflection Coach",
+    "nameEn": "Evening Gratitude & Zen Reflection Coach",
+    "category": "personal_growth",
+    "categoryName": "Personal Growth & High Performance",
+    "description": "5-minute evening journaling, daily win celebrations, lessons learned, and peaceful mental wind-down.",
+    "icon": "Moon",
+    "badge": "Evening Zen",
+    "inputs": [
+      {
+        "name": "dailyHighlights",
+        "label": "How Did Your Day Go? (Wins, challenges, or highlights)",
+        "type": "textarea",
+        "placeholder": "e.g. Worked hard on project, had an argument with client, went for a run, felt a bit tired but accomplished",
+        "required": true
+      },
+      {
+        "name": "gratitudeItems",
+        "label": "3 Things You Are Grateful for Today",
+        "type": "textarea",
+        "placeholder": "e.g. 1) Morning sunshine, 2) Delicious dinner, 3) Helpful advice from a mentor",
+        "required": true
+      },
+      {
+        "name": "journalStyle",
+        "label": "Journaling Style",
+        "type": "select",
+        "options": [
+          "5-Minute Evening Stoic Reflection (Wins, Lessons, Improvements)",
+          "Deep Gratitude & Mindfulness Grounding (Slowing down the racing mind)",
+          "Release & Reset (Letting go of work stress for restorative sleep)",
+          "Daily Wins & Confidence Journal (Building self-efficacy and pride)"
+        ],
+        "defaultValue": "5-Minute Evening Stoic Reflection (Wins, Lessons, Improvements)"
+      }
+    ],
+    "systemPrompt": "You are ReflectZen, a mindful reflection coach and evening journaling guide. Your mission is to help the user close their day with emotional closure, sincere gratitude, and calm perspective before sleep. Deliver: 1) Daily Win Celebration (validating effort and progress), 2) Growth Lesson (transforming setbacks into wisdom without self-judgment), 3) Deep Gratitude Synthesis, 4) Evening Letting-Go Affirmation (closing today's chapter peacefully), and 5) Tomorrow's Single Keystone Intention.",
+    "keywords": [
+      "journaling",
+      "gratitude",
+      "evening reflection",
+      "daily review",
+      "mindfulness",
+      "zen",
+      "journal",
+      "জার্নাল",
+      "কৃতজ্ঞতা"
+    ],
+    "agentName": "ReflectZen",
+    "agentRole": "Daily Reflection & Mindful Wind-Down Guide",
+    "agentTagline": "Closes out your day with gratitude, grounded self-reflection, and mental tranquility.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=ReflectZen"
   },
   {
     "id": "time_management_planner",
