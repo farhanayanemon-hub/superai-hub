@@ -31,6 +31,7 @@
     switchPlan,
     unlockStoreBot,
     syncUserAccessWithServer,
+    closeToolDrawer,
     apiVault,
     type DashboardTab,
     type PlanTier
@@ -279,7 +280,7 @@
         (tool.name.toLowerCase().includes(query) ||
           tool.code.toLowerCase().includes(query) ||
           tool.nameEn.toLowerCase().includes(query) ||
-          tool.shortDesc.toLowerCase().includes(query) ||
+          (tool.shortDesc || '').toLowerCase().includes(query) ||
           tool.description.toLowerCase().includes(query) ||
           tool.keywords.some((k) => k.toLowerCase().includes(query)))
       );
@@ -300,7 +301,7 @@
   <meta name="description" content="EzboAgents Executive Console - Master AI CEO Orchestrator, 75 Business & Freelancer AI Helpers, WhatsApp & Telegram Sync, and Multi-Provider AI Vault." />
 </svelte:head>
 
-<div class="h-screen w-screen bg-[#f8fafc] text-slate-900 flex overflow-hidden font-sans selection:bg-blue-600 selection:text-white">
+<div class="h-screen w-screen bg-[#F3F8FF] text-[#102A56] flex overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
   <!-- ======================================================== -->
   <!-- 1. RESPONSIVE LEFT SIDEBAR -->
   <!-- ======================================================== -->
@@ -311,36 +312,35 @@
       tabindex="0"
       onclick={() => (mobileSidebarOpen = false)}
       onkeydown={(e) => { if (e.key === 'Escape') mobileSidebarOpen = false; }}
-      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
+      class="fixed inset-0 ui-modal-backdrop z-40 lg:hidden"
     ></div>
   {/if}
 
   <aside
-    class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col justify-between shadow-sm transition-transform duration-300 ease-in-out shrink-0 {mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}"
+    class="fixed lg:static inset-y-0 left-0 z-50 w-72 max-w-[85vw] ui-sidebar flex flex-col justify-between transition-transform duration-300 ease-in-out shrink-0 {mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}"
   >
     <!-- Top Brand & Badge -->
     <div>
-      <div class="h-16 px-5 border-b border-slate-200 flex items-center justify-between">
+      <div class="h-16 px-5 border-b border-[#E3ECF7] flex items-center justify-between">
         <a href="/" class="flex items-center gap-2.5 group">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-0.5 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] p-0.5 shadow-2xs group-hover:scale-105 transition-transform">
             <div class="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
-              <Icon name="Sparkles" class="text-blue-600" size={18} />
+              <Icon name="Sparkles" class="text-[#1677FF]" size={18} />
             </div>
           </div>
           <div>
             <div class="flex items-center gap-1.5">
-              <span class="font-extrabold text-base text-slate-900 tracking-tight">Ezbo<span class="text-blue-600">Agents</span></span>
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">VIP</span>
+              <span class="font-extrabold text-base text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7] uppercase">VIP</span>
             </div>
-            <p class="text-[10px] text-slate-500 font-mono">ezboagents.com</p>
+            <p class="text-[10px] text-[#5E7694] font-mono">ezboagents.com</p>
           </div>
         </a>
 
-        <!-- Mobile Close Button -->
         <button
           type="button"
           onclick={() => (mobileSidebarOpen = false)}
-          class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] transition-colors cursor-pointer"
           aria-label="Close Sidebar"
         >
           <Icon name="X" size={18} />
@@ -353,13 +353,13 @@
         <button
           type="button"
           onclick={() => switchTab('chat')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'chat' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'chat' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="Crown" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-blue-600'} />
+            <Icon name="Crown" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-[#1677FF]'} />
             <span>AI CEO Chat</span>
           </div>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'chat' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'chat' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
             Master
           </span>
         </button>
@@ -368,13 +368,13 @@
         <button
           type="button"
           onclick={() => switchTab('agents')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'text-white' : 'text-blue-600'} />
+            <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
             <span>AI Helpers (75)</span>
           </div>
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
             {TOOLS.length}
           </span>
         </button>
@@ -383,13 +383,13 @@
         <button
           type="button"
           onclick={() => switchTab('store')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'store' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'store' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="ShoppingBag" size={17} class={$activeDashboardTab === 'store' ? 'text-white' : 'text-blue-600'} />
+            <Icon name="ShoppingBag" size={17} class={$activeDashboardTab === 'store' ? 'text-white' : 'text-[#1677FF]'} />
             <span>Agents Store</span>
           </div>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'store' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'store' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
             Autonomous
           </span>
         </button>
@@ -398,14 +398,14 @@
         <button
           type="button"
           onclick={() => switchTab('channels')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="QrCode" size={17} class={$activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp' ? 'text-white' : 'text-blue-600'} />
+            <Icon name="QrCode" size={17} class={$activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp' ? 'text-white' : 'text-[#1677FF]'} />
             <span>Channels</span>
           </div>
           <span class="flex items-center gap-1 text-[10px]">
-            <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}"></span>
+            <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-[#7A91AD]'}"></span>
           </span>
         </button>
 
@@ -413,13 +413,13 @@
         <button
           type="button"
           onclick={() => switchTab('billing')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'billing' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'billing' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="CreditCard" size={17} class={$activeDashboardTab === 'billing' ? 'text-white' : 'text-blue-600'} />
+            <Icon name="CreditCard" size={17} class={$activeDashboardTab === 'billing' ? 'text-white' : 'text-[#1677FF]'} />
             <span>Billing & Plans</span>
           </div>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'billing' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'billing' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
             Realtime
           </span>
         </button>
@@ -428,13 +428,13 @@
         <button
           type="button"
           onclick={() => switchTab('settings')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
         >
           <div class="flex items-center gap-3">
-            <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'text-white' : 'text-slate-400'} />
+            <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'text-white' : 'text-[#5E7694]'} />
             <span>Settings</span>
           </div>
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
             Vault
           </span>
         </button>
@@ -442,23 +442,24 @@
     </div>
 
     <!-- Bottom User Section & Sign Out -->
-    <div class="p-3 border-t border-slate-200 bg-slate-50">
-      <div class="p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+    <div class="p-3 border-t border-[#E3ECF7] bg-[#F3F8FF]">
+      <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] shadow-2xs flex items-center justify-between">
         <div class="flex items-center gap-2.5 overflow-hidden">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-bold text-xs shrink-0">
             {$currentUser?.name ? $currentUser.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <div class="truncate">
-            <p class="text-xs font-bold text-slate-900 truncate">{$currentUser?.name || 'User'}</p>
-            <p class="text-[10px] text-slate-500 truncate">{$currentUser?.email || 'user@ezboagents.com'}</p>
+            <p class="text-xs font-bold text-[#102A56] truncate">{$currentUser?.name || 'User'}</p>
+            <p class="text-[10px] text-[#4B6382] truncate">{$currentUser?.email || 'user@ezboagents.com'}</p>
           </div>
         </div>
 
         <button
           type="button"
           onclick={handleLogout}
-          class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+          class="w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
           title="Sign Out"
+          aria-label="Sign Out"
         >
           <Icon name="LogOut" size={16} />
         </button>
@@ -469,26 +470,26 @@
   <!-- ======================================================== -->
   <!-- 2. MAIN WORKSPACE AREA -->
   <!-- ======================================================== -->
-  <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#f8fafc] relative">
+  <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#F3F8FF] relative">
     <!-- Top Mobile Header Bar -->
-    <div class="lg:hidden h-14 px-4 border-b border-slate-200 bg-white flex items-center justify-between shrink-0 shadow-sm">
+    <div class="lg:hidden h-14 px-3 sm:px-4 border-b border-[#E3ECF7] bg-white flex items-center justify-between shrink-0 shadow-2xs">
       <button
         type="button"
         onclick={() => (mobileSidebarOpen = true)}
-        class="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700"
+        class="w-10 h-10 flex items-center justify-center rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#102A56] hover:border-[#1677FF] cursor-pointer"
         aria-label="Open Sidebar Menu"
       >
         <Icon name="Grid" size={18} />
       </button>
 
       <div class="flex items-center gap-2">
-        <span class="font-extrabold text-sm text-slate-900">Ezbo<span class="text-blue-600">Agents</span></span>
-        <span class="px-2 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 border border-blue-200 font-mono font-semibold">
+        <span class="font-extrabold text-sm text-[#102A56]">Ezbo<span class="text-[#1677FF]">Agents</span></span>
+        <span class="px-2 py-0.5 rounded text-[10px] bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7] font-mono font-semibold">
           {$activeDashboardTab.toUpperCase()}
         </span>
       </div>
 
-      <a href="/" class="text-xs text-slate-500 hover:text-slate-900 font-medium">Home</a>
+      <a href="/" class="text-xs text-[#4B6382] hover:text-[#102A56] font-medium px-2 py-1">Home</a>
     </div>
 
     <!-- Tab View Router -->
@@ -507,11 +508,11 @@
       {:else if $activeDashboardTab === 'agents' || $activeDashboardTab === 'tools'}
         <div class="h-full flex flex-col space-y-4 overflow-y-auto pr-1">
           <!-- Master AI CEO Banner + Search -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-5 sm:p-6 rounded-3xl shadow-md">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 ui-banner-navy text-white p-4 sm:p-6 rounded-3xl">
             <div class="space-y-1">
-              <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-[10px] font-extrabold uppercase tracking-wider">
-                <Icon name="Crown" size={12} />
-                <span>1 Master AI CEO + 75 Business & Freelancer AI Helpers</span>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38CFFF]/15 border border-[#38CFFF]/35 text-[#38CFFF] text-[10px] font-extrabold uppercase tracking-wider max-w-full flex-wrap">
+                <Icon name="Crown" size={12} class="shrink-0" />
+                <span class="break-words">1 Master AI CEO + 75 Business & Freelancer AI Helpers</span>
               </div>
               <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
                 <span>75 Specialized AI Helpers</span>
@@ -519,8 +520,8 @@
                   {filteredTools.length} Ready
                 </span>
               </h2>
-              <p class="text-xs text-slate-300 max-w-2xl">
-                Every helper includes custom input options and a dedicated chat studio — or skip individual chats and command the <strong>Master AI CEO</strong> from Web, <strong>WhatsApp</strong>, or <strong>Telegram</strong>!
+              <p class="text-xs text-white/80 max-w-2xl">
+                Every helper includes custom input options and a dedicated chat studio — or skip individual chats and command the <strong class="text-white">Master AI CEO</strong> from Web, <strong class="text-white">WhatsApp</strong>, or <strong class="text-white">Telegram</strong>!
               </p>
             </div>
 
@@ -530,13 +531,13 @@
                   type="text"
                   bind:value={$searchQuery}
                   placeholder="Search #01-#75 or helper name..."
-                  class="w-full sm:w-60 bg-slate-800/90 border border-slate-700 focus:border-blue-400 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-400 outline-none"
+                  class="w-full sm:w-60 bg-[#0B1F42]/70 border border-[#38CFFF]/30 focus:border-[#38CFFF] focus:bg-[#0B1F42] rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/60 outline-none transition-all"
                 />
               </div>
               <button
                 type="button"
                 onclick={() => switchTab('chat')}
-                class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                class="px-4 py-2 rounded-xl blue-btn text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Icon name="Crown" size={14} />
                 <span>Command via AI CEO</span>
@@ -548,35 +549,35 @@
           {#if unlockedBotsList.length > 0}
             <div class="space-y-3">
               <div class="flex items-center gap-2">
-                <Icon name="Crown" size={16} class="text-blue-600" />
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Unlocked Autonomous Store Agents (Web-Only Setup)</h3>
+                <Icon name="Crown" size={16} class="text-[#1677FF]" />
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[#102A56]">Unlocked Autonomous Store Agents (Web-Only Setup)</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {#each unlockedBotsList as bot}
-                  <div class="p-5 rounded-3xl bg-white border border-blue-200 shadow-sm flex flex-col justify-between space-y-4">
+                  <div class="p-5 rounded-3xl ui-card flex flex-col justify-between space-y-4">
                     <div>
                       <div class="flex items-start gap-3">
-                        <img src={bot.avatar} alt={bot.name} class="w-12 h-12 rounded-2xl object-cover border border-blue-200 shrink-0" />
+                        <img src={bot.avatar} alt={bot.name} class="w-12 h-12 rounded-2xl object-cover border border-[#E3ECF7] shrink-0" />
                         <div>
                           <div class="flex items-center gap-1.5">
-                            <h4 class="font-bold text-sm text-slate-900">{bot.name}</h4>
+                            <h4 class="font-bold text-sm text-[#102A56]">{bot.name}</h4>
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">AUTONOMOUS</span>
                           </div>
-                          <p class="text-xs text-blue-600 font-semibold">{bot.role}</p>
+                          <p class="text-xs text-[#1677FF] font-semibold">{bot.role}</p>
                         </div>
                       </div>
-                      <p class="text-xs text-slate-600 mt-3 leading-relaxed">{bot.description}</p>
-                      <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase">Unlocked Features:</p>
+                      <p class="text-xs text-[#4B6382] mt-3 leading-relaxed">{bot.description}</p>
+                      <div class="mt-3 pt-3 border-t border-[#E3ECF7] space-y-1.5">
+                        <p class="text-[10px] font-bold text-[#5E7694] uppercase">Unlocked Features:</p>
                         {#each bot.features as feat}
-                          <div class="flex items-start gap-1.5 text-[11px] text-slate-700">
+                          <div class="flex items-start gap-1.5 text-[11px] text-[#102A56]">
                             <Icon name="CheckCircle2" size={13} class="text-emerald-500 shrink-0 mt-0.5" />
                             <span>{feat}</span>
                           </div>
                         {/each}
                       </div>
                     </div>
-                    <div class="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 font-medium">
+                    <div class="px-3 py-2 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-[11px] text-[#102A56] font-medium">
                       ⚙️ Web-Only Autonomous Agent (Not controlled via WhatsApp/Telegram)
                     </div>
                   </div>
@@ -587,20 +588,20 @@
 
           <!-- Base Tools Catalog -->
           {#if filteredTools.length === 0 && unlockedBotsList.length === 0}
-            <div class="text-center py-20 bg-white border border-slate-200 rounded-3xl p-8 space-y-4 shadow-xs">
-              <div class="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto">
+            <div class="text-center py-20 ui-card-static rounded-3xl p-8 space-y-4">
+              <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
                 <Icon name="Sparkles" size={28} />
               </div>
               <div class="space-y-1">
-                <h3 class="text-base font-bold text-slate-900">No Matching AI Helper Found</h3>
-                <p class="text-xs text-slate-500 max-w-md mx-auto">
+                <h3 class="text-base font-bold text-[#102A56]">No Matching AI Helper Found</h3>
+                <p class="text-xs text-[#4B6382] max-w-md mx-auto">
                   Try clearing your search filter or ask the Master AI CEO directly.
                 </p>
               </div>
               <button
                 type="button"
                 onclick={() => { $searchQuery = ''; activeCategory.set('all'); }}
-                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 inline-flex items-center gap-2 cursor-pointer"
+                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer"
               >
                 <span>Show All 75 Helpers</span>
               </button>
@@ -612,7 +613,7 @@
                 <button
                   type="button"
                   onclick={() => activeCategory.set(cat.id)}
-                  class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {$activeCategory === cat.id ? 'bg-blue-600 text-white shadow-sm font-bold' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600'}"
+                  class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {$activeCategory === cat.id ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'bg-white border border-[#E3ECF7] text-[#4B6382] hover:border-[#1677FF] hover:text-[#1677FF]'}"
                 >
                   {cat.name} ({cat.count})
                 </button>
@@ -634,33 +635,33 @@
       {:else if $activeDashboardTab === 'store'}
         <div class="h-full flex flex-col space-y-5 overflow-y-auto pr-1 pb-12">
           <!-- Store Header -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 ui-card-static p-4 sm:p-6 rounded-3xl">
             <div>
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-2">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ui-badge-primary text-xs font-bold mb-2">
                 <Icon name="Cpu" size={13} />
                 <span>Standalone Autonomous Agents • Web Dashboard Setup Only</span>
               </div>
-              <h2 class="text-xl font-black text-slate-900 tracking-tight">Autonomous Agents Store</h2>
-              <p class="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
-                Agents in the <strong>Agents Store</strong> operate as standalone <strong>Autonomous Agents</strong>. Once unlocked, they are configured and operated exclusively inside this Web Dashboard — <strong>they cannot be controlled via WhatsApp or Telegram</strong> (only the Master AI CEO and the 75 AI Helpers are controllable via WhatsApp and Telegram).
+              <h2 class="text-xl font-black text-[#102A56] tracking-tight">Autonomous Agents Store</h2>
+              <p class="text-xs text-[#4B6382] mt-1 max-w-2xl leading-relaxed">
+                Agents in the <strong class="text-[#102A56]">Agents Store</strong> operate as standalone <strong class="text-[#102A56]">Autonomous Agents</strong>. Once unlocked, they are configured and operated exclusively inside this Web Dashboard — <strong class="text-[#102A56]">they cannot be controlled via WhatsApp or Telegram</strong> (only the Master AI CEO and the 75 AI Helpers are controllable via WhatsApp and Telegram).
               </p>
             </div>
 
             <!-- 1 Month / 1 Year Interval Switcher -->
-            <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-200 shrink-0">
-              <span class="text-xs font-semibold {storeBillingInterval === 'monthly' ? 'text-slate-900 font-bold' : 'text-slate-500'}">1 Month</span>
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-[#F3F8FF] p-2.5 rounded-2xl border border-[#E3ECF7] self-start lg:self-auto shrink-0">
+              <span class="text-xs font-semibold {storeBillingInterval === 'monthly' ? 'text-[#102A56] font-bold' : 'text-[#4B6382]'}">1 Month</span>
               <button
                 type="button"
                 onclick={() => (storeBillingInterval = storeBillingInterval === 'monthly' ? 'yearly' : 'monthly')}
-                class="relative w-12 h-6.5 rounded-full transition-colors duration-200 cursor-pointer {storeBillingInterval === 'yearly' ? 'bg-blue-600' : 'bg-slate-300'}"
+                class="relative w-12 h-6.5 rounded-full transition-colors duration-200 cursor-pointer {storeBillingInterval === 'yearly' ? 'bg-[#1677FF]' : 'bg-[#C8D8EC]'}"
                 aria-label="Toggle store billing interval"
               >
                 <span
-                  class="absolute top-1 transition-all duration-200 w-4.5 h-4.5 rounded-full bg-white shadow-sm {storeBillingInterval === 'yearly' ? 'left-6.5' : 'left-1'}"
+                  class="absolute top-1 transition-all duration-200 w-4.5 h-4.5 rounded-full bg-white shadow-xs {storeBillingInterval === 'yearly' ? 'left-6.5' : 'left-1'}"
                 ></span>
               </button>
               <div class="flex items-center gap-1.5">
-                <span class="text-xs font-semibold {storeBillingInterval === 'yearly' ? 'text-blue-700 font-bold' : 'text-slate-500'}">1 Year</span>
+                <span class="text-xs font-semibold {storeBillingInterval === 'yearly' ? 'text-[#1677FF] font-bold' : 'text-[#4B6382]'}">1 Year</span>
                 <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Save 20%</span>
               </div>
             </div>
@@ -668,12 +669,12 @@
 
           <!-- Alert Notices -->
           {#if storeUnlockMsg}
-            <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in">
+            <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#1677FF]/30 text-[#102A56] text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in shadow-2xs">
               <div class="flex items-center gap-2.5">
-                <Icon name="CheckCircle2" size={18} class="text-blue-600" />
+                <Icon name="CheckCircle2" size={18} class="text-[#1677FF]" />
                 <span>{storeUnlockMsg}</span>
               </div>
-              <button onclick={() => (storeUnlockMsg = '')} class="p-1 hover:bg-blue-100 rounded-lg text-blue-600">
+              <button onclick={() => (storeUnlockMsg = '')} class="p-1 hover:bg-[#E4F0FF] rounded-lg text-[#1677FF] cursor-pointer">
                 <Icon name="X" size={14} />
               </button>
             </div>
@@ -685,7 +686,7 @@
                 <Icon name="AlertCircle" size={18} class="text-rose-600" />
                 <span>{storeError}</span>
               </div>
-              <button onclick={() => (storeError = '')} class="p-1 hover:bg-rose-100 rounded-lg text-rose-600">
+              <button onclick={() => (storeError = '')} class="p-1 hover:bg-rose-100 rounded-lg text-rose-600 cursor-pointer">
                 <Icon name="X" size={14} />
               </button>
             </div>
@@ -697,7 +698,7 @@
               <button
                 type="button"
                 onclick={() => (storeCategory = cat.id)}
-                class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {storeCategory === cat.id ? 'bg-blue-600 text-white shadow-sm font-bold' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600'}"
+                class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {storeCategory === cat.id ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'bg-white border border-[#E3ECF7] text-[#4B6382] hover:border-[#1677FF] hover:text-[#1677FF]'}"
               >
                 {cat.label}
               </button>
@@ -706,20 +707,20 @@
 
           <!-- Store Grid -->
           {#if filteredStoreBots.length === 0}
-            <div class="text-center py-20 bg-white border border-slate-200 rounded-3xl p-8 space-y-4 shadow-xs">
-              <div class="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto">
+            <div class="text-center py-20 ui-card-static rounded-3xl p-8 space-y-4">
+              <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
                 <Icon name="ShoppingBag" size={28} />
               </div>
               <div class="space-y-1">
-                <h3 class="text-base font-bold text-slate-900">No Add-on Bots Available Yet</h3>
-                <p class="text-xs text-slate-500 max-w-md mx-auto">
+                <h3 class="text-base font-bold text-[#102A56]">No Add-on Bots Available Yet</h3>
+                <p class="text-xs text-[#4B6382] max-w-md mx-auto">
                   Custom store bots and specialized AI agents will appear here once published. Meanwhile, you can use Executive Chat anytime.
                 </p>
               </div>
               <button
                 type="button"
                 onclick={() => switchTab('chat')}
-                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 inline-flex items-center gap-2 cursor-pointer"
+                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer"
               >
                 <Icon name="MessageSquare" size={14} />
                 <span>Open Executive Chat</span>
@@ -729,55 +730,55 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {#each filteredStoreBots as bot (bot.id)}
                 {@const isUnlocked = ($subscription.unlockedStoreBots || []).includes(bot.id)}
-                <div class="rounded-3xl bg-white border border-slate-200 p-6 flex flex-col justify-between space-y-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="rounded-3xl glass-card p-6 flex flex-col justify-between space-y-5">
                   <div class="space-y-4">
                     <!-- Header: Avatar, Name & Badges -->
                     <div class="flex items-start gap-3.5">
-                      <div class="relative w-14 h-14 rounded-2xl overflow-hidden border border-blue-100 shadow-inner shrink-0">
+                      <div class="relative w-14 h-14 rounded-2xl overflow-hidden border border-[#E3ECF7] shadow-2xs shrink-0">
                         <img src={bot.avatar} alt={bot.name} class="w-full h-full object-cover" />
                       </div>
                       <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
-                          <h3 class="font-bold text-slate-900 text-base">{bot.name}</h3>
+                          <h3 class="font-bold text-[#102A56] text-base">{bot.name}</h3>
                           {#if bot.badge}
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">{bot.badge}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ui-badge-primary uppercase">{bot.badge}</span>
                           {/if}
                           {#if bot.isNew}
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">NEW</span>
                           {/if}
                         </div>
-                        <p class="text-xs text-blue-600 font-semibold mt-0.5">{bot.role}</p>
+                        <p class="text-xs text-[#1677FF] font-semibold mt-0.5">{bot.role}</p>
                       </div>
                     </div>
 
-                    <p class="text-xs text-slate-600 leading-relaxed">{bot.description}</p>
+                    <p class="text-xs text-[#4B6382] leading-relaxed">{bot.description}</p>
 
                     <!-- Technical Specs Card -->
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-[11px]">
+                    <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-1.5 text-[11px]">
                       <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Neural Engine:</span>
-                        <span class="font-mono text-slate-900 font-semibold">{bot.specs.engine}</span>
+                        <span class="text-[#4B6382] font-medium">Neural Engine:</span>
+                        <span class="font-mono text-[#102A56] font-semibold">{bot.specs.engine}</span>
                       </div>
                       <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Latency:</span>
+                        <span class="text-[#4B6382] font-medium">Latency:</span>
                         <span class="text-emerald-600 font-semibold">{bot.specs.responseTime}</span>
                       </div>
                       <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Context Window:</span>
-                        <span class="text-slate-900 font-semibold">{bot.specs.contextWindow}</span>
+                        <span class="text-[#4B6382] font-medium">Context Window:</span>
+                        <span class="text-[#102A56] font-semibold">{bot.specs.contextWindow}</span>
                       </div>
                       <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Specialization:</span>
-                        <span class="text-blue-700 font-medium truncate max-w-[160px]">{bot.specs.specialization}</span>
+                        <span class="text-[#4B6382] font-medium">Specialization:</span>
+                        <span class="text-[#1677FF] font-medium truncate max-w-[160px]">{bot.specs.specialization}</span>
                       </div>
                     </div>
 
                     <!-- Features Preview -->
                     <div class="space-y-1.5">
-                      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Features Unlocked Upon Purchase:</p>
+                      <p class="text-[10px] font-bold text-[#5E7694] uppercase tracking-wider">Features Unlocked Upon Purchase:</p>
                       {#each bot.features as feat}
-                        <div class="flex items-start gap-2 text-xs text-slate-700">
-                          <Icon name="Check" size={13} class="text-blue-600 shrink-0 mt-0.5" />
+                        <div class="flex items-start gap-2 text-xs text-[#102A56]">
+                          <Icon name="Check" size={13} class="text-[#1677FF] shrink-0 mt-0.5" />
                           <span class="text-[11px] leading-tight">{feat}</span>
                         </div>
                       {/each}
@@ -785,12 +786,12 @@
                   </div>
 
                   <!-- Price and Action CTA -->
-                  <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                  <div class="pt-4 border-t border-[#E3ECF7] flex items-center justify-between gap-3">
                     <div>
-                      <span class="text-xl font-black text-slate-900">
+                      <span class="text-xl font-black text-[#102A56]">
                         BDT {storeBillingInterval === 'yearly' ? bot.yearlyPrice.toLocaleString() : bot.monthlyPrice.toLocaleString()}
                       </span>
-                      <span class="text-xs text-slate-500 font-medium">/{storeBillingInterval === 'yearly' ? 'yr' : 'mo'}</span>
+                      <span class="text-xs text-[#4B6382] font-medium">/{storeBillingInterval === 'yearly' ? 'yr' : 'mo'}</span>
                     </div>
 
                     {#if isUnlocked}
@@ -807,7 +808,7 @@
                         type="button"
                         onclick={() => handleUnlockBot(bot)}
                         disabled={isProcessingPayment}
-                        class="px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        class="px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                       >
                         <Icon name="Zap" size={14} />
                         <span>{isProcessingPayment ? 'Connecting...' : 'Subscribe'}</span>
@@ -826,24 +827,24 @@
       {:else if $activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp'}
         <div class="h-full overflow-y-auto max-w-5xl mx-auto space-y-6 pb-12">
           <!-- Header -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
-                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
-                  <Icon name="QrCode" size={22} class="text-blue-600" />
+                <h2 class="text-xl font-bold text-[#102A56] flex items-center gap-2.5">
+                  <Icon name="QrCode" size={22} class="text-[#1677FF]" />
                   <span>Channels & Communication Hub</span>
                 </h2>
-                <p class="text-xs text-slate-500 mt-1">
+                <p class="text-xs text-[#4B6382] mt-1">
                   Connect multiple communication channels to automate client interactions and executive workflows 24/7.
                 </p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {$whatsappStatus === 'connected' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-                  <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {$whatsappStatus === 'connected' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
+                  <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-[#7B92AE]'}"></span>
                   <span>WhatsApp: {$whatsappStatus.toUpperCase()}</span>
                 </div>
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {telegramLinked ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-                  <span class="w-2 h-2 rounded-full {telegramLinked ? 'bg-sky-500 animate-pulse' : 'bg-slate-400'}"></span>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {telegramLinked ? 'bg-[#F0FBFF] text-[#089CD0] border border-[#BAEFFF]' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
+                  <span class="w-2 h-2 rounded-full {telegramLinked ? 'bg-[#38CFFF] animate-pulse' : 'bg-[#7B92AE]'}"></span>
                   <span>Telegram: {telegramLinked ? 'CONNECTED' : 'DISCONNECTED'}</span>
                 </div>
               </div>
@@ -854,20 +855,20 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">Channel 1</span>
-                  <h3 class="text-sm font-bold text-slate-900">WhatsApp Private Intelligence Sync</h3>
+                  <h3 class="text-sm font-bold text-[#102A56]">WhatsApp Private Intelligence Sync</h3>
                 </div>
-                <span class="text-xs text-slate-500 font-mono">Baileys Multi-Device</span>
+                <span class="text-xs text-[#5E7694] font-mono">Baileys Multi-Device</span>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-2">
                 <!-- QR Image Display -->
-                <div class="flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner">
+                <div class="flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   {#if $whatsappStatus === 'connected'}
                     <div class="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-emerald-600 mb-3 animate-bounce">
                       <Icon name="Check" size={32} />
                     </div>
-                    <h3 class="text-base font-bold text-slate-900">WhatsApp Live & Connected!</h3>
-                    <p class="text-xs text-slate-500 text-center mt-1">Send any message to yourself in WhatsApp to test.</p>
+                    <h3 class="text-base font-bold text-[#102A56]">WhatsApp Live & Connected!</h3>
+                    <p class="text-xs text-[#4B6382] text-center mt-1">Send any message to yourself in WhatsApp to test.</p>
                     <button
                       type="button"
                       onclick={handleDisconnectWhatsApp}
@@ -877,13 +878,13 @@
                       {isDisconnecting ? 'Disconnecting...' : 'Disconnect Session'}
                     </button>
                   {:else if $whatsappQr}
-                    <div class="p-3 bg-white rounded-2xl shadow-xl border border-blue-200">
-                      <img src={$whatsappQr} alt="WhatsApp QR Code" class="w-56 h-56" />
+                    <div class="p-3 bg-white rounded-2xl shadow-md border border-[#CFE2FA] max-w-full">
+                      <img src={$whatsappQr} alt="WhatsApp QR Code" class="w-48 h-48 sm:w-56 sm:h-56 max-w-full object-contain mx-auto" />
                     </div>
-                    <p class="text-[11px] text-blue-700 mt-3 font-mono font-semibold">Scan QR code using WhatsApp on your phone</p>
+                    <p class="text-[11px] text-[#1677FF] mt-3 font-mono font-semibold text-center">Scan QR code using WhatsApp on your phone</p>
                   {:else}
-                    <div class="w-56 h-56 rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
-                      <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-48 h-48 sm:w-56 sm:h-56 max-w-full rounded-2xl border border-dashed border-[#C8D8EC] bg-white/60 flex flex-col items-center justify-center text-[#4B6382] text-xs gap-2 p-4 text-center">
+                      <div class="w-6 h-6 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></div>
                       <span>Generating encrypted QR handshake...</span>
                     </div>
                   {/if}
@@ -891,32 +892,32 @@
 
                 <!-- Setup Steps -->
                 <div class="space-y-4">
-                  <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-blue-600">Pairing Instructions:</h3>
-                  <ol class="space-y-3 text-xs text-slate-700">
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-[#1677FF]">Pairing Instructions:</h3>
+                  <ol class="space-y-3 text-xs text-[#102A56]">
                     <li class="flex items-start gap-2.5">
-                      <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold shrink-0 border border-blue-200">1</span>
+                      <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">1</span>
                       <span>Open <strong>WhatsApp</strong> on your phone.</span>
                     </li>
                     <li class="flex items-start gap-2.5">
-                      <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold shrink-0 border border-blue-200">2</span>
+                      <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">2</span>
                       <span>Tap <strong>Settings</strong> (iOS) or <strong>Three Dots ⋮</strong> (Android) and choose <strong>Linked Devices</strong>.</span>
                     </li>
                     <li class="flex items-start gap-2.5">
-                      <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold shrink-0 border border-blue-200">3</span>
+                      <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">3</span>
                       <span>Point your phone camera at the QR code on the left.</span>
                     </li>
                     <li class="flex items-start gap-2.5">
-                      <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold shrink-0 border border-blue-200">4</span>
+                      <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">4</span>
                       <span>Once connected, send any message to your own number ("Message Yourself") to start!</span>
                     </li>
                   </ol>
 
-                  <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 space-y-1">
-                    <div class="font-bold flex items-center gap-1.5 text-blue-700">
-                      <Icon name="Shield" size={14} class="text-blue-600" />
+                  <div class="p-3.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-xs text-[#102A56] space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-[#1677FF]">
+                      <Icon name="Shield" size={14} class="text-[#1677FF]" />
                       <span>100% Anti-Ban Encrypted Architecture</span>
                     </div>
-                    <p class="text-[11px] text-slate-600">
+                    <p class="text-[11px] text-[#4B6382]">
                       The bot exclusively processes self-chat messages and simulates human typing delay (2.5s). It never contacts external people.
                     </p>
                   </div>
@@ -928,21 +929,21 @@
           <!-- ======================================================== -->
           <!-- CHANNEL 2: TELEGRAM BOT EXECUTIVE HUB (LIVE INTEGRATION) -->
           <!-- ======================================================== -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase">Channel 2</span>
-                  <h3 class="text-sm font-bold text-slate-900">Telegram Bot Executive Hub</h3>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F0FBFF] text-[#089CD0] border border-[#BAEFFF] uppercase">Channel 2</span>
+                  <h3 class="text-sm font-bold text-[#102A56]">Telegram Bot Executive Hub</h3>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">
+                <p class="text-xs text-[#4B6382] mt-1">
                   Chat with your 50+ AI executives and generate images 24/7 without QR code scanning or disconnection risk.
                 </p>
               </div>
 
               <div class="flex items-center gap-2">
-                <span class="px-3.5 py-1.5 rounded-full text-xs font-semibold {telegramLinked ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-                  <span class="w-2 h-2 rounded-full {telegramLinked ? 'bg-sky-500 animate-pulse' : 'bg-slate-400'}"></span>
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 {telegramLinked ? 'bg-[#F0FBFF] text-[#089CD0] border border-[#BAEFFF]' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
+                  <span class="w-2 h-2 rounded-full {telegramLinked ? 'bg-[#38CFFF] animate-pulse' : 'bg-[#7B92AE]'}"></span>
                   <span>{telegramLinked ? `CONNECTED${telegramUsername ? ` (@${telegramUsername})` : ''}` : 'DISCONNECTED'}</span>
                 </span>
               </div>
@@ -951,13 +952,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-2">
               {#if telegramLinked}
                 <!-- Connected State Card -->
-                <div class="flex flex-col items-center justify-center p-6 rounded-2xl bg-sky-50/50 border border-sky-200 shadow-inner space-y-3">
-                  <div class="w-16 h-16 rounded-full bg-sky-100 border-2 border-sky-500 flex items-center justify-center text-sky-600 animate-bounce">
+                <div class="flex flex-col items-center justify-center p-6 rounded-2xl bg-[#F0FBFF] border border-[#BAEFFF] space-y-3">
+                  <div class="w-16 h-16 rounded-full bg-white border-2 border-[#38CFFF] flex items-center justify-center text-[#089CD0] animate-bounce shadow-2xs">
                     <Icon name="Send" size={30} />
                   </div>
-                  <h3 class="text-base font-bold text-slate-900">Telegram Live &amp; Synchronized!</h3>
-                  <p class="text-xs text-slate-600 text-center">
-                    Connected as <strong class="text-sky-700">{telegramUsername ? `@${telegramUsername}` : 'Telegram User'}</strong>. All commands and chats sync in real time.
+                  <h3 class="text-base font-bold text-[#102A56]">Telegram Live &amp; Synchronized!</h3>
+                  <p class="text-xs text-[#4B6382] text-center">
+                    Connected as <strong class="text-[#1677FF]">{telegramUsername ? `@${telegramUsername}` : 'Telegram User'}</strong>. All commands and chats sync in real time.
                   </p>
                   <div class="flex items-center gap-3 pt-2">
                     {#if telegramDeepLink}
@@ -965,7 +966,7 @@
                         href={telegramDeepLink}
                         target="_blank"
                         rel="noopener"
-                        class="px-4 py-2 rounded-xl blue-btn text-white text-xs font-bold flex items-center gap-2 shadow-xs"
+                        class="px-4 py-2 rounded-xl blue-btn text-white text-xs font-bold flex items-center gap-2"
                       >
                         <Icon name="Send" size={13} />
                         <span>Open Telegram Chat</span>
@@ -983,27 +984,27 @@
                 </div>
               {:else}
                 <!-- Pairing Box with Sync Code -->
-                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-center space-y-4">
-                  <div class="w-12 h-12 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600">
+                <div class="p-4 sm:p-6 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex flex-col items-center justify-center text-center space-y-4">
+                  <div class="w-12 h-12 rounded-2xl bg-white border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] shadow-2xs">
                     <Icon name="Send" size={24} />
                   </div>
                   <div>
-                    <h4 class="text-sm font-bold text-slate-900">Pair Your Telegram Account</h4>
-                    <p class="text-xs text-slate-500 mt-0.5">Use your 1-click sync link or enter your sync code below:</p>
+                    <h4 class="text-sm font-bold text-[#102A56]">Pair Your Telegram Account</h4>
+                    <p class="text-xs text-[#4B6382] mt-0.5">Use your 1-click sync link or enter your sync code below:</p>
                   </div>
 
                   <!-- Sync Code Pill with Copy -->
-                  <div class="w-full max-w-xs flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+                  <div class="w-full max-w-full sm:max-w-xs flex items-center justify-between p-3 rounded-xl bg-white border border-[#E3ECF7] shadow-2xs">
                     <div class="text-left">
-                      <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Your Sync Code</span>
-                      <span class="text-sm font-mono font-black text-slate-900 tracking-wider">
+                      <span class="text-[10px] text-[#5E7694] font-bold uppercase tracking-wider block">Your Sync Code</span>
+                      <span class="text-sm font-mono font-black text-[#102A56] tracking-wider">
                         {telegramSyncCode || 'EZBO-CONNECT'}
                       </span>
                     </div>
                     <button
                       type="button"
                       onclick={copyTelegramCode}
-                      class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer {telegramCopied ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}"
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer {telegramCopied ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'btn-secondary'}"
                     >
                       <Icon name={telegramCopied ? 'Check' : 'Copy'} size={12} />
                       <span>{telegramCopied ? 'Copied' : 'Copy'}</span>
@@ -1016,7 +1017,7 @@
                       href={telegramDeepLink}
                       target="_blank"
                       rel="noopener"
-                      class="w-full max-w-xs py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all"
+                      class="w-full max-w-full sm:max-w-xs py-3 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 transition-all"
                     >
                       <Icon name="Send" size={14} />
                       <span>Open Telegram &amp; Connect (1-Click)</span>
@@ -1026,7 +1027,7 @@
                       type="button"
                       onclick={generateTelegramSync}
                       disabled={isGeneratingTelegramCode}
-                      class="w-full max-w-xs py-2.5 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      class="w-full max-w-full sm:max-w-xs py-2.5 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Icon name="RefreshCw" size={13} class={isGeneratingTelegramCode ? 'animate-spin' : ''} />
                       <span>Generate Sync Code</span>
@@ -1037,44 +1038,44 @@
 
               <!-- Telegram Instructions & Command Cheatsheet -->
               <div class="space-y-4">
-                <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-sky-600">Quick Pairing &amp; Commands:</h4>
-                <ol class="space-y-2.5 text-xs text-slate-700">
+                <h4 class="text-sm font-bold uppercase tracking-wider text-[#1677FF]">Quick Pairing &amp; Commands:</h4>
+                <ol class="space-y-2.5 text-xs text-[#102A56]">
                   <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 border border-sky-200">1</span>
+                    <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">1</span>
                     <span>Click <strong>"Open Telegram &amp; Connect"</strong> or find your bot on Telegram.</span>
                   </li>
                   <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 border border-sky-200">2</span>
+                    <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">2</span>
                     <span>Tap <strong>START</strong> in the bot chat — your account syncs instantly!</span>
                   </li>
                   <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center font-bold shrink-0 border border-sky-200">3</span>
+                    <span class="w-5 h-5 rounded-full bg-[#F3F8FF] text-[#1677FF] flex items-center justify-center font-bold shrink-0 border border-[#CFE2FA]">3</span>
                     <span>Start chatting or send any task directly in Telegram.</span>
                   </li>
                 </ol>
 
                 <!-- Command Cheatsheet Box -->
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-                  <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                    <Icon name="Bot" size={14} class="text-sky-600" />
+                <div class="p-3.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-xs space-y-2">
+                  <div class="font-bold text-[#102A56] flex items-center gap-1.5">
+                    <Icon name="Bot" size={14} class="text-[#1677FF]" />
                     <span>Telegram Slash Commands:</span>
                   </div>
-                  <div class="grid grid-cols-2 gap-2 text-[11px]">
-                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
-                      <code class="text-sky-700 font-bold">/status</code>
-                      <p class="text-slate-500 text-[10px]">Plan &amp; active bot details</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                    <div class="p-2 rounded-lg bg-white border border-[#E3ECF7]">
+                      <code class="text-[#1677FF] font-mono font-bold">/status</code>
+                      <p class="text-[#4B6382] text-[10px]">Plan &amp; active bot details</p>
                     </div>
-                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
-                      <code class="text-sky-700 font-bold">/agents</code>
-                      <p class="text-slate-500 text-[10px]">List &amp; switch 50+ specialists</p>
+                    <div class="p-2 rounded-lg bg-white border border-[#E3ECF7]">
+                      <code class="text-[#1677FF] font-mono font-bold">/agents</code>
+                      <p class="text-[#4B6382] text-[10px]">List &amp; switch 50+ specialists</p>
                     </div>
-                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
-                      <code class="text-sky-700 font-bold">/image [prompt]</code>
-                      <p class="text-slate-500 text-[10px]">Instant AI image creation</p>
+                    <div class="p-2 rounded-lg bg-white border border-[#E3ECF7]">
+                      <code class="text-[#1677FF] font-mono font-bold">/image [prompt]</code>
+                      <p class="text-[#4B6382] text-[10px]">Instant AI image creation</p>
                     </div>
-                    <div class="p-1.5 rounded-lg bg-white border border-slate-100">
-                      <code class="text-sky-700 font-bold">/help</code>
-                      <p class="text-slate-500 text-[10px]">Full command documentation</p>
+                    <div class="p-2 rounded-lg bg-white border border-[#E3ECF7]">
+                      <code class="text-[#1677FF] font-mono font-bold">/help</code>
+                      <p class="text-[#4B6382] text-[10px]">Full command documentation</p>
                     </div>
                   </div>
                 </div>
@@ -1083,50 +1084,50 @@
           </div>
 
           <!-- Omni-Channel Expansion Roadmap Cards -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-4">
             <div>
-              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Icon name="Layers" size={18} class="text-blue-600" />
+              <h3 class="text-sm font-bold text-[#102A56] flex items-center gap-2">
+                <Icon name="Layers" size={18} class="text-[#1677FF]" />
                 <span>Multi-Channel Expansions</span>
               </h3>
-              <p class="text-xs text-slate-500 mt-0.5">Integrations currently in pipeline for omni-channel customer message routing.</p>
+              <p class="text-xs text-[#4B6382] mt-0.5">Integrations currently in pipeline for omni-channel customer message routing.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-2">
                 <div class="flex items-center justify-between">
-                  <Icon name="MessageSquare" size={18} class="text-blue-600" />
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
+                  <Icon name="MessageSquare" size={18} class="text-[#1677FF]" />
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-[#1677FF] border border-[#CFE2FA] uppercase">Coming Soon</span>
                 </div>
-                <h4 class="text-xs font-bold text-slate-900">Meta Messenger</h4>
-                <p class="text-[11px] text-slate-500">Facebook Page automated customer reply routing &amp; support.</p>
+                <h4 class="text-xs font-bold text-[#102A56]">Meta Messenger</h4>
+                <p class="text-[11px] text-[#4B6382]">Facebook Page automated customer reply routing &amp; support.</p>
               </div>
 
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-2">
                 <div class="flex items-center justify-between">
-                  <Icon name="Smartphone" size={18} class="text-pink-600" />
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
+                  <Icon name="Smartphone" size={18} class="text-[#089CD0]" />
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-[#1677FF] border border-[#CFE2FA] uppercase">Coming Soon</span>
                 </div>
-                <h4 class="text-xs font-bold text-slate-900">Instagram DM</h4>
-                <p class="text-[11px] text-slate-500">Direct message e-commerce sales closer and product FAQ bot.</p>
+                <h4 class="text-xs font-bold text-[#102A56]">Instagram DM</h4>
+                <p class="text-[11px] text-[#4B6382]">Direct message e-commerce sales closer and product FAQ bot.</p>
               </div>
 
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-2">
                 <div class="flex items-center justify-between">
-                  <Icon name="Code" size={18} class="text-indigo-600" />
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
+                  <Icon name="Code" size={18} class="text-[#1677FF]" />
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-[#1677FF] border border-[#CFE2FA] uppercase">Coming Soon</span>
                 </div>
-                <h4 class="text-xs font-bold text-slate-900">REST API &amp; Webhooks</h4>
-                <p class="text-[11px] text-slate-500">Trigger custom agents via HTTP POST webhooks from external CRM software.</p>
+                <h4 class="text-xs font-bold text-[#102A56]">REST API &amp; Webhooks</h4>
+                <p class="text-[11px] text-[#4B6382]">Trigger custom agents via HTTP POST webhooks from external CRM software.</p>
               </div>
 
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-2">
                 <div class="flex items-center justify-between">
-                  <Icon name="Bot" size={18} class="text-purple-600" />
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase">Coming Soon</span>
+                  <Icon name="Bot" size={18} class="text-[#102A56]" />
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-[#1677FF] border border-[#CFE2FA] uppercase">Coming Soon</span>
                 </div>
-                <h4 class="text-xs font-bold text-slate-900">Discord Bot</h4>
-                <p class="text-[11px] text-slate-500">Private server guild assistant with slash command integrations.</p>
+                <h4 class="text-xs font-bold text-[#102A56]">Discord Bot</h4>
+                <p class="text-[11px] text-[#4B6382]">Private server guild assistant with slash command integrations.</p>
               </div>
             </div>
           </div>
@@ -1142,14 +1143,14 @@
           
           <!-- Notification Alert if action performed -->
           {#if billingNotice}
-            <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in">
+            <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#1677FF]/30 text-[#102A56] text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in shadow-2xs">
               <div class="flex items-center gap-2.5">
-                <Icon name="CheckCircle2" size={18} class="text-blue-600" />
+                <Icon name="CheckCircle2" size={18} class="text-[#1677FF]" />
                 <span>{billingNotice}</span>
               </div>
               <button 
                 onclick={() => billingNotice = ''} 
-                class="p-1 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors"
+                class="p-1 hover:bg-[#E4F0FF] rounded-lg text-[#1677FF] transition-colors cursor-pointer"
                 aria-label="Dismiss notice"
               >
                 <Icon name="X" size={14} />
@@ -1166,7 +1167,7 @@
               </div>
               <button 
                 onclick={() => billingError = ''} 
-                class="p-1 hover:bg-rose-100 rounded-lg text-rose-600 transition-colors"
+                class="p-1 hover:bg-rose-100 rounded-lg text-rose-600 transition-colors cursor-pointer"
                 aria-label="Dismiss error"
               >
                 <Icon name="X" size={14} />
@@ -1181,9 +1182,9 @@
                 <Icon name="AlertCircle" size={20} class="text-amber-600 mt-0.5 shrink-0" />
                 <div>
                   <p class="font-bold text-amber-800 text-sm">Subscription Auto-Renewal Cancelled</p>
-                  <p class="text-slate-600 mt-0.5">
+                  <p class="text-[#4B6382] mt-0.5">
                     Your VIP privileges & 24/7 WhatsApp Bot access remain fully active until 
-                    <strong class="text-slate-900">{new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
+                    <strong class="text-[#102A56]">{new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
                     You will not be billed again.
                   </p>
                 </div>
@@ -1191,7 +1192,7 @@
               <button
                 type="button"
                 onclick={() => { reactivateSubscription(); billingNotice = 'Welcome back! Your VIP Subscription has been reactivated.'; }}
-                class="px-4 py-2 rounded-xl blue-btn text-white font-bold text-xs shrink-0 transition-colors cursor-pointer shadow-md shadow-blue-500/20"
+                class="px-4 py-2 rounded-xl blue-btn text-white font-bold text-xs shrink-0 transition-colors cursor-pointer"
               >
                 Reactivate Subscription
               </button>
@@ -1199,14 +1200,14 @@
           {/if}
 
           <!-- Current Subscription Overview Card -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
-                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Icon name="Crown" size={22} class="text-blue-600" />
+                <h2 class="text-xl font-bold text-[#102A56] flex items-center gap-2">
+                  <Icon name="Crown" size={22} class="text-[#1677FF]" />
                   <span>Current Membership & Billing</span>
                 </h2>
-                <p class="text-xs text-slate-500 mt-1">Manage your active tier, renew, switch plans, or cancel anytime.</p>
+                <p class="text-xs text-[#4B6382] mt-1">Manage your active tier, renew, switch plans, or cancel anytime.</p>
               </div>
 
               <!-- Status Badge -->
@@ -1216,12 +1217,12 @@
                   <span>Cancelled (Active until expiry)</span>
                 </div>
               {:else if $subscription.plan === 'free'}
-                <div class="px-3.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <div class="px-3.5 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#4B6382] text-xs font-bold flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-[#7B92AE]"></span>
                   <span>Plan: Free / BYOK</span>
                 </div>
               {:else}
-                <div class="px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold flex items-center gap-2">
+                <div class="px-3.5 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-[#1677FF] text-xs font-bold flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   <span>Plan: {$subscription.tier === 'managed' ? 'All-Inclusive Cloud' : 'BYOK Multi-Engine'} ({$subscription.interval === 'yearly' ? 'Yearly' : 'Monthly'})</span>
                 </div>
@@ -1230,38 +1231,38 @@
 
             <!-- Current Plan Metrics Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase">Current Plan Rate</p>
-                <p class="text-xl font-black text-slate-900 mt-1">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
+                <p class="text-[11px] text-[#4B6382] font-semibold uppercase">Current Plan Rate</p>
+                <p class="text-xl font-black text-[#102A56] mt-1">
                   {#if $subscription.tier === 'managed'}
-                    BDT {$subscription.interval === 'yearly' ? '1,199' : '1,499'} <span class="text-xs text-slate-500 font-normal">/ mo</span>
+                    BDT {$subscription.interval === 'yearly' ? '1,199' : '1,499'} <span class="text-xs text-[#4B6382] font-normal">/ mo</span>
                   {:else}
-                    BDT {$subscription.interval === 'yearly' ? '399' : '499'} <span class="text-xs text-slate-500 font-normal">/ mo</span>
+                    BDT {$subscription.interval === 'yearly' ? '399' : '499'} <span class="text-xs text-[#4B6382] font-normal">/ mo</span>
                   {/if}
                 </p>
-                <p class="text-[10px] text-blue-600 font-medium mt-1">
+                <p class="text-[10px] text-[#1677FF] font-semibold mt-1">
                   {$subscription.tier === 'managed' ? '100% Managed Cloud (Zero Keys)' : 'BYOK Multi-Engine (Client Keys)'}
                 </p>
               </div>
 
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
+                <p class="text-[11px] text-[#4B6382] font-semibold uppercase">
                   {$subscription.status === 'cancelled' ? 'Access Expiration Date' : 'Next Billing / Expiration'}
                 </p>
-                <p class="text-sm font-bold text-slate-900 mt-1">
+                <p class="text-sm font-bold text-[#102A56] mt-1">
                   {new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
-                <p class="text-[10px] text-slate-500 mt-1">
+                <p class="text-[10px] text-[#5E7694] mt-1">
                   {$subscription.status === 'cancelled' ? 'No further renewal will occur' : 'Auto-renewal active'}
                 </p>
               </div>
 
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase">WhatsApp AI Bot Feature</p>
-                <p class="text-sm font-bold text-blue-600 mt-1">
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
+                <p class="text-[11px] text-[#4B6382] font-semibold uppercase">WhatsApp AI Bot Feature</p>
+                <p class="text-sm font-bold text-[#1677FF] mt-1">
                   {$subscription.plan === 'free' ? 'Disabled (Requires Pro/VIP)' : '24/7 Bot Activated'}
                 </p>
-                <p class="text-[10px] text-slate-500 mt-1">
+                <p class="text-[10px] text-[#5E7694] mt-1">
                   {$subscription.plan === 'free' ? 'Upgrade to connect WhatsApp' : 'Priority Baileys routing enabled'}
                 </p>
               </div>
@@ -1269,8 +1270,8 @@
 
             <!-- Cancel Subscription Action Bar -->
             {#if $subscription.status === 'active' && $subscription.plan !== 'free'}
-              <div class="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <span class="text-slate-500">
+              <div class="pt-2 border-t border-[#E3ECF7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <span class="text-[#4B6382]">
                   Don't want to renew your VIP membership? You can cancel auto-renewal anytime without losing current days.
                 </span>
                 <button
@@ -1291,59 +1292,59 @@
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Icon name="Layers" size={20} class="text-blue-600" />
+                <h3 class="text-lg font-bold text-[#102A56] flex items-center gap-2">
+                  <Icon name="Layers" size={20} class="text-[#1677FF]" />
                   <span>Available Plans & Tiers</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Switch between Bring-Your-Own-Key (Free) or fully managed AI with multi-API keys.</p>
+                <p class="text-xs text-[#4B6382] mt-0.5">Switch between Bring-Your-Own-Key (Free) or fully managed AI with multi-API keys.</p>
               </div>
 
               <!-- Monthly / Yearly Toggle -->
               <div class="flex items-center gap-3">
-                <span class="text-xs font-semibold {dashboardBillingInterval === 'monthly' ? 'text-slate-900' : 'text-slate-400'}">Monthly</span>
+                <span class="text-xs font-semibold {dashboardBillingInterval === 'monthly' ? 'text-[#102A56]' : 'text-[#4B6382]'}">Monthly</span>
                 <button
                   onclick={() => dashboardBillingInterval = dashboardBillingInterval === 'monthly' ? 'yearly' : 'monthly'}
                   aria-label="Toggle billing interval between monthly and yearly"
-                  class="relative w-11 h-6 rounded-full transition-all duration-300 {dashboardBillingInterval === 'yearly' ? 'bg-blue-600' : 'bg-slate-200'}"
+                  class="relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer {dashboardBillingInterval === 'yearly' ? 'bg-[#1677FF]' : 'bg-[#C8D8EC]'}"
                 >
-                  <span class="absolute top-1 transition-all duration-300 w-4 h-4 rounded-full bg-white shadow {dashboardBillingInterval === 'yearly' ? 'left-6' : 'left-1'}"></span>
+                  <span class="absolute top-1 transition-all duration-300 w-4 h-4 rounded-full bg-white shadow-xs {dashboardBillingInterval === 'yearly' ? 'left-6' : 'left-1'}"></span>
                 </button>
-                <span class="text-xs font-semibold {dashboardBillingInterval === 'yearly' ? 'text-blue-600 font-bold' : 'text-slate-400'}">Yearly</span>
+                <span class="text-xs font-semibold {dashboardBillingInterval === 'yearly' ? 'text-[#1677FF] font-bold' : 'text-[#4B6382]'}">Yearly</span>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
               <!-- Plan 1: BYOK Multi-Engine -->
-              <div class="p-6 rounded-3xl bg-white border {($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval ? 'border-blue-600 ring-2 ring-blue-500/30' : 'border-slate-200'} flex flex-col justify-between relative shadow-sm">
+              <div class="p-6 rounded-3xl bg-white border {($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval ? 'border-[#1677FF] ring-2 ring-[#1677FF]/25' : 'border-[#E3ECF7]'} flex flex-col justify-between relative shadow-xs">
                 {#if ($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval}
-                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wide shadow-sm">
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-[#1677FF] text-white font-bold text-[10px] uppercase tracking-wide shadow-2xs">
                     Active Plan
                   </div>
                 {/if}
                 <div class="space-y-3">
                   <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{$plansStore.byok.badge}</span>
-                    <h4 class="text-lg font-bold text-slate-900 mt-1.5">{$plansStore.byok.name}</h4>
-                    <p class="text-xs text-slate-500 mt-1">{$plansStore.byok.description}</p>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#102A56] bg-[#F3F8FF] border border-[#E3ECF7]">{$plansStore.byok.badge}</span>
+                    <h4 class="text-lg font-bold text-[#102A56] mt-1.5">{$plansStore.byok.name}</h4>
+                    <p class="text-xs text-[#4B6382] mt-1">{$plansStore.byok.description}</p>
                   </div>
 
-                  <div class="pt-2 border-t border-slate-100">
-                    <p class="text-2xl font-black text-slate-900">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice} <span class="text-xs text-slate-500 font-normal">/ mo</span></p>
-                    <p class="text-[11px] text-slate-500">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.byok.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
+                  <div class="pt-2 border-t border-[#E3ECF7]">
+                    <p class="text-2xl font-black text-[#102A56]">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice} <span class="text-xs text-[#4B6382] font-normal">/ mo</span></p>
+                    <p class="text-[11px] text-[#4B6382]">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.byok.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
                   </div>
 
-                  <ul class="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
+                  <ul class="space-y-2 text-xs text-[#102A56] pt-2 border-t border-[#E3ECF7]">
                     {#each $plansStore.byok.features as feature}
-                      <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+                      <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-[#1677FF] shrink-0" /> <span>{feature}</span></li>
                     {/each}
                   </ul>
                 </div>
 
                 <div class="pt-6">
                   {#if ($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval}
-                    <button disabled class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs cursor-default">Current Plan</button>
+                    <button disabled class="w-full py-2.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#5E7694] font-bold text-xs cursor-default">Current Plan</button>
                   {:else}
-                    <button onclick={() => handlePayPlan('byok')} disabled={isProcessingPayment} class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors cursor-pointer border border-slate-200 disabled:opacity-50">
+                    <button onclick={() => handlePayPlan('byok')} disabled={isProcessingPayment} class="w-full py-2.5 rounded-xl btn-navy text-xs cursor-pointer disabled:opacity-50">
                       {isProcessingPayment ? 'Connecting...' : 'Subscribe'}
                     </button>
                   {/if}
@@ -1351,40 +1352,40 @@
               </div>
 
               <!-- Plan 2: All-Inclusive Cloud -->
-              <div class="p-6 rounded-3xl bg-gradient-to-b from-blue-50/50 via-white to-blue-50/30 border-2 {($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval ? 'border-blue-600 ring-2 ring-blue-500/50 shadow-blue-500/20' : 'border-blue-500/60'} flex flex-col justify-between relative shadow-md">
+              <div class="p-6 rounded-3xl bg-white border-2 {($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval ? 'border-[#1677FF] ring-2 ring-[#1677FF]/25' : 'border-[#1677FF]'} flex flex-col justify-between relative shadow-sm">
                 {#if ($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval}
-                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wide shadow-sm">
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-[#1677FF] text-white font-bold text-[10px] uppercase tracking-wide shadow-2xs">
                     Active Plan
                   </div>
                 {:else if $plansStore.managed.highlightBadge}
-                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase tracking-wide shadow-md">
+                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-[#1677FF] text-white font-black text-[10px] uppercase tracking-wide shadow-2xs">
                     {$plansStore.managed.highlightBadge}
                   </div>
                 {/if}
                 <div class="space-y-3">
                   <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{$plansStore.managed.badge}</span>
-                    <h4 class="text-lg font-bold text-slate-900 mt-1.5">{$plansStore.managed.name}</h4>
-                    <p class="text-xs text-slate-500 mt-1">{$plansStore.managed.description}</p>
+                    <span class="ui-badge-primary px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider">{$plansStore.managed.badge}</span>
+                    <h4 class="text-lg font-bold text-[#102A56] mt-1.5">{$plansStore.managed.name}</h4>
+                    <p class="text-xs text-[#4B6382] mt-1">{$plansStore.managed.description}</p>
                   </div>
 
-                  <div class="pt-2 border-t border-slate-100">
-                    <p class="text-2xl font-black text-slate-900">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice} <span class="text-xs text-slate-500 font-normal">/ mo</span></p>
-                    <p class="text-[11px] text-slate-500">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.managed.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
+                  <div class="pt-2 border-t border-[#E3ECF7]">
+                    <p class="text-2xl font-black text-[#102A56]">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice} <span class="text-xs text-[#4B6382] font-normal">/ mo</span></p>
+                    <p class="text-[11px] text-[#4B6382]">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.managed.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
                   </div>
 
-                  <ul class="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
+                  <ul class="space-y-2 text-xs text-[#102A56] pt-2 border-t border-[#E3ECF7]">
                     {#each $plansStore.managed.features as feature}
-                      <li class="flex items-center gap-2 font-semibold text-slate-900"><Icon name="Check" size={14} class="text-blue-600 shrink-0" /> <span>{feature}</span></li>
+                      <li class="flex items-center gap-2 font-semibold text-[#102A56]"><Icon name="Check" size={14} class="text-[#1677FF] shrink-0" /> <span>{feature}</span></li>
                     {/each}
                   </ul>
                 </div>
 
                 <div class="pt-6">
                   {#if ($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval}
-                    <button disabled class="w-full py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs cursor-default">Current Plan</button>
+                    <button disabled class="w-full py-2.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#1677FF] font-bold text-xs cursor-default">Current Plan</button>
                   {:else}
-                    <button onclick={() => handlePayPlan('managed')} disabled={isProcessingPayment} class="w-full py-2.5 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20">
+                    <button onclick={() => handlePayPlan('managed')} disabled={isProcessingPayment} class="w-full py-2.5 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50">
                       {isProcessingPayment ? 'Connecting...' : 'Subscribe'}
                     </button>
                   {/if}
@@ -1398,43 +1399,43 @@
         <!-- CANCEL SUBSCRIPTION CONFIRMATION MODAL -->
         <!-- ==================================================== -->
         {#if isCancelModalOpen}
-          <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl space-y-5 text-left">
-              <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div class="fixed inset-0 z-50 flex items-center justify-center p-4 ui-modal-backdrop animate-in fade-in duration-200">
+            <div class="w-full max-w-md ui-modal p-5 sm:p-6 space-y-5 text-left">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E3ECF7]">
                 <div class="flex items-center gap-2.5 text-rose-600">
                   <Icon name="AlertCircle" size={22} />
-                  <h3 class="text-base font-bold text-slate-900">Cancel Subscription?</h3>
+                  <h3 class="text-base font-bold text-[#102A56]">Cancel Subscription?</h3>
                 </div>
                 <button
                   onclick={() => (isCancelModalOpen = false)}
-                  class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  class="p-1 rounded-lg text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] transition-colors"
                   aria-label="Close dialog"
                 >
                   <Icon name="X" size={18} />
                 </button>
               </div>
 
-              <div class="space-y-3 text-xs text-slate-700">
+              <div class="space-y-3 text-xs text-[#4B6382]">
                 <p>
                   Are you sure you want to cancel your VIP subscription? 
                 </p>
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                  <p class="text-slate-900 font-semibold flex items-center gap-1.5 text-[11px]">
-                    <Icon name="CheckCircle2" size={14} class="text-blue-600" />
+                <div class="p-3.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-2">
+                  <p class="text-[#102A56] font-semibold flex items-center gap-1.5 text-[11px]">
+                    <Icon name="CheckCircle2" size={14} class="text-[#1677FF]" />
                     <span>You won't lose your remaining time</span>
                   </p>
-                  <p class="text-slate-500 text-[11px]">
+                  <p class="text-[#4B6382] text-[11px]">
                     Your VIP privileges and WhatsApp Bot will remain active until 
-                    <strong class="text-slate-800">{new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>.
+                    <strong class="text-[#102A56]">{new Date($subscription.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>.
                   </p>
                 </div>
 
                 <div class="space-y-1.5 pt-1">
-                  <label for="cancel-reason-select" class="text-[11px] font-semibold text-slate-700">Please tell us why you are cancelling:</label>
+                  <label for="cancel-reason-select" class="text-[11px] font-semibold text-[#102A56]">Please tell us why you are cancelling:</label>
                   <select
                     id="cancel-reason-select"
                     bind:value={cancelReason}
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
+                    class="ui-select px-3 py-2 text-xs"
                   >
                     <option value="too_expensive">It is too expensive for me right now</option>
                     <option value="byok">I want to use my own free Gemini API key (BYOK)</option>
@@ -1445,11 +1446,11 @@
                 </div>
               </div>
 
-              <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+              <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-3 border-t border-[#E3ECF7]">
                 <button
                   type="button"
                   onclick={() => (isCancelModalOpen = false)}
-                  class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                  class="w-full sm:w-auto px-4 py-2.5 rounded-xl btn-secondary text-xs cursor-pointer text-center"
                 >
                   Keep My Plan
                 </button>
@@ -1460,7 +1461,7 @@
                     isCancelModalOpen = false;
                     billingNotice = 'Your subscription has been cancelled. Access remains active until ' + new Date($subscription.expiresAt).toLocaleDateString();
                   }}
-                  class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-md shadow-rose-600/20"
+                  class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs text-center"
                 >
                   Confirm Cancellation
                 </button>
@@ -1475,50 +1476,50 @@
       {:else if $activeDashboardTab === 'settings' || $activeDashboardTab === 'vault'}
         <div class="h-full overflow-y-auto max-w-4xl mx-auto space-y-6 pb-12">
           <!-- Account Profile Card -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
-                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Icon name="Settings" size={22} class="text-blue-600" />
+                <h2 class="text-xl font-bold text-[#102A56] flex items-center gap-2">
+                  <Icon name="Settings" size={22} class="text-[#1677FF]" />
                   <span>Settings & Preferences</span>
                 </h2>
-                <p class="text-xs text-slate-500 mt-1">Manage your account profile, API keys vault, and administrative control.</p>
+                <p class="text-xs text-[#4B6382] mt-1">Manage your account profile, API keys vault, and administrative control.</p>
               </div>
 
               <!-- Admin Link Pill -->
               <a
                 href="/admin"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 text-blue-700 font-bold text-xs transition-all shadow-xs"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary text-xs font-bold"
               >
-                <Icon name="Shield" size={15} class="text-blue-600" />
+                <Icon name="Shield" size={15} class="text-[#1677FF]" />
                 <span>Admin Panel (/admin) →</span>
               </a>
             </div>
 
             <!-- Profile Info Grid (Custom Domain & Auth Method pruned per request) -->
-            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
-              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Account Information</h3>
+            <div class="p-5 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-4">
+              <h3 class="text-xs font-bold text-[#102A56] uppercase tracking-wider">Account Information</h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <span class="text-slate-500 block mb-1">Display Name</span>
-                  <span class="font-bold text-slate-900 text-sm">{$currentUser?.name || 'Executive User'}</span>
+                  <span class="text-[#4B6382] block mb-1">Display Name</span>
+                  <span class="font-bold text-[#102A56] text-sm">{$currentUser?.name || 'Executive User'}</span>
                 </div>
                 <div>
-                  <span class="text-slate-500 block mb-1">Registered Email</span>
-                  <span class="font-mono text-blue-700 font-bold text-sm">{$currentUser?.email || 'user@ezboagents.com'}</span>
+                  <span class="text-[#4B6382] block mb-1">Registered Email</span>
+                  <span class="font-mono text-[#1677FF] font-bold text-sm">{$currentUser?.email || 'user@ezboagents.com'}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Universal API Key Vault (Moved inside Settings per request) -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="border-b border-slate-100 pb-3">
-              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Icon name="Key" size={18} class="text-blue-600" />
+          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+            <div class="border-b border-[#E3ECF7] pb-3">
+              <h3 class="text-base font-bold text-[#102A56] flex items-center gap-2">
+                <Icon name="Key" size={18} class="text-[#1677FF]" />
                 <span>Universal API Key Vault</span>
               </h3>
-              <p class="text-xs text-slate-500 mt-0.5">
+              <p class="text-xs text-[#4B6382] mt-0.5">
                 Add and manage client-side encrypted API keys for Gemini, OpenAI, Grok, DeepSeek, and OpenRouter.
               </p>
             </div>
@@ -1526,18 +1527,18 @@
             <ApiVaultManager />
 
             {#if $subscription.tier !== 'ultra' && $subscription.tier !== 'complete'}
-              <div class="mt-6 pt-6 border-t border-slate-100 space-y-3">
-                <h4 class="text-sm font-bold text-slate-900">Basic Gemini BYOK Key</h4>
-                <p class="text-xs text-slate-500">Connect your free API key from Google AI Studio for personal BYOK access.</p>
+              <div class="mt-6 pt-6 border-t border-[#E3ECF7] space-y-3">
+                <h4 class="text-sm font-bold text-[#102A56]">Basic Gemini BYOK Key</h4>
+                <p class="text-xs text-[#4B6382]">Connect your free API key from Google AI Studio for personal BYOK access.</p>
                 <div class="space-y-3">
                   <input
                     type="password"
                     bind:value={inputKey}
                     placeholder="AIzaSy..."
-                    class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-mono placeholder-slate-400 outline-none"
+                    class="ui-input px-4 py-2.5 text-xs font-mono"
                   />
                   {#if keyValidationMsg}
-                    <div class="p-3 rounded-xl text-xs flex items-center gap-2 {keyValidationState === 'valid' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : keyValidationState === 'invalid' ? 'bg-rose-50 border border-rose-200 text-rose-700' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
+                    <div class="p-3 rounded-xl text-xs flex items-center gap-2 {keyValidationState === 'valid' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : keyValidationState === 'invalid' ? 'bg-rose-50 border border-rose-200 text-rose-700' : 'bg-[#F3F8FF] text-[#102A56] border border-[#E3ECF7]'}">
                       <Icon name={keyValidationState === 'valid' ? 'Check' : 'AlertCircle'} size={14} />
                       <span>{keyValidationMsg}</span>
                     </div>
@@ -1547,11 +1548,11 @@
                       type="button"
                       onclick={testAndSaveApiKey}
                       disabled={keyValidationState === 'testing'}
-                      class="px-5 py-2 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20"
+                      class="px-5 py-2 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50"
                     >
                       {keyValidationState === 'testing' ? 'Validating...' : 'Save & Validate Key'}
                     </button>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-colors">
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="px-3.5 py-2 rounded-xl btn-secondary text-xs flex items-center gap-1.5">
                       <span>Get Free Key</span>
                       <Icon name="ExternalLink" size={13} />
                     </a>
@@ -1562,15 +1563,15 @@
           </div>
 
           <!-- Danger Zone / Sign Out -->
-          <div class="p-6 rounded-3xl bg-white border border-rose-200 shadow-sm flex items-center justify-between">
+          <div class="p-5 sm:p-6 rounded-3xl ui-card-static border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
             <div>
               <h4 class="text-xs font-bold text-rose-700">Sign Out of Session</h4>
-              <p class="text-[11px] text-slate-500">Clear your stored local session and return to the login screen.</p>
+              <p class="text-[11px] text-[#4B6382]">Clear your stored local session and return to the login screen.</p>
             </div>
             <button
               type="button"
               onclick={handleLogout}
-              class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-md shadow-rose-600/20"
+              class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-md shadow-rose-600/20 text-center"
             >
               Log Out
             </button>
@@ -1581,5 +1582,5 @@
   </main>
 
   <!-- Interactive Tool Drawer (Active when user clicks Launch on any tool in the Tools Catalog) -->
-  <ToolDrawer />
+  <ToolDrawer onOpenByok={() => { closeToolDrawer(); switchTab('settings'); }} />
 </div>

@@ -13,7 +13,7 @@
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
     Eye, EyeOff, Lock, Plus, Save, Trash2, Loader, ToggleLeft, ToggleRight, TrendingUp, Infinity,
-    ChevronDown, ChevronUp, Sliders
+    ChevronDown, ChevronUp, Sliders, ShieldCheck, Cpu
   } from '@lucide/svelte';
 
   let { name = 'Sparkles', size = 20, class: className = '' } = $props<{
@@ -36,7 +36,7 @@
     ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
     Eye, EyeOff, Lock, Plus, Save, Trash2, Loader, ToggleLeft, ToggleRight, TrendingUp, Infinity,
-    ChevronDown, ChevronUp, Sliders,
+    ChevronDown, ChevronUp, Sliders, ShieldCheck, Cpu,
     // Aliases for social
     Youtube: Video,
     Linkedin: Share2,

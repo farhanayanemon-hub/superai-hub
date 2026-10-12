@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
+  import RobotAvatar from '$lib/components/RobotAvatar.svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import { TOOLS, CATEGORIES, AI_CEO_PROFILE } from '$lib/config/tools';
@@ -56,7 +57,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
+  class="min-h-screen bg-[#F3F8FF] text-[#102A56] flex flex-col font-sans selection:bg-[#1677FF] selection:text-white"
 >
   <Navbar />
 
@@ -65,28 +66,23 @@
     <!-- 1. HERO SECTION -->
     <!-- ======================================================== -->
     <section
-      class="relative pt-20 pb-16 sm:pt-28 sm:pb-24 overflow-hidden bg-gradient-to-b from-white via-blue-50/40 to-[#f8fafc]"
+      class="relative pt-20 pb-16 sm:pt-28 sm:pb-24 overflow-hidden bg-gradient-to-b from-white via-[#F3F8FF]/60 to-[#F3F8FF] border-b border-[#E3ECF7]"
     >
-      <!-- Ambient Animated Spotlights -->
-      <div
-        class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[420px] bg-gradient-to-b from-blue-400/15 via-indigo-400/10 to-transparent blur-[140px] pointer-events-none rounded-full animate-pulse"
-      ></div>
-
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center space-y-6 max-w-4xl mx-auto">
           <!-- Top Animated Pill: Regular New Bots in 1 Subscription -->
           <div
-            class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-blue-200 shadow-xs text-xs font-extrabold text-blue-700"
+            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E3ECF7] shadow-2xs text-[11px] sm:text-xs font-extrabold text-[#1677FF] max-w-full text-center flex-wrap justify-center"
           >
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="break-words">
               👑 1 Master AI CEO + 75+ AI Helpers • New AI Bots Added Regularly in 1 Subscription!
             </span>
           </div>
 
           <!-- Main Title -->
           <h1
-            class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.12]"
+            class="text-3xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#102A56] leading-[1.15] sm:leading-[1.12] break-words"
           >
             1 Master <span class="blue-gradient-text font-serif italic">AI CEO</span> Controlling
             <br class="hidden sm:inline" />
@@ -94,8 +90,8 @@
           </h1>
 
           <!-- Subtitle -->
-          <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Every helper features its own custom options and interactive Studio chat — or skip individual chats altogether and command the <strong>Master AI CEO</strong> directly from Web, <strong>WhatsApp</strong>, or <strong>Telegram</strong> to orchestrate all 75+ helpers for you.
+          <p class="text-base sm:text-lg text-[#4B6382] max-w-2xl mx-auto leading-relaxed">
+            Every helper features its own custom options and interactive Studio chat — or skip individual chats altogether and command the <strong class="text-[#102A56]">Master AI CEO</strong> directly from Web, <strong class="text-[#102A56]">WhatsApp</strong>, or <strong class="text-[#102A56]">Telegram</strong> to orchestrate all 75+ helpers for you.
           </p>
 
           <!-- Primary CTAs -->
@@ -103,7 +99,7 @@
             {#if $isAuthenticated}
               <a
                 href={$currentUser?.isSubscribed ? '/dashboard' : '/plans'}
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>
                   {$currentUser?.isSubscribed
@@ -115,14 +111,14 @@
             {:else}
               <a
                 href="/signup"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <span>Unlock AI CEO + 75+ Helpers</span>
                 <Icon name="ArrowRight" size={16} />
               </a>
               <a
                 href="#helpers-catalog"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm bg-white/80 backdrop-blur-md hover:bg-white border border-slate-200 text-slate-800 transition-all shadow-xs flex items-center justify-center gap-2"
+                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm btn-secondary flex items-center justify-center gap-2"
               >
                 <span>Explore All 75+ AI Helpers</span>
               </a>
@@ -132,37 +128,43 @@
           <!-- Trust Badges -->
           <div class="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
             <div
-              class="p-4 rounded-2xl bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-xs hover:-translate-y-0.5 transition-all"
+              class="p-4 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/40 transition-all flex items-start gap-3"
             >
-              <div class="flex items-center gap-2 text-blue-700 font-bold text-xs sm:text-sm">
-                <Icon name="Crown" size={16} class="text-blue-600 shrink-0" />
-                <span>1 Master AI CEO Orchestrator</span>
+              <div
+                class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#071324] via-[#0E203B] to-[#040A14] border border-[#38CFFF]/40 flex items-center justify-center shrink-0 p-0.5 shadow-xs"
+              >
+                <RobotAvatar helperId="ceo" size="custom" class="w-full h-full" ariaHidden={true} />
               </div>
-              <p class="text-[11px] text-slate-500 mt-1">
-                Command and control all 75+ specialized helpers from a single chat
-              </p>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 text-[#102A56] font-bold text-xs sm:text-sm">
+                  <span>1 Master AI CEO Orchestrator</span>
+                </div>
+                <p class="text-[11px] text-[#4B6382] mt-0.5 leading-relaxed">
+                  Command and control all 75+ specialized helpers from a single chat
+                </p>
+              </div>
             </div>
 
             <div
-              class="p-4 rounded-2xl bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-xs hover:-translate-y-0.5 transition-all"
+              class="p-4 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/40 transition-all"
             >
-              <div class="flex items-center gap-2 text-blue-700 font-bold text-xs sm:text-sm">
-                <Icon name="MessageSquare" size={16} class="text-blue-600 shrink-0" />
+              <div class="flex items-center gap-2 text-[#102A56] font-bold text-xs sm:text-sm">
+                <Icon name="MessageSquare" size={16} class="text-[#1677FF] shrink-0" />
                 <span>WhatsApp & Telegram Control</span>
               </div>
-              <p class="text-[11px] text-slate-500 mt-1">
+              <p class="text-[11px] text-[#4B6382] mt-1 leading-relaxed">
                 Instruct the AI CEO and all 75 helpers directly via WhatsApp & Telegram
               </p>
             </div>
 
             <div
-              class="p-4 rounded-2xl bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-xs hover:-translate-y-0.5 transition-all"
+              class="p-4 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/40 transition-all"
             >
-              <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs sm:text-sm">
-                <Icon name="Sparkles" size={16} class="text-emerald-600 shrink-0" />
+              <div class="flex items-center gap-2 text-[#102A56] font-bold text-xs sm:text-sm">
+                <Icon name="Sparkles" size={16} class="text-[#1677FF] shrink-0" />
                 <span>Regular New Bots in 1 Plan</span>
               </div>
-              <p class="text-[11px] text-slate-500 mt-1">
+              <p class="text-[11px] text-[#4B6382] mt-1 leading-relaxed">
                 New AI helpers added regularly — unlocked automatically in one subscription
               </p>
             </div>
@@ -176,80 +178,111 @@
     <!-- ======================================================== -->
     <section
       id="helpers-catalog"
-      class="py-20 relative overflow-hidden bg-gradient-to-b from-[#f8fafc] via-blue-50/25 to-[#f8fafc] border-t border-slate-200/80"
+      class="py-20 relative overflow-hidden bg-[#F3F8FF]"
     >
-      <!-- Ambient Floating Gradient Orbs -->
-      <div
-        class="pointer-events-none absolute top-32 -left-24 w-96 h-96 rounded-full bg-blue-400/10 blur-3xl animate-pulse"
-      ></div>
-      <div
-        class="pointer-events-none absolute bottom-32 -right-24 w-96 h-96 rounded-full bg-indigo-400/10 blur-3xl animate-pulse"
-      ></div>
-
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
         <!-- Section Title & Regular New Bots Promise Banner -->
         <div class="text-center max-w-3xl mx-auto space-y-4">
           <div
-            class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-extrabold uppercase tracking-wider"
+            class="inline-flex items-center gap-2 rounded-full ui-badge-primary px-3.5 py-1 text-[11px] sm:text-xs font-extrabold uppercase tracking-wider max-w-full text-center flex-wrap justify-center"
           >
-            <Icon name="Sparkles" size={13} />
-            <span>75+ Specialized AI Helpers • Organized by Category</span>
+            <Icon name="Sparkles" size={13} class="shrink-0" />
+            <span class="break-words">75+ Specialized AI Helpers • Organized by Category</span>
           </div>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#102A56] tracking-tight">
             Meet Your <span class="blue-gradient-text">AI CEO</span> & 75+ AI Helpers
           </h2>
-          <p class="text-sm sm:text-base text-slate-600">
-            All 75+ helpers below are unlocked inside <strong>1 single subscription</strong>, with new bots added regularly at zero extra cost.
+          <p class="text-sm sm:text-base text-[#4B6382]">
+            All 75+ helpers below are unlocked inside <strong class="text-[#102A56]">1 single subscription</strong>, with new bots added regularly at zero extra cost.
           </p>
         </div>
 
-        <!-- Master AI CEO Hero Card (Transparent Animated Glassmorphic) -->
+        <!-- Master AI CEO Hero Card -->
         <div
-          class="relative rounded-3xl bg-gradient-to-r from-slate-900/95 via-blue-950/95 to-slate-900/95 backdrop-blur-2xl border border-blue-400/40 p-6 sm:p-8 text-white shadow-2xl shadow-blue-500/15 overflow-hidden group"
+          class="relative rounded-3xl ui-banner-navy p-6 sm:p-8 text-white overflow-hidden group shadow-xl border border-[#38CFFF]/30"
         >
+          <!-- Ambient Cyber Glow Backdrop -->
           <div
-            class="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl group-hover:scale-125 transition-transform duration-700"
+            class="absolute -top-24 -right-24 w-96 h-96 bg-[#38CFFF]/15 rounded-full blur-3xl pointer-events-none"
+          ></div>
+          <div
+            class="absolute -bottom-24 -left-24 w-96 h-96 bg-[#1677FF]/20 rounded-full blur-3xl pointer-events-none"
           ></div>
 
           <div
             class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
           >
-            <div class="flex items-start sm:items-center gap-4">
-              <div
-                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 border border-blue-300/40 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform"
-              >
-                <Icon name="Crown" size={30} />
+            <div class="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0 flex-1">
+              <!-- CEO Royal Cyber Pod Showcase -->
+              <div class="relative shrink-0">
+                <div
+                  class="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-[#FDE047] via-[#38CFFF] to-[#1677FF] opacity-70 blur-xs group-hover:opacity-100 transition-opacity duration-500 animate-pulse"
+                ></div>
+                <div
+                  class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-[#071324] via-[#0D2447] to-[#040A14] border-2 border-[#38CFFF]/80 flex items-center justify-center shadow-2xl overflow-hidden p-2 group-hover:scale-105 transition-transform duration-300"
+                >
+                  <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,207,255,0.3)_0%,transparent_70%)] pointer-events-none"
+                  ></div>
+                  <!-- Cyber Corner Tech Reticles -->
+                  <div class="absolute top-1.5 left-1.5 w-2 h-2 border-t-2 border-l-2 border-[#FDE047]/80 pointer-events-none"></div>
+                  <div class="absolute bottom-1.5 right-1.5 w-2 h-2 border-b-2 border-r-2 border-[#38CFFF]/80 pointer-events-none"></div>
+
+                  <RobotAvatar
+                    helperId="ceo"
+                    size="custom"
+                    class="w-full h-full relative z-10"
+                    title={AI_CEO_PROFILE.name}
+                  />
+                </div>
               </div>
-              <div class="space-y-1.5">
+
+              <div class="space-y-2 min-w-0 flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span
-                    class="px-2.5 py-0.5 rounded-md bg-cyan-400/20 border border-cyan-300/40 text-cyan-300 font-mono text-xs font-extrabold"
+                    class="px-2.5 py-0.5 rounded-md bg-[#38CFFF]/15 border border-[#38CFFF]/40 text-[#38CFFF] font-mono text-xs font-extrabold shrink-0 flex items-center gap-1 shadow-2xs"
                   >
-                    MASTER #CEO
+                    👑 MASTER #CEO-00
                   </span>
-                  <h3 class="text-xl sm:text-2xl font-black text-white">
-                    {AI_CEO_PROFILE.name}
-                  </h3>
                   <span
-                    class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold uppercase"
+                    class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold uppercase shrink-0 flex items-center gap-1"
                   >
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     Web + WhatsApp + Telegram
                   </span>
                 </div>
-                <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                  Don’t want to open individual helper chats? Simply instruct the main <strong>AI CEO</strong> — it automatically delegates to and controls all 75+ helpers across Web, WhatsApp, and Telegram.
+
+                <div>
+                  <h3 class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
+                    {AI_CEO_PROFILE.name}
+                  </h3>
+                  <p class="text-xs sm:text-sm text-[#38CFFF] font-medium mt-0.5">
+                    Chief Autonomous Executive & Central Orchestrator of All 75+ AI Helpers
+                  </p>
+                </div>
+
+                <p class="text-xs sm:text-sm text-white/80 max-w-2xl leading-relaxed break-words">
+                  Don’t want to open individual helper chats? Simply instruct the main <strong
+                    class="text-white font-bold">AI CEO</strong
+                  > — it automatically delegates to and commands all 75+ helpers across Web, WhatsApp,
+                  and Telegram.
                 </p>
               </div>
             </div>
 
-            <div class="flex items-center gap-3 shrink-0">
+            <div
+              class="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-3 shrink-0"
+            >
               <a
                 href={$isAuthenticated ? '/dashboard' : '/signup'}
-                class="px-5 py-3 rounded-xl blue-btn text-white text-xs font-bold flex items-center gap-2 shadow-lg cursor-pointer"
+                class="px-6 py-3.5 rounded-xl blue-btn text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-[#1677FF]/40 cursor-pointer"
               >
-                <span>Command AI CEO</span>
-                <Icon name="ArrowRight" size={14} />
+                <span>Command Master AI CEO</span>
+                <Icon name="ArrowRight" size={15} />
               </a>
+              <span class="text-[11px] text-[#A6C8EE] text-center lg:text-right font-medium">
+                ⚡ Instant Delegation to 75+ AI Helpers
+              </span>
             </div>
           </div>
         </div>
@@ -260,88 +293,141 @@
             <button
               type="button"
               onclick={() => (selectedLandingCategory = cat.id)}
-              class="px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer {selectedLandingCategory ===
+              class="px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer {selectedLandingCategory ===
               cat.id
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-105'
-                : 'bg-white/75 backdrop-blur-md border border-slate-200/90 text-slate-700 hover:border-blue-400 hover:text-blue-600'}"
+                ? 'bg-[#1677FF] text-white shadow-xs'
+                : 'bg-white border border-[#E3ECF7] text-[#4B6382] hover:border-[#1677FF] hover:text-[#1677FF]'}"
             >
               {cat.name} ({cat.count})
             </button>
           {/each}
         </div>
 
-        <!-- Category-Wise Sections of Transparent Animated Helper Cards -->
+        <!-- Category-Wise Sections of Helper Cards -->
         <div class="space-y-12">
           {#each visibleCategories as category (category.id)}
             {@const catHelpers = TOOLS.filter((t) => t.category === category.id)}
             <div class="space-y-4">
               <!-- Category Section Header -->
               <div
-                class="flex items-center justify-between border-b border-slate-200/80 pb-3 flex-wrap gap-2"
+                class="flex items-center justify-between border-b border-[#E3ECF7] pb-3 flex-wrap gap-2"
               >
                 <div class="flex items-center gap-2.5">
                   <div
-                    class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-200/80 flex items-center justify-center text-blue-600"
+                    class="w-9 h-9 rounded-xl bg-white border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] shadow-2xs"
                   >
                     <Icon name={category.icon || 'Sparkles'} size={18} />
                   </div>
                   <div>
-                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+                    <h3 class="text-base sm:text-lg font-extrabold text-[#102A56]">
                       {category.name}
                     </h3>
                   </div>
                 </div>
                 <span
-                  class="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md border border-slate-200 text-xs font-bold text-blue-700"
+                  class="px-3 py-1 rounded-full bg-white border border-[#E3ECF7] text-xs font-bold text-[#1677FF]"
                 >
                   {catHelpers.length} AI Helpers
                 </span>
               </div>
 
-              <!-- Compact Transparent Animated Cards Grid -->
+              <!-- Futuristic AI Robot Helper Cards Grid -->
               <div
-                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5"
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
               >
                 {#each catHelpers as helper (helper.id)}
                   <a
                     href={$isAuthenticated ? '/dashboard' : '/signup'}
-                    class="group relative rounded-2xl bg-white/60 hover:bg-white/90 backdrop-blur-xl border border-slate-200/80 hover:border-blue-500/70 p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 overflow-hidden"
+                    class="group relative rounded-2xl bg-white/90 backdrop-blur-md border border-[#E3ECF7] p-4 sm:p-4.5 flex flex-col justify-between hover:border-[#1677FF]/50 hover:shadow-[0_16px_36px_-10px_rgba(22,119,255,0.2)] hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer shadow-xs"
                   >
-                    <!-- Subtle Animated Glow -->
+                    <!-- Top Animated Cyber Glow Accent -->
                     <div
-                      class="pointer-events-none absolute -top-8 -right-8 w-20 h-20 rounded-full bg-gradient-to-br from-blue-500/15 to-cyan-400/15 blur-xl group-hover:scale-150 transition-transform duration-500"
+                      class="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-transparent via-[#38CFFF] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     ></div>
 
-                    <div class="relative z-10 space-y-2">
-                      <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                          <div
-                            class="w-8 h-8 rounded-lg bg-blue-50/90 border border-blue-200/70 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform"
-                          >
-                            <Icon name={helper.icon || 'Sparkles'} size={15} />
-                          </div>
-                          <span
-                            class="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono text-[10px] font-extrabold"
-                          >
-                            {helper.code}
-                          </span>
-                        </div>
-                        <span
-                          class="px-2 py-0.5 rounded-full bg-blue-50/80 border border-blue-200/70 text-[9px] font-bold text-blue-700 uppercase"
+                    <!-- Ambient Soft Corner Glow on Hover -->
+                    <div
+                      class="absolute -top-12 -right-12 w-28 h-28 bg-[#1677FF]/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    ></div>
+
+                    <div class="relative z-10 space-y-3">
+                      <!-- Header: Cyber Avatar Pod Showcase + Identity -->
+                      <div class="flex items-start gap-3.5">
+                        <!-- High-Contrast Cybernetic Avatar Showcase Pod -->
+                        <div
+                          class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#071324] via-[#0E203B] to-[#040A14] border border-[#38CFFF]/40 group-hover:border-[#38CFFF] group-hover:shadow-[0_0_20px_rgba(56,207,255,0.45)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center shrink-0 overflow-hidden p-1 relative shadow-md"
                         >
-                          {helper.badge}
-                        </span>
+                          <!-- Radial Energy Backdrop Glow -->
+                          <div
+                            class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,207,255,0.25)_0%,transparent_75%)] pointer-events-none"
+                          ></div>
+                          <!-- Cyber Corner Tech Reticles -->
+                          <div class="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-[#38CFFF]/60 pointer-events-none"></div>
+                          <div class="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-[#38CFFF]/60 pointer-events-none"></div>
+
+                          <RobotAvatar
+                            helperId={helper.id}
+                            size="custom"
+                            class="w-full h-full relative z-10"
+                            title="{helper.agentName} ({helper.code}) — {helper.name}"
+                            ariaHidden={true}
+                          />
+                        </div>
+
+                        <!-- Agent Identity & Badges -->
+                        <div class="min-w-0 flex-1 space-y-1">
+                          <div class="flex items-center justify-between gap-1.5">
+                            <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                              <span
+                                class="font-extrabold text-xs sm:text-[13px] text-[#1677FF] font-mono tracking-tight truncate group-hover:text-[#0E63E0] transition-colors"
+                              >
+                                {helper.agentName}
+                              </span>
+                              <span class="text-[#94A3B8] text-xs font-mono">•</span>
+                              <span
+                                class="px-1.5 py-0.5 rounded-md bg-[#102A56] text-white font-mono text-[9px] sm:text-[10px] font-extrabold shadow-2xs shrink-0"
+                              >
+                                {helper.code}
+                              </span>
+                            </div>
+                            {#if helper.badge}
+                              <span
+                                class="ui-badge-primary px-2 py-0.5 rounded-full text-[9px] uppercase font-bold shrink-0"
+                              >
+                                {helper.badge}
+                              </span>
+                            {/if}
+                          </div>
+
+                          <h4
+                            class="font-bold text-xs sm:text-sm text-[#102A56] group-hover:text-[#1677FF] transition-colors line-clamp-1 leading-snug"
+                          >
+                            {helper.name}
+                          </h4>
+                        </div>
                       </div>
 
-                      <h4
-                        class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1"
-                      >
-                        {helper.name}
-                      </h4>
-
-                      <p class="text-[11px] text-slate-500 line-clamp-1">
-                        {helper.shortDesc}
+                      <!-- Helper Description -->
+                      <p class="text-[11px] sm:text-xs text-[#4B6382] line-clamp-2 leading-relaxed">
+                        {helper.shortDesc || helper.description}
                       </p>
+                    </div>
+
+                    <!-- Micro-Footer: Active Status & Launch Cue -->
+                    <div
+                      class="relative z-10 mt-3.5 pt-2.5 border-t border-[#E3ECF7]/90 flex items-center justify-between text-[11px]"
+                    >
+                      <span
+                        class="inline-flex items-center gap-1.5 text-emerald-600 font-bold text-[10px]"
+                      >
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Active Robot
+                      </span>
+                      <span
+                        class="text-[#1677FF] font-extrabold text-[11px] group-hover:translate-x-0.5 transition-transform flex items-center gap-1"
+                      >
+                        Launch Studio <Icon name="ArrowRight" size={11} />
+                      </span>
                     </div>
                   </a>
                 {/each}
@@ -352,18 +438,18 @@
 
         <!-- Bottom Banner: Regular New Bots Added in 1 Subscription -->
         <div
-          class="rounded-3xl bg-white/80 backdrop-blur-xl border-2 border-blue-500/40 p-6 sm:p-8 text-center space-y-3 shadow-lg shadow-blue-500/5"
+          class="rounded-3xl bg-white border border-[#1677FF]/30 p-6 sm:p-8 text-center space-y-3 shadow-sm"
         >
           <div
             class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-extrabold uppercase"
           >
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
             <span>Continuous Expansion Guarantee</span>
           </div>
-          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900">
+          <h3 class="text-xl sm:text-2xl font-extrabold text-[#102A56]">
             New AI Bots & Helpers Added Regularly — All Included in 1 Subscription!
           </h3>
-          <p class="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
+          <p class="text-xs sm:text-sm text-[#4B6382] max-w-2xl mx-auto">
             We continuously build and release new specialized AI Helpers for business growth, marketing, and freelancing. Every new helper is unlocked automatically in your existing plan at zero extra cost.
           </p>
         </div>
@@ -373,13 +459,13 @@
     <!-- ======================================================== -->
     <!-- 3. WHATSAPP & TELEGRAM ENGINE ARCHITECTURE -->
     <!-- ======================================================== -->
-    <section id="features" class="py-24 bg-white border-t border-slate-200 relative">
+    <section id="features" class="py-24 bg-white border-t border-[#E3ECF7] relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#102A56] tracking-tight">
             Control Your AI CEO & 75+ Helpers via WhatsApp & Telegram
           </h2>
-          <p class="text-sm sm:text-base text-slate-600">
+          <p class="text-sm sm:text-base text-[#4B6382]">
             Alongside the Web Console, you can command the Master AI CEO and all 75 AI Helpers directly from your personal WhatsApp and Telegram.
           </p>
         </div>
@@ -387,38 +473,38 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="glass-card rounded-2xl p-6 space-y-4">
             <div
-              class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono font-bold text-lg"
+              class="w-12 h-12 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-mono font-bold text-lg"
             >
               01
             </div>
-            <h3 class="text-lg font-bold text-slate-900">Link WhatsApp or Telegram</h3>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <h3 class="text-lg font-bold text-[#102A56]">Link WhatsApp or Telegram</h3>
+            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
               Connect your WhatsApp QR or Telegram account in under 10 seconds from the Channels tab in your dashboard.
             </p>
           </div>
 
           <div class="glass-card rounded-2xl p-6 space-y-4">
             <div
-              class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono font-bold text-lg"
+              class="w-12 h-12 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-mono font-bold text-lg"
             >
               02
             </div>
-            <h3 class="text-lg font-bold text-slate-900">Instruct AI CEO or #01–#75</h3>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <h3 class="text-lg font-bold text-[#102A56]">Instruct AI CEO or #01–#75</h3>
+            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
               Describe any task in plain language and the Master AI CEO will automatically route it to the right helper, or type <code
-                class="text-blue-600 font-mono font-bold">#01</code
-              > through <code class="text-blue-600 font-mono font-bold">#75</code> to target a specific helper.
+                class="text-[#1677FF] font-mono font-bold">#01</code
+              > through <code class="text-[#1677FF] font-mono font-bold">#75</code> to target a specific helper.
             </p>
           </div>
 
           <div class="glass-card rounded-2xl p-6 space-y-4">
             <div
-              class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono font-bold text-lg"
+              class="w-12 h-12 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-mono font-bold text-lg"
             >
               03
             </div>
-            <h3 class="text-lg font-bold text-slate-900">Instant Executive Output</h3>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <h3 class="text-lg font-bold text-[#102A56]">Instant Executive Output</h3>
+            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
               Receive ready-to-use ad copies, proposals, humanized articles, graphics, and strategies directly in your chat within seconds.
             </p>
           </div>
@@ -429,34 +515,34 @@
     <!-- ======================================================== -->
     <!-- 4. PRICING - 2 TIERS: BYOK vs ALL-INCLUSIVE MANAGED -->
     <!-- ======================================================== -->
-    <section id="pricing" class="py-24 relative bg-[#f8fafc] border-y border-slate-200">
+    <section id="pricing" class="py-24 relative bg-[#F3F8FF] border-y border-[#E3ECF7]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12 space-y-4">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#102A56] tracking-tight">
             One Subscription. All 75+ Helpers + Future Bots Included.
           </h2>
-          <p class="text-sm sm:text-base text-slate-600">
+          <p class="text-sm sm:text-base text-[#4B6382]">
             Bring your own API keys (BYOK) or choose our 100% Managed Cloud — both plans unlock the Master AI CEO and all 75+ AI Helpers.
           </p>
 
           <!-- Monthly / Yearly Toggle -->
-          <div class="flex items-center justify-center gap-3 pt-2">
+          <div class="flex items-center justify-center gap-3 pt-2 flex-wrap text-center">
             <span
               class="text-sm font-semibold {billingInterval === 'monthly'
-                ? 'text-slate-900'
-                : 'text-slate-500'}">Monthly</span
+                ? 'text-[#102A56]'
+                : 'text-[#4B6382]'}">Monthly</span
             >
             <button
               onclick={() =>
                 (billingInterval = billingInterval === 'monthly' ? 'yearly' : 'monthly')}
               aria-label="Toggle billing interval between monthly and yearly"
-              class="relative w-14 h-7 rounded-full transition-all duration-300 {billingInterval ===
+              class="relative w-14 h-8 rounded-full transition-all duration-300 {billingInterval ===
               'yearly'
-                ? 'bg-blue-600'
-                : 'bg-slate-300'} cursor-pointer"
+                ? 'bg-[#1677FF]'
+                : 'bg-[#CBD9EC]'} cursor-pointer"
             >
               <span
-                class="absolute top-1 transition-all duration-300 w-5 h-5 rounded-full bg-white shadow-xs {billingInterval ===
+                class="absolute top-1.5 transition-all duration-300 w-5 h-5 rounded-full bg-white shadow-xs {billingInterval ===
                 'yearly'
                   ? 'left-8'
                   : 'left-1'}"
@@ -464,8 +550,8 @@
             </button>
             <span
               class="text-sm font-semibold {billingInterval === 'yearly'
-                ? 'text-blue-700 font-bold'
-                : 'text-slate-500'}">Yearly</span
+                ? 'text-[#1677FF] font-bold'
+                : 'text-[#4B6382]'}">Yearly</span
             >
             {#if billingInterval === 'yearly'}
               <span
@@ -477,41 +563,41 @@
         </div>
 
         <!-- 2-Tier Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
           <!-- PLAN 1: BYOK MULTI-ENGINE -->
           <div
-            class="rounded-3xl bg-white border border-slate-200 p-8 flex flex-col justify-between hover:border-blue-300 transition-all duration-300 shadow-sm"
+            class="rounded-3xl bg-white border border-[#E3ECF7] p-6 sm:p-8 flex flex-col justify-between hover:border-[#1677FF]/40 transition-all duration-300 shadow-xs"
           >
             <div>
               <div class="mb-5">
                 <span
-                  class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200"
+                  class="px-3 py-1 rounded-full bg-[#F3F8FF] text-xs font-bold text-[#102A56] border border-[#E3ECF7]"
                   >{$plansStore.byok.badge}</span
                 >
-                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">
+                <h3 class="text-2xl font-extrabold text-[#102A56] mt-3">
                   {$plansStore.byok.name}
                 </h3>
                 <div class="flex items-baseline gap-1 mt-2">
-                  <span class="text-3xl font-extrabold text-slate-900"
+                  <span class="text-3xl font-extrabold text-[#102A56]"
                     >BDT {billingInterval === 'yearly'
                       ? $plansStore.byok.yearlyMonthlyPrice
                       : $plansStore.byok.monthlyPrice}</span
                   >
-                  <span class="text-sm font-medium text-slate-500">/mo</span>
+                  <span class="text-sm font-medium text-[#4B6382]">/mo</span>
                 </div>
                 {#if billingInterval === 'yearly'}
-                  <p class="text-xs text-slate-500 mt-1">
+                  <p class="text-xs text-[#4B6382] mt-1">
                     Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)
                   </p>
                 {/if}
               </div>
-              <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+              <p class="text-xs text-[#4B6382] mb-6 leading-relaxed">
                 {$plansStore.byok.description}
               </p>
-              <ul class="space-y-3 text-xs text-slate-700">
+              <ul class="space-y-3 text-xs text-[#102A56]">
                 {#each $plansStore.byok.features as feature}
                   <li class="flex items-center gap-2">
-                    <Icon name="Check" size={14} class="text-blue-600 shrink-0" />
+                    <Icon name="Check" size={14} class="text-[#1677FF] shrink-0" />
                     <span>{feature}</span>
                   </li>
                 {/each}
@@ -519,7 +605,7 @@
             </div>
             <a
               href={$isAuthenticated ? '/plans?plan=byok' : '/signup?plan=byok'}
-              class="mt-8 w-full py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs text-center transition-all block cursor-pointer"
+              class="mt-8 w-full py-4 rounded-xl btn-secondary font-bold text-xs text-center transition-all block cursor-pointer"
             >
               Start with BYOK
             </a>
@@ -527,11 +613,11 @@
 
           <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
           <div
-            class="rounded-3xl bg-white border-2 border-blue-600 p-8 flex flex-col justify-between relative shadow-xl shadow-blue-500/10 scale-[1.02]"
+            class="rounded-3xl bg-white border-2 border-[#1677FF] p-6 sm:p-8 flex flex-col justify-between relative shadow-md md:scale-[1.01]"
           >
             {#if $plansStore.managed.highlightBadge}
               <div
-                class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md whitespace-nowrap"
+                class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#1677FF] text-white text-[11px] font-black uppercase tracking-wider shadow-xs whitespace-nowrap"
               >
                 {$plansStore.managed.highlightBadge}
               </div>
@@ -539,33 +625,33 @@
             <div>
               <div class="mb-5">
                 <span
-                  class="px-3 py-1 rounded-full bg-blue-50 text-xs font-bold text-blue-700 border border-blue-200"
+                  class="ui-badge-primary px-3 py-1 rounded-full text-xs"
                   >{$plansStore.managed.badge}</span
                 >
-                <h3 class="text-2xl font-extrabold text-slate-900 mt-3">
+                <h3 class="text-2xl font-extrabold text-[#102A56] mt-3">
                   {$plansStore.managed.name}
                 </h3>
                 <div class="flex items-baseline gap-1 mt-2">
-                  <span class="text-3xl font-extrabold text-slate-900"
+                  <span class="text-3xl font-extrabold text-[#102A56]"
                     >BDT {billingInterval === 'yearly'
                       ? $plansStore.managed.yearlyMonthlyPrice
                       : $plansStore.managed.monthlyPrice}</span
                   >
-                  <span class="text-sm font-medium text-slate-500">/mo</span>
+                  <span class="text-sm font-medium text-[#4B6382]">/mo</span>
                 </div>
                 {#if billingInterval === 'yearly'}
-                  <p class="text-xs text-slate-500 mt-1">
+                  <p class="text-xs text-[#4B6382] mt-1">
                     Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)
                   </p>
                 {/if}
               </div>
-              <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+              <p class="text-xs text-[#4B6382] mb-6 leading-relaxed">
                 {$plansStore.managed.description}
               </p>
-              <ul class="space-y-3 text-xs text-slate-700">
+              <ul class="space-y-3 text-xs text-[#102A56]">
                 {#each $plansStore.managed.features as feature}
-                  <li class="flex items-center gap-2">
-                    <Icon name="Check" size={14} class="text-blue-600 shrink-0" />
+                  <li class="flex items-center gap-2 font-medium">
+                    <Icon name="Check" size={14} class="text-[#1677FF] shrink-0" />
                     <span>{feature}</span>
                   </li>
                 {/each}
@@ -573,7 +659,7 @@
             </div>
             <a
               href={$isAuthenticated ? '/plans?plan=managed' : '/signup?plan=managed'}
-              class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs text-center transition-all block shadow-md cursor-pointer"
+              class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs text-center transition-all block cursor-pointer"
             >
               Start All-Inclusive
             </a>
@@ -581,12 +667,12 @@
         </div>
 
         <!-- Payment methods -->
-        <div class="mt-12 text-center text-xs text-slate-500 space-y-2">
+        <div class="mt-12 text-center text-xs text-[#4B6382] space-y-2">
           <p>Instant Activation • 100% Secure Checkout • 3-Day Grace Period</p>
           <div class="flex flex-wrap items-center justify-center gap-3">
             {#each ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard'] as method}
               <span
-                class="px-3 py-1 rounded-lg bg-white border border-slate-200 font-semibold text-slate-700 shadow-2xs"
+                class="px-3 py-1 rounded-lg bg-white border border-[#E3ECF7] font-semibold text-[#102A56] shadow-2xs"
                 >{method}</span
               >
             {/each}
@@ -601,10 +687,10 @@
     <section id="faq" class="py-24 bg-white relative">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 space-y-3">
-          <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900">
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-[#102A56]">
             Frequently Asked Questions
           </h2>
-          <p class="text-xs sm:text-sm text-slate-600">
+          <p class="text-xs sm:text-sm text-[#4B6382]">
             Everything you need to know about the Master AI CEO, 75+ AI Helpers, and WhatsApp/Telegram control.
           </p>
         </div>
@@ -612,24 +698,24 @@
         <div class="space-y-3">
           {#each faqs as faq, i}
             <div
-              class="rounded-2xl bg-[#f8fafc] border border-slate-200 hover:border-blue-300 overflow-hidden transition-all shadow-xs"
+              class="rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] hover:border-[#1677FF]/40 overflow-hidden transition-all"
             >
               <button
                 onclick={() => (openFaq = openFaq === i ? null : i)}
-                class="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-bold text-slate-900 hover:text-blue-600 transition-colors cursor-pointer"
+                class="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-bold text-[#102A56] hover:text-[#1677FF] transition-colors cursor-pointer"
               >
                 <span>{faq.q}</span>
                 <Icon
                   name="ChevronRight"
                   size={16}
-                  class="text-blue-600 shrink-0 transform transition-transform {openFaq === i
+                  class="text-[#1677FF] shrink-0 transform transition-transform {openFaq === i
                     ? 'rotate-90'
                     : ''}"
                 />
               </button>
               {#if openFaq === i}
                 <div
-                  class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100"
+                  class="px-6 pb-5 pt-2 text-xs sm:text-sm text-[#4B6382] leading-relaxed border-t border-[#E3ECF7] bg-white"
                 >
                   {faq.a}
                 </div>

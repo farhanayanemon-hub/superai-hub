@@ -240,52 +240,54 @@
 {#if $isDrawerOpen && $activeTool}
   <!-- Backdrop Overlay -->
   <div
-    class="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm transition-opacity"
+    class="fixed inset-0 z-50 ui-modal-backdrop transition-opacity"
     onclick={closeToolDrawer}
     role="presentation"
   ></div>
 
-  <!-- Slide-out Animated Glassmorphic Studio Panel -->
+  <!-- Slide-out Studio Panel -->
   <div
-    class="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-white/95 backdrop-blur-2xl border-l border-slate-200/80 shadow-2xl flex flex-col transform transition-transform duration-300 overflow-hidden"
+    class="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-white border-l border-[#E3ECF7] shadow-2xl flex flex-col transform transition-transform duration-300 overflow-hidden"
   >
     <!-- Drawer Header -->
     <div
-      class="px-6 py-4 border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-blue-50/40 to-indigo-50/30 flex items-center justify-between"
+      class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E3ECF7] bg-[#F3F8FF] flex items-center justify-between gap-3"
     >
-      <div class="flex items-center gap-3.5">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
         <div
-          class="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20"
+          class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1677FF] text-white flex items-center justify-center shrink-0 shadow-sm"
         >
           <Icon name={$activeTool.icon || 'Sparkles'} size={22} />
           <span
             class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white"
           ></span>
         </div>
-        <div>
+        <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span
-              class="px-2 py-0.5 text-[10px] font-mono font-extrabold rounded-md bg-slate-900 text-white"
+              class="px-2 py-0.5 text-[10px] font-mono font-extrabold rounded-md bg-[#102A56] text-white"
             >
               {$activeTool.code}
             </span>
-            <h2 class="font-extrabold text-base text-slate-900">{$activeTool.name}</h2>
-            <span
-              class="px-2.5 py-0.5 text-[10px] font-bold bg-blue-100/80 text-blue-700 rounded-full border border-blue-200 uppercase"
-            >
-              {$activeTool.badge}
-            </span>
+            <h2 class="font-extrabold text-sm sm:text-base text-[#102A56] truncate">{$activeTool.name}</h2>
+            {#if $activeTool.badge}
+              <span
+                class="px-2.5 py-0.5 text-[10px] font-bold ui-badge-primary rounded-full uppercase"
+              >
+                {$activeTool.badge}
+              </span>
+            {/if}
           </div>
-          <p class="text-xs text-slate-500 mt-0.5">
-            {$activeTool.shortDesc} •
-            <span class="text-blue-600 font-semibold">{$activeTool.categoryName}</span>
+          <p class="text-xs text-[#4B6382] mt-0.5 truncate">
+            {$activeTool.shortDesc || $activeTool.description} •
+            <span class="text-[#1677FF] font-semibold">{$activeTool.categoryName}</span>
           </p>
         </div>
       </div>
 
       <button
         onclick={closeToolDrawer}
-        class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+        class="w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-white border border-transparent hover:border-[#E3ECF7] transition-colors cursor-pointer shrink-0"
         aria-label="Close Helper Studio"
       >
         <Icon name="X" size={18} />
@@ -294,13 +296,13 @@
 
     <!-- WhatsApp / Telegram Remote Control Hint Bar -->
     <div
-      class="px-6 py-2 bg-slate-900 text-slate-200 text-[11px] flex items-center justify-between gap-2 flex-wrap"
+      class="px-4 sm:px-6 py-2.5 bg-[#102A56] text-[#CFE2FA] text-[11px] flex items-center justify-between gap-2 flex-wrap"
     >
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="w-2 h-2 rounded-full bg-[#38CFFF]"></span>
         <span>
-          <strong>AI CEO / WhatsApp / Telegram Command:</strong> Simply include
-          <code class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 font-mono"
+          <strong class="text-white">AI CEO / WhatsApp / Telegram Command:</strong> Simply include
+          <code class="px-1.5 py-0.5 rounded bg-white/10 text-[#38CFFF] font-mono font-bold"
             >{$activeTool.code}</code
           >
           in your message to trigger this helper directly!
@@ -308,8 +310,14 @@
       </div>
       {#if !$isKeyValid && $subscription?.tier !== 'complete'}
         <button
-          onclick={onOpenByok}
-          class="px-2.5 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] cursor-pointer"
+          onclick={() => {
+            if (onOpenByok) {
+              onOpenByok();
+            } else {
+              closeToolDrawer();
+            }
+          }}
+          class="px-2.5 py-1 rounded-lg bg-[#1677FF] hover:bg-[#0E63E0] text-white font-bold text-[10px] cursor-pointer transition-colors"
         >
           Connect API Key
         </button>
@@ -317,22 +325,22 @@
     </div>
 
     <!-- Drawer Body -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 bg-white">
       <!-- Tailored Helper Parameters Card -->
       <div
-        class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-4 shadow-2xs"
+        class="p-5 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-4"
       >
         <div class="flex items-center justify-between flex-wrap gap-2">
           <h3
-            class="text-xs font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-1.5"
+            class="text-xs font-extrabold uppercase tracking-wider text-[#102A56] flex items-center gap-1.5"
           >
-            <Icon name="Sliders" size={14} class="text-blue-600" />
+            <Icon name="Sliders" size={14} class="text-[#1677FF]" />
             <span>Helper Custom Options ({$activeTool.inputs.length})</span>
           </h3>
           <button
             type="button"
             onclick={fillSampleInputs}
-            class="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-[11px] font-semibold text-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+            class="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EBF4FF] border border-[#E3ECF7] hover:border-[#1677FF] text-[11px] font-semibold text-[#1677FF] transition-colors cursor-pointer flex items-center gap-1"
           >
             <Icon name="Zap" size={12} />
             <span>1-Click Sample Fill</span>
@@ -343,11 +351,11 @@
           <div class="space-y-1.5">
             <label
               for={'input-' + input.name}
-              class="block text-xs font-semibold text-slate-700"
+              class="block text-xs font-semibold text-[#102A56]"
             >
               {input.label}
               {#if input.required}
-                <span class="text-blue-600">*</span>
+                <span class="text-[#1677FF]">*</span>
               {/if}
             </label>
 
@@ -357,13 +365,13 @@
                 bind:value={formValues[input.name]}
                 rows={3}
                 placeholder={input.placeholder}
-                class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 leading-relaxed transition-all"
+                class="ui-textarea bg-white rounded-xl p-3 text-xs leading-relaxed"
               ></textarea>
             {:else if input.type === 'select'}
               <select
                 id={'input-' + input.name}
                 bind:value={formValues[input.name]}
-                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                class="ui-select bg-white rounded-xl px-3.5 py-2.5 text-xs"
               >
                 {#each input.options || [] as opt}
                   <option value={opt}>{opt}</option>
@@ -375,22 +383,22 @@
                 type="text"
                 bind:value={formValues[input.name]}
                 placeholder={input.placeholder}
-                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                class="ui-input bg-white rounded-xl px-3.5 py-2.5 text-xs"
               />
             {/if}
           </div>
         {/each}
 
         <!-- Global Studio Controls: Output Language & Tone -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/70">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[#E3ECF7]">
           <div>
-            <label for="studio-lang" class="block text-[11px] font-semibold text-slate-600 mb-1">
+            <label for="studio-lang" class="block text-[11px] font-semibold text-[#4B6382] mb-1">
               Output Language
             </label>
             <select
               id="studio-lang"
               bind:value={outputLanguage}
-              class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+              class="ui-select bg-white rounded-xl px-3 py-2 text-xs"
             >
               <option value="Professional English">🇺🇸 Professional English</option>
               <option value="Bangla & English Mix">🇧🇩/🇺🇸 Bangla & English Mix</option>
@@ -399,13 +407,13 @@
             </select>
           </div>
           <div>
-            <label for="studio-tone" class="block text-[11px] font-semibold text-slate-600 mb-1">
+            <label for="studio-tone" class="block text-[11px] font-semibold text-[#4B6382] mb-1">
               Execution Tone
             </label>
             <select
               id="studio-tone"
               bind:value={outputTone}
-              class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+              class="ui-select bg-white rounded-xl px-3 py-2 text-xs"
             >
               <option value="High-Converting & Persuasive">🔥 High-Converting & Persuasive</option>
               <option value="100% Human & Natural">✨ 100% Human & Natural</option>
@@ -419,7 +427,7 @@
         <button
           onclick={handleGenerate}
           disabled={isGenerating}
-          class="w-full py-3.5 px-4 rounded-xl blue-btn text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50 cursor-pointer shadow-md shadow-blue-500/20"
+          class="w-full py-3.5 px-4 rounded-xl blue-btn text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50 cursor-pointer"
         >
           {#if isGenerating}
             <Icon name="Loader2" size={18} class="animate-spin text-white" />
@@ -442,25 +450,35 @@
       {/if}
 
       <!-- Interactive Studio Output & Follow-Up Chat Thread -->
-      {#if studioChatHistory.length > 0}
-        <div class="space-y-4 pt-2 border-t border-slate-200">
+      {#if studioChatHistory.length === 0 && !isGenerating && !errorMessage}
+        <div class="p-6 rounded-2xl bg-[#F3F8FF]/70 border border-dashed border-[#C8D8EC] text-center space-y-2">
+          <div class="w-10 h-10 rounded-xl bg-white border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
+            <Icon name="Sparkles" size={18} />
+          </div>
+          <p class="text-xs font-bold text-[#102A56]">Ready to Execute [{$activeTool.code}] {$activeTool.name}</p>
+          <p class="text-[11px] text-[#4B6382] max-w-md mx-auto">
+            Fill in the custom parameters above (or click <strong>1-Click Sample Fill</strong>) and press <strong>Generate</strong> to launch your interactive studio output.
+          </p>
+        </div>
+      {:else if studioChatHistory.length > 0}
+        <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <h3
-              class="text-xs font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-2"
+              class="text-xs font-extrabold uppercase tracking-wider text-[#102A56] flex items-center gap-2"
             >
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>Live Helper Studio Output & Chat</span>
             </h3>
 
             <div class="flex items-center gap-2">
               <button
                 onclick={() => handleCopy(outputText)}
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 transition-all cursor-pointer shadow-2xs"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold btn-secondary cursor-pointer"
               >
                 <Icon
                   name={copied ? 'Check' : 'Copy'}
                   size={13}
-                  class={copied ? 'text-blue-600' : ''}
+                  class={copied ? 'text-[#1677FF]' : ''}
                 />
                 <span>{copied ? 'Copied!' : 'Copy Latest'}</span>
               </button>
@@ -481,17 +499,17 @@
               {#if turn.role === 'user'}
                 <div class="flex justify-end">
                   <div
-                    class="max-w-[85%] rounded-2xl rounded-tr-xs bg-blue-600 text-white px-4 py-2.5 text-xs shadow-xs"
+                    class="max-w-[85%] rounded-2xl rounded-tr-xs bg-[#1677FF] text-white px-4 py-2.5 text-xs shadow-xs"
                   >
-                    <p class="whitespace-pre-wrap">{turn.content}</p>
+                    <p class="whitespace-pre-wrap break-words">{turn.content}</p>
                   </div>
                 </div>
               {:else}
                 <div
-                  class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3"
+                  class="p-5 rounded-2xl ui-card-static space-y-3"
                 >
                   {#if turn.imageUrl}
-                    <div class="rounded-xl overflow-hidden border border-slate-200 max-w-md">
+                    <div class="rounded-xl overflow-hidden border border-[#E3ECF7] max-w-md">
                       <img
                         src={turn.imageUrl}
                         alt={$activeTool.name}
@@ -500,7 +518,7 @@
                     </div>
                   {/if}
                   <div
-                    class="prose prose-slate prose-xs sm:prose-sm max-w-none text-slate-800 leading-relaxed"
+                    class="prose prose-slate prose-xs sm:prose-sm max-w-none text-[#102A56] leading-relaxed"
                   >
                     {@html renderMd(turn.content)}
                   </div>
@@ -516,7 +534,7 @@
                 type="button"
                 disabled={isGenerating}
                 onclick={() => runHelperRequest(chip.prompt, false)}
-                class="px-2.5 py-1 rounded-full bg-blue-50/80 hover:bg-blue-100 border border-blue-200/80 text-[11px] font-semibold text-blue-700 transition-all cursor-pointer disabled:opacity-50"
+                class="px-2.5 py-1 rounded-full bg-[#F3F8FF] hover:bg-[#E4F0FF] border border-[#E3ECF7] hover:border-[#1677FF] text-[11px] font-semibold text-[#1677FF] transition-all cursor-pointer disabled:opacity-50"
               >
                 {chip.label}
               </button>
@@ -535,7 +553,7 @@
               type="text"
               bind:value={followUpInput}
               placeholder="Give follow-up instructions to this helper (e.g. Make it shorter, revise option 2)..."
-              class="flex-1 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none"
+              class="flex-1 ui-input px-3.5 py-2.5 text-xs"
             />
             <button
               type="submit"

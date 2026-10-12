@@ -24,6 +24,7 @@ export interface AITool {
   nameEn: string;
   category: HelperCategoryId | 'fcommerce' | 'social' | 'career' | 'technical';
   categoryName: string;
+  shortDesc: string;
   description: string;
   icon: string;
   badge?: string;
@@ -35,6 +36,10 @@ export interface AITool {
   agentTagline: string;
   agentAvatar: string;
 }
+
+type RawAITool = Omit<AITool, 'shortDesc'> & { shortDesc?: string };
+
+export type ToolConfig = AITool;
 
 export const AI_CEO_PROFILE = {
   id: 'ceo',
@@ -110,7 +115,7 @@ export const CATEGORIES = [
   }
 ] as const;
 
-export const TOOLS: AITool[] = [
+const RAW_TOOLS: RawAITool[] = [
   {
     "id": "fb_insta_ads",
     "code": "#01",
@@ -3543,3 +3548,9 @@ export const TOOLS: AITool[] = [
     "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=GoalPulse"
   }
 ];
+
+export const TOOLS: AITool[] = RAW_TOOLS.map((tool) => ({
+  ...tool,
+  shortDesc: tool.shortDesc ?? tool.description
+}));
+

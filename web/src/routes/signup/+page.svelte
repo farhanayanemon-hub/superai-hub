@@ -290,30 +290,26 @@
   <meta name="description" content="Create your EzboAgents account to unlock 50+ specialized AI executives and your private encrypted WhatsApp assistant." />
 </svelte:head>
 
-<div class="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-blue-600 selection:text-white">
-  <!-- Background Ambient Spotlights -->
-  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[320px] bg-blue-500/10 blur-[130px] pointer-events-none rounded-full"></div>
-  <div class="absolute bottom-1/4 left-1/4 w-[320px] h-[260px] bg-indigo-500/5 blur-[100px] pointer-events-none rounded-full"></div>
-
+<div class="min-h-screen bg-[#F3F8FF] text-[#102A56] flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
   <!-- Header / Logo -->
   <div class="mb-8 text-center relative z-10">
     <a href="/" class="inline-flex items-center gap-2.5 group">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] flex items-center justify-center text-white font-black shadow-xs group-hover:scale-105 transition-transform">
         <Icon name="Sparkles" size={20} />
       </div>
-      <span class="font-extrabold text-2xl tracking-tight text-slate-900">
-        Ezbo<span class="text-blue-600">Agents</span>
+      <span class="font-extrabold text-2xl tracking-tight text-[#102A56]">
+        Ezbo<span class="text-[#1677FF]">Agents</span>
       </span>
     </a>
-    <p class="text-xs text-slate-500 mt-2 font-medium">Deploy your private executive AI consortium</p>
+    <p class="text-xs text-[#4B6382] mt-2 font-medium">Deploy your private executive AI consortium</p>
   </div>
 
   <!-- Auth Card -->
-  <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 relative z-10">
+  <div class="w-full max-w-md rounded-3xl ui-card-static p-5 sm:p-8 relative z-10">
     {#if step === 'form'}
       <!-- STEP 1: REGISTRATION FORM -->
-      <h1 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2 text-center">Create Your Account</h1>
-      <p class="text-xs text-slate-500 text-center mb-6">Unlock 50+ specialists, WhatsApp engine, and zero-markup BYOK</p>
+      <h1 class="text-xl sm:text-2xl font-bold text-[#102A56] mb-2 text-center">Create Your Account</h1>
+      <p class="text-xs text-[#4B6382] text-center mb-6">Unlock 50+ specialists, WhatsApp engine, and zero-markup BYOK</p>
 
       {#if errorMessage}
         <div class="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
@@ -327,7 +323,7 @@
         type="button"
         onclick={handleGoogleSignup}
         disabled={isLoading}
-        class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-400 text-slate-700 font-semibold text-sm flex items-center justify-center gap-3 transition-all hover:shadow-sm cursor-pointer disabled:opacity-50"
+        class="w-full py-2.5 px-4 rounded-xl btn-secondary text-sm flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
       >
         <svg class="w-4 h-4" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -340,38 +336,38 @@
 
       <!-- Divider -->
       <div class="relative my-6 text-center">
-        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-        <span class="relative px-3 bg-white text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Or with email</span>
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#E3ECF7]"></div></div>
+        <span class="relative px-3 bg-white text-[11px] font-semibold tracking-wider text-[#5E7694] uppercase">Or with email</span>
       </div>
 
       <!-- Registration Form -->
       <form onsubmit={handleEmailSignup} class="space-y-4">
         <div>
-          <label for="signup-name" class="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
+          <label for="signup-name" class="block text-xs font-semibold text-[#102A56] mb-1.5">Full Name</label>
           <input
             id="signup-name"
             type="text"
             bind:value={name}
             required
             placeholder="Farhan Ayan"
-            class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+            class="ui-input px-3.5 py-2.5 text-sm"
           />
         </div>
 
         <div>
-          <label for="signup-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
+          <label for="signup-email" class="block text-xs font-semibold text-[#102A56] mb-1.5">Email Address</label>
           <input
             id="signup-email"
             type="email"
             bind:value={email}
             required
             placeholder="you@domain.com"
-            class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+            class="ui-input px-3.5 py-2.5 text-sm"
           />
         </div>
 
         <div>
-          <label for="signup-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+          <label for="signup-password" class="block text-xs font-semibold text-[#102A56] mb-1.5">Password</label>
           <div class="relative">
             <input
               id="signup-password"
@@ -380,21 +376,21 @@
               required
               minlength="6"
               placeholder="At least 6 characters"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+              class="ui-input px-3.5 py-2.5 pr-11 text-sm"
             />
             <button
               type="button"
               onclick={() => (showPassword = !showPassword)}
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1"
+              class="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#5E7694] hover:text-[#102A56] transition-colors cursor-pointer rounded-lg"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
+              <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} />
             </button>
           </div>
         </div>
 
         <div>
-          <label for="signup-confirm-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Password</label>
+          <label for="signup-confirm-password" class="block text-xs font-semibold text-[#102A56] mb-1.5">Confirm Password</label>
           <div class="relative">
             <input
               id="signup-confirm-password"
@@ -403,27 +399,27 @@
               required
               minlength="6"
               placeholder="Repeat password"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+              class="ui-input px-3.5 py-2.5 text-sm"
             />
           </div>
         </div>
 
-        <div class="flex items-start gap-2 pt-1">
+        <div class="flex items-start gap-2.5 pt-1">
           <input
             type="checkbox"
             id="terms"
             bind:checked={agreeTerms}
-            class="mt-1 rounded bg-white border-slate-300 text-blue-600 focus:ring-blue-500"
+            class="mt-0.5 w-4.5 h-4.5 rounded bg-white border-[#CBD9EC] text-[#1677FF] focus:ring-[#1677FF] cursor-pointer shrink-0"
           />
-          <label for="terms" class="text-[11px] text-slate-500 leading-snug">
-            I agree to the <span class="text-blue-600 font-medium hover:underline cursor-pointer">Terms of Service</span> and <span class="text-blue-600 font-medium hover:underline cursor-pointer">Privacy Policy</span>.
+          <label for="terms" class="text-[11px] text-[#4B6382] leading-snug cursor-pointer select-none">
+            I agree to the <span class="text-[#1677FF] font-medium hover:underline cursor-pointer">Terms of Service</span> and <span class="text-[#1677FF] font-medium hover:underline cursor-pointer">Privacy Policy</span>.
           </label>
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          class="w-full py-3 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 shadow-md shadow-blue-500/20"
+          class="w-full py-3 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
         >
           {#if isLoading}
             <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -436,30 +432,30 @@
       </form>
 
       <!-- Sign In Link -->
-      <p class="text-xs text-slate-500 text-center mt-6">
+      <p class="text-xs text-[#4B6382] text-center mt-6">
         Already have an account?
-        <a href="/login" class="text-blue-600 font-bold hover:underline ml-1">Client Sign In</a>
+        <a href="/login" class="text-[#1677FF] font-bold hover:underline ml-1">Client Sign In</a>
       </p>
 
     {:else}
       <!-- STEP 2: 6-DIGIT EMAIL OTP VERIFICATION -->
       <div class="text-center space-y-4">
-        <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto shadow-md shadow-blue-500/10">
+        <div class="w-14 h-14 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#1677FF] flex items-center justify-center mx-auto shadow-2xs">
           <Icon name="Mail" size={26} />
         </div>
 
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Verify Your Email</h2>
-          <p class="text-xs text-slate-500 mt-1">
+          <h2 class="text-xl font-bold text-[#102A56]">Verify Your Email</h2>
+          <p class="text-xs text-[#4B6382] mt-1">
             We've sent a 6-digit verification code to
           </p>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold mt-2">
-            <span>{email}</span>
+          <div class="inline-flex items-center gap-1.5 rounded-full ui-badge-primary px-3 py-1 text-xs mt-2 max-w-full">
+            <span class="truncate">{email}</span>
           </div>
         </div>
 
         {#if otpNotice}
-          <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-medium text-left">
+          <div class="p-3 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#1677FF] text-xs font-medium text-left">
             {otpNotice}
           </div>
         {/if}
@@ -473,7 +469,7 @@
 
         <form onsubmit={handleVerifyOtp} class="space-y-4 pt-2">
           <div>
-            <label for="otp-code" class="block text-xs font-semibold text-slate-700 mb-2">Enter 6-Digit Code</label>
+            <label for="otp-code" class="block text-xs font-semibold text-[#102A56] mb-2">Enter 6-Digit Code</label>
             <input
               id="otp-code"
               type="text"
@@ -483,14 +479,14 @@
               bind:value={otpCode}
               required
               placeholder="••••••"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-2xl px-4 py-3 text-center text-2xl font-mono font-bold tracking-[8px] text-slate-900 placeholder-slate-300 outline-none transition-all"
+              class="ui-input rounded-2xl px-4 py-3 text-center text-xl sm:text-2xl font-mono font-bold tracking-[6px] sm:tracking-[8px]"
             />
           </div>
 
           <button
             type="submit"
             disabled={otpVerifying || otpCode.length < 6}
-            class="w-full py-3.5 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20"
+            class="w-full py-3.5 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {#if otpVerifying}
               <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -504,18 +500,18 @@
 
         <div class="pt-3 flex flex-col items-center gap-2 text-xs">
           {#if resendCountdown > 0}
-            <span class="text-slate-400">
-              Resend code in <strong class="text-slate-600">{resendCountdown}s</strong>
+            <span class="text-[#5E7694]">
+              Resend code in <strong class="text-[#102A56]">{resendCountdown}s</strong>
             </span>
           {:else}
             <button
               type="button"
               onclick={handleResendOtp}
               disabled={otpSending}
-              class="text-blue-600 hover:text-blue-700 font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+              class="text-[#1677FF] hover:text-[#0F62FE] font-bold transition-colors cursor-pointer flex items-center gap-1.5"
             >
               {#if otpSending}
-                <div class="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div class="w-3 h-3 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></div>
                 <span>Sending new code...</span>
               {:else}
                 <Icon name="RefreshCw" size={12} />
@@ -527,7 +523,7 @@
           <button
             type="button"
             onclick={() => { step = 'form'; errorMessage = ''; otpNotice = ''; }}
-            class="text-slate-500 hover:text-slate-800 transition-colors mt-2 text-[11px] underline cursor-pointer"
+            class="text-[#4B6382] hover:text-[#102A56] transition-colors mt-2 text-[11px] underline cursor-pointer"
           >
             ← Change email or edit details
           </button>
@@ -537,8 +533,8 @@
   </div>
 
   <!-- Footer link back -->
-  <div class="mt-8 text-center text-xs text-slate-500">
-    <a href="/" class="hover:text-slate-800 transition-colors inline-flex items-center gap-1.5 font-medium">
+  <div class="mt-8 text-center text-xs text-[#4B6382]">
+    <a href="/" class="hover:text-[#102A56] transition-colors inline-flex items-center gap-1.5 font-medium">
       <Icon name="ChevronLeft" size={14} />
       <span>Back to Homepage</span>
     </a>

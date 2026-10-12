@@ -315,28 +315,24 @@
   <meta name="description" content="Sign in to your EzboAgents executive console to access 50+ AI Specialists and your WhatsApp Personal Assistant." />
 </svelte:head>
 
-<div class="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-blue-600 selection:text-white">
-  <!-- Background Ambient Spotlights -->
-  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[320px] bg-blue-500/10 blur-[130px] pointer-events-none rounded-full"></div>
-  <div class="absolute bottom-1/4 right-1/4 w-[320px] h-[260px] bg-indigo-500/5 blur-[100px] pointer-events-none rounded-full"></div>
-
+<div class="min-h-screen bg-[#F3F8FF] text-[#102A56] flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
   <!-- Header / Logo -->
   <div class="mb-8 text-center relative z-10">
     <a href="/" class="inline-flex items-center gap-2.5 group">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] flex items-center justify-center text-white font-black shadow-xs group-hover:scale-105 transition-transform">
         <Icon name="Sparkles" size={20} />
       </div>
-      <span class="font-extrabold text-2xl tracking-tight text-slate-900">
-        Ezbo<span class="text-blue-600">Agents</span>
+      <span class="font-extrabold text-2xl tracking-tight text-[#102A56]">
+        Ezbo<span class="text-[#1677FF]">Agents</span>
       </span>
     </a>
-    <p class="text-xs text-slate-500 mt-2 font-medium">Executive Consortium Client Sign In</p>
+    <p class="text-xs text-[#4B6382] mt-2 font-medium">Executive Consortium Client Sign In</p>
   </div>
 
   <!-- Auth Card -->
-  <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 relative z-10">
-    <h1 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2 text-center">Welcome Back</h1>
-    <p class="text-xs text-slate-500 text-center mb-6">Access your AI specialists, WhatsApp engine, and console</p>
+  <div class="w-full max-w-md rounded-3xl ui-card-static p-5 sm:p-8 relative z-10">
+    <h1 class="text-xl sm:text-2xl font-bold text-[#102A56] mb-2 text-center">Welcome Back</h1>
+    <p class="text-xs text-[#4B6382] text-center mb-6">Access your AI specialists, WhatsApp engine, and console</p>
 
     {#if errorMessage}
       <div class="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
@@ -357,7 +353,7 @@
       type="button"
       onclick={handleGoogleLogin}
       disabled={isLoading}
-      class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-400 text-slate-700 font-semibold text-sm flex items-center justify-center gap-3 transition-all hover:shadow-sm cursor-pointer disabled:opacity-50"
+      class="w-full py-2.5 px-4 rounded-xl btn-secondary text-sm flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -370,14 +366,14 @@
 
     <!-- Divider -->
     <div class="relative my-6 text-center">
-      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-      <span class="relative px-3 bg-white text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Or with email</span>
+      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#E3ECF7]"></div></div>
+      <span class="relative px-3 bg-white text-[11px] font-semibold tracking-wider text-[#5E7694] uppercase">Or with email</span>
     </div>
 
     <!-- Email & Password Form -->
     <form onsubmit={handleEmailLogin} class="space-y-4">
       <div>
-        <label for="login-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
+        <label for="login-email" class="block text-xs font-semibold text-[#102A56] mb-1.5">Email Address</label>
         <div class="relative">
           <input
             id="login-email"
@@ -385,18 +381,18 @@
             bind:value={email}
             required
             placeholder="you@domain.com"
-            class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+            class="ui-input px-3.5 py-2.5 text-sm"
           />
         </div>
       </div>
 
       <div>
         <div class="flex items-center justify-between mb-1.5">
-          <label for="login-password" class="block text-xs font-semibold text-slate-700">Password</label>
+          <label for="login-password" class="block text-xs font-semibold text-[#102A56]">Password</label>
           <button
             type="button"
             onclick={openForgotModal}
-            class="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0"
+            class="text-[11px] text-[#1677FF] font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0"
           >
             Forgot password?
           </button>
@@ -408,15 +404,15 @@
             bind:value={password}
             required
             placeholder="••••••••"
-            class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+            class="ui-input px-3.5 py-2.5 pr-11 text-sm"
           />
           <button
             type="button"
             onclick={() => (showPassword = !showPassword)}
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1"
+            class="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#5E7694] hover:text-[#102A56] transition-colors cursor-pointer rounded-lg"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
+            <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} />
           </button>
         </div>
       </div>
@@ -424,7 +420,7 @@
       <button
         type="submit"
         disabled={isLoading}
-        class="w-full py-3 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 shadow-md shadow-blue-500/20"
+        class="w-full py-3 px-4 rounded-xl blue-btn text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
       >
         {#if isLoading}
           <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -437,15 +433,15 @@
     </form>
 
     <!-- Sign Up Link -->
-    <p class="text-xs text-slate-500 text-center mt-6">
+    <p class="text-xs text-[#4B6382] text-center mt-6">
       Don't have an account yet?
-      <a href="/signup" class="text-blue-600 font-bold hover:underline ml-1">Deploy Free Account</a>
+      <a href="/signup" class="text-[#1677FF] font-bold hover:underline ml-1">Deploy Free Account</a>
     </p>
   </div>
 
   <!-- Footer link back -->
-  <div class="mt-8 text-center text-xs text-slate-500">
-    <a href="/" class="hover:text-slate-800 transition-colors inline-flex items-center gap-1.5 font-medium">
+  <div class="mt-8 text-center text-xs text-[#4B6382]">
+    <a href="/" class="hover:text-[#102A56] transition-colors inline-flex items-center gap-1.5 font-medium">
       <Icon name="ChevronLeft" size={14} />
       <span>Back to Homepage</span>
     </a>
@@ -454,34 +450,34 @@
 
 <!-- Forgot Password Modal with 2-Step OTP Verification -->
 {#if isForgotModalOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 ui-modal-backdrop animate-in fade-in duration-200">
     <div
-      class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-left"
+      class="w-full max-w-md ui-modal p-5 sm:p-7 relative text-left"
       role="dialog"
       aria-modal="true"
     >
       <button
         onclick={() => (isForgotModalOpen = false)}
-        class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+        class="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5 w-10 h-10 rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] transition-colors cursor-pointer flex items-center justify-center"
         aria-label="Close dialog"
       >
         <Icon name="X" size={18} />
       </button>
 
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+      <div class="flex items-center gap-3 mb-4 pr-8">
+        <div class="w-10 h-10 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] shrink-0">
           <Icon name="Key" size={20} />
         </div>
         <div>
-          <h3 class="text-base font-bold text-slate-900">Reset Your Password</h3>
-          <p class="text-xs text-slate-500">
+          <h3 class="text-base font-bold text-[#102A56]">Reset Your Password</h3>
+          <p class="text-xs text-[#4B6382]">
             {forgotStep === 'email' ? 'Verify your identity via 6-digit email code' : 'Enter 6-digit code and choose a new password'}
           </p>
         </div>
       </div>
 
       {#if forgotNotice}
-        <div class="mb-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs">
+        <div class="mb-4 p-3 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#1677FF] text-xs">
           {forgotNotice}
         </div>
       {/if}
@@ -504,29 +500,29 @@
         <!-- STEP 1: ENTER EMAIL -->
         <form onsubmit={handleSendResetOtp} class="space-y-4">
           <div>
-            <label for="forgot-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Registered Email Address</label>
+            <label for="forgot-email" class="block text-xs font-semibold text-[#102A56] mb-1.5">Registered Email Address</label>
             <input
               id="forgot-email"
               type="email"
               bind:value={forgotEmail}
               required
               placeholder="you@domain.com"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+              class="ui-input px-3.5 py-2.5 text-sm"
             />
           </div>
 
-          <div class="pt-2 flex items-center gap-3">
+          <div class="pt-2 flex flex-col-reverse sm:flex-row items-center gap-3">
             <button
               type="button"
               onclick={() => (isForgotModalOpen = false)}
-              class="w-1/3 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+              class="w-full sm:w-1/3 py-2.5 px-4 rounded-xl btn-secondary text-xs cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={forgotLoading}
-              class="w-2/3 py-2.5 px-4 rounded-xl blue-btn text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+              class="w-full sm:w-2/3 py-2.5 px-4 rounded-xl blue-btn text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               {#if forgotLoading}
                 <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -541,13 +537,13 @@
       {:else}
         <!-- STEP 2: ENTER OTP & NEW PASSWORD -->
         <form onsubmit={handleResetPasswordWithOtp} class="space-y-3.5">
-          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-            <span class="text-slate-500">Reset code sent to:</span>
-            <span class="font-bold text-blue-700">{forgotEmail}</span>
+          <div class="p-2.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+            <span class="text-[#4B6382] shrink-0">Reset code sent to:</span>
+            <span class="font-bold text-[#1677FF] break-all">{forgotEmail}</span>
           </div>
 
           <div>
-            <label for="forgot-otp" class="block text-xs font-semibold text-slate-700 mb-1.5">6-Digit Verification Code</label>
+            <label for="forgot-otp" class="block text-xs font-semibold text-[#102A56] mb-1.5">6-Digit Verification Code</label>
             <input
               id="forgot-otp"
               type="text"
@@ -556,12 +552,12 @@
               bind:value={forgotOtp}
               required
               placeholder="••••••"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-center text-xl font-mono font-bold tracking-[6px] text-slate-900 placeholder-slate-300 outline-none transition-all"
+              class="ui-input px-3.5 py-2.5 text-center text-lg sm:text-xl font-mono font-bold tracking-[4px] sm:tracking-[6px]"
             />
           </div>
 
           <div>
-            <label for="new-password" class="block text-xs font-semibold text-slate-700 mb-1.5">New Password</label>
+            <label for="new-password" class="block text-xs font-semibold text-[#102A56] mb-1.5">New Password</label>
             <input
               id="new-password"
               type="password"
@@ -569,22 +565,22 @@
               required
               minlength="6"
               placeholder="At least 6 characters"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+              class="ui-input px-3.5 py-2.5 text-sm"
             />
           </div>
 
-          <div class="pt-2 flex items-center gap-3">
+          <div class="pt-2 flex flex-col-reverse sm:flex-row items-center gap-3">
             <button
               type="button"
               onclick={() => { forgotStep = 'email'; forgotError = ''; }}
-              class="w-1/3 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+              class="w-full sm:w-1/3 py-2.5 px-4 rounded-xl btn-secondary text-xs cursor-pointer"
             >
               Back
             </button>
             <button
               type="submit"
               disabled={forgotLoading || forgotOtp.length < 6}
-              class="w-2/3 py-2.5 px-4 rounded-xl blue-btn text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+              class="w-full sm:w-2/3 py-2.5 px-4 rounded-xl blue-btn text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               {#if forgotLoading}
                 <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -598,15 +594,15 @@
 
           <div class="pt-2 text-center">
             {#if forgotResendCountdown > 0}
-              <span class="text-[11px] text-slate-400">
-                Resend code in <strong class="text-slate-600">{forgotResendCountdown}s</strong>
+              <span class="text-[11px] text-[#5E7694]">
+                Resend code in <strong class="text-[#102A56]">{forgotResendCountdown}s</strong>
               </span>
             {:else}
               <button
                 type="button"
                 onclick={handleResendForgotOtp}
                 disabled={forgotLoading}
-                class="text-[11px] text-blue-600 hover:text-blue-700 font-bold cursor-pointer"
+                class="text-[11px] text-[#1677FF] hover:text-[#0F62FE] font-bold cursor-pointer"
               >
                 Resend 6-Digit Code
               </button>

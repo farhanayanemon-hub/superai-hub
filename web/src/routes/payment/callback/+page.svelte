@@ -114,23 +114,20 @@
   <title>Payment Status — EzboAgents</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-blue-600 selection:text-white">
-  <!-- Ambient background glow -->
-  <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-[140px] pointer-events-none"></div>
-
-  <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-6 shadow-xl shadow-slate-200/50 relative z-10">
+<div class="min-h-screen bg-[#F3F8FF] flex items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
+  <div class="w-full max-w-md rounded-3xl ui-card-static p-5 sm:p-8 text-center space-y-6 relative z-10">
     {#if verifying}
       <div class="space-y-4 py-8">
-        <div class="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto animate-pulse">
+        <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto">
           <Icon name="Loader2" size={32} class="animate-spin" />
         </div>
-        <h2 class="text-xl font-extrabold text-slate-900">Verifying Transaction...</h2>
-        <p class="text-xs text-slate-500">Connecting to OPayBD gateway & confirming your bank authorization.</p>
+        <h2 class="text-xl font-extrabold text-[#102A56]">Verifying Transaction...</h2>
+        <p class="text-xs text-[#4B6382]">Connecting to OPayBD gateway & confirming your bank authorization.</p>
       </div>
 
     {:else if verified}
       <div class="space-y-5">
-        <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto shadow-lg shadow-emerald-500/10">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto shadow-2xs">
           <Icon name="CheckCircle2" size={36} />
         </div>
 
@@ -138,36 +135,36 @@
           <span class="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
             Payment Confirmed
           </span>
-          <h2 class="text-2xl font-black text-slate-900 mt-2.5">
+          <h2 class="text-2xl font-black text-[#102A56] mt-2.5">
             {#if txDetails?.botName}
               {txDetails.botName} Unlocked!
             {:else}
               VIP Access Activated!
             {/if}
           </h2>
-          <p class="text-xs text-slate-500 mt-1">
+          <p class="text-xs text-[#4B6382] mt-1">
             Thank you! Your payment was verified successfully and your executive console is fully unlocked.
           </p>
         </div>
 
         {#if txDetails}
-          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs">
-            <div class="flex justify-between">
-              <span class="text-slate-500">Transaction ID:</span>
-              <span class="font-mono text-blue-700 font-bold">{txDetails.txId}</span>
+          <div class="bg-[#F3F8FF] border border-[#E3ECF7] rounded-2xl p-4 text-left space-y-2 text-xs">
+            <div class="flex justify-between items-start gap-2">
+              <span class="text-[#4B6382] shrink-0">Transaction ID:</span>
+              <span class="font-mono text-[#1677FF] font-bold break-all text-right">{txDetails.txId}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-slate-500">Payment Channel:</span>
-              <span class="text-slate-800 uppercase font-semibold">{txDetails.method}</span>
+              <span class="text-[#4B6382]">Payment Channel:</span>
+              <span class="text-[#102A56] uppercase font-semibold">{txDetails.method}</span>
             </div>
             {#if txDetails.amount}
               <div class="flex justify-between">
-                <span class="text-slate-500">Amount Paid:</span>
+                <span class="text-[#4B6382]">Amount Paid:</span>
                 <span class="text-emerald-700 font-bold">BDT {txDetails.amount}</span>
               </div>
             {/if}
             <div class="flex justify-between">
-              <span class="text-slate-500">Status:</span>
+              <span class="text-[#4B6382]">Status:</span>
               <span class="text-emerald-700 font-bold">ACTIVE & VERIFIED</span>
             </div>
           </div>
@@ -175,7 +172,7 @@
 
         <button
           onclick={() => goto('/dashboard')}
-          class="w-full py-3.5 rounded-xl blue-btn text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+          class="w-full py-3.5 rounded-xl blue-btn text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
         >
           Open Executive Dashboard →
         </button>
@@ -188,20 +185,20 @@
         </div>
 
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Payment Incomplete</h2>
-          <p class="text-xs text-slate-500 mt-1.5">{errorMsg || 'The transaction could not be completed.'}</p>
+          <h2 class="text-xl font-bold text-[#102A56]">Payment Incomplete</h2>
+          <p class="text-xs text-[#4B6382] mt-1.5">{errorMsg || 'The transaction could not be completed.'}</p>
         </div>
 
         <div class="flex items-center gap-3 pt-2">
           <button
             onclick={() => goto('/plans')}
-            class="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+            class="flex-1 py-3 rounded-xl btn-secondary text-xs cursor-pointer"
           >
             Choose Plan
           </button>
           <button
             onclick={() => goto('/plans')}
-            class="flex-1 py-3 rounded-xl blue-btn text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+            class="flex-1 py-3 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer"
           >
             Try Again
           </button>
