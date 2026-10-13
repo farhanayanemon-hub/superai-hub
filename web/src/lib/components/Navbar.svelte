@@ -21,6 +21,7 @@
 
     <!-- Desktop Navigation Links -->
     <nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-[#4B6382]">
+      <a href="/#helpers" class="hover:text-[#1677FF] transition-colors">Helpers</a>
       <a href="/#features" class="hover:text-[#1677FF] transition-colors">WhatsApp Engine</a>
       <a href="/#pricing" class="hover:text-[#1677FF] transition-colors flex items-center gap-1.5">
         Pricing
@@ -78,6 +79,7 @@
   <!-- Mobile Dropdown Menu -->
   {#if mobileMenuOpen}
     <div class="md:hidden border-b border-[#E3ECF7] bg-white px-4 py-4 space-y-3 shadow-lg">
+      <a href="/#helpers" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">Helpers</a>
       <a href="/#features" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">WhatsApp Engine</a>
       <a href="/#pricing" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">Pricing (2 Plans)</a>
       <a href="/#faq" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">FAQ</a>

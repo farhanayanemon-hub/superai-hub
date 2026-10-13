@@ -26,6 +26,7 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.47.0",
+		"@tabler/icons-webfont": "^3.49.0",
 		"@types/canvas-confetti": "^1.9.0",
 		"@types/marked": "^5.0.2",
 		"canvas-confetti": "^1.9.4",

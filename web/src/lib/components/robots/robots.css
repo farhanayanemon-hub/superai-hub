@@ -1,0 +1,89 @@
+/* robots.css: styles and animations for the EZBO robot showcase */
+.rb-root {
+  --rb-text: #0B1F5C;
+  --rb-muted: #5B6B94;
+  --rb-accent: #0A5BFF;
+  --rb-accent-soft: rgba(10, 91, 255, 0.1);
+  --rb-border: rgba(11, 31, 92, 0.2);
+  --rb-glass: rgba(255, 255, 255, 0.82);
+  --rb-live: #1D9E75;
+  padding: 1rem 0 2rem;
+  color: var(--rb-text);
+}
+@media (prefers-color-scheme: dark) {
+  .rb-root {
+    --rb-text: #E8F0FF;
+    --rb-muted: #9DB2E0;
+    --rb-accent: #6FE3FF;
+    --rb-accent-soft: rgba(111, 227, 255, 0.14);
+    --rb-border: rgba(157, 188, 240, 0.3);
+    --rb-glass: rgba(11, 31, 92, 0.82);
+  }
+}
+
+/* CEO */
+.rb-ceo { max-width: 280px; margin: 0 auto; text-align: center; }
+.rb-ceo-img { display: block; width: 100%; height: auto; animation: rb-fl 3.4s ease-in-out infinite alternate; filter: drop-shadow(0 12px 24px rgba(10, 91, 255, 0.3)); }
+.rb-ceo-title { font-size: 1.15rem; font-weight: 600; margin-top: 0.5rem; }
+.rb-ceo-sub { font-size: 0.9rem; color: var(--rb-muted); }
+.rb-ceo-copy { max-width: 440px; margin: 0.25rem auto 0; text-align: center; font-size: 0.9rem; line-height: 1.5; color: var(--rb-muted); }
+
+/* Tabs */
+.rb-tabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 1.5rem 0 1rem; }
+.rb-tab { font: inherit; font-size: 0.85rem; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--rb-border); background: transparent; color: var(--rb-text); cursor: pointer; }
+.rb-tab:hover { background: var(--rb-accent-soft); }
+.rb-tab[aria-pressed='true'] { background: var(--rb-accent-soft); border-color: var(--rb-accent); color: var(--rb-accent); }
+.rb-tab:focus-visible, .rb-cell:focus-visible, .rb-go:focus-visible { outline: 2px solid var(--rb-accent); outline-offset: 3px; }
+
+/* Grid and robots (no card boxes) */
+.rb-wrap { position: relative; }
+.rb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px 8px; }
+.rb-cell { all: unset; box-sizing: border-box; cursor: pointer; text-align: center; padding: 2px; border-radius: 12px; animation: rb-pop 0.4s both; }
+.rb-svg { display: block; width: 100%; max-width: 150px; margin: 0 auto; }
+.rb-num { display: block; font: 0.7rem ui-monospace, Menlo, monospace; color: var(--rb-muted); }
+.rb-name { display: block; font-size: 0.9rem; font-weight: 600; color: var(--rb-text); }
+.rb-cell.rb-on .rb-name { color: var(--rb-accent); }
+
+/* Bubble */
+.rb-bub { position: absolute; z-index: 5; width: 240px; padding: 12px 14px; text-align: center; background: var(--rb-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--rb-border); border-radius: 12px; }
+.rb-bub[hidden] { display: none; }
+.rb-bub-name { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 600; }
+.rb-live { width: 8px; height: 8px; border-radius: 50%; background: var(--rb-live); animation: rb-dt 1.6s ease-in-out infinite; }
+.rb-bub-tag { font-size: 0.78rem; color: var(--rb-muted); }
+.rb-bub-desc { font-size: 0.83rem; line-height: 1.5; margin-top: 6px; color: var(--rb-muted); }
+.rb-go { display: inline-block; margin-top: 8px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--rb-accent); color: var(--rb-accent); font-size: 0.83rem; text-decoration: none; }
+.rb-go:hover { background: var(--rb-accent-soft); }
+.rb-hint { text-align: center; font-size: 0.78rem; color: var(--rb-muted); margin-top: 1rem; }
+
+/* Robot animations (classes are used inside the generated SVG) */
+.rb-e { transform-box: fill-box; transform-origin: center; }
+.rb-fl { animation: rb-fl 3s ease-in-out infinite alternate; }
+.rb-sh { animation: rb-sh 3s ease-in-out infinite alternate; }
+.rb-bk { animation: rb-bl 4.6s infinite; }
+.rb-rg { animation: rb-pu 2s ease-out infinite; }
+.rb-th { animation: rb-th 0.8s ease-in-out infinite alternate; }
+.rb-dt { animation: rb-dt 1.6s ease-in-out infinite; }
+.rb-w1, .rb-w2 { animation: rb-ar 1.6s ease-in-out infinite; }
+.rb-w2 { animation-delay: 0.4s; }
+.rb-sp { animation: rb-sp 6s linear infinite; }
+.rb-hd { transform-origin: 120px 134px; transition: transform 0.4s; }
+.rb-ar { transform-origin: 154px 158px; }
+.rb-cell:hover .rb-hd, .rb-cell.rb-on .rb-hd { transform: rotate(-5deg); }
+.rb-cell:hover .rb-ar, .rb-cell.rb-on .rb-ar { animation: rb-wv 0.5s ease-in-out infinite alternate; }
+.rb-cell.rb-on .rb-w1, .rb-cell.rb-on .rb-w2 { animation-duration: 0.7s; }
+.rb-cell:not(.rb-vis) .rb-svg * { animation-play-state: paused !important; }
+
+@keyframes rb-pop { from { opacity: 0; transform: translateY(10px) scale(0.92); } }
+@keyframes rb-fl { to { transform: translateY(-10px); } }
+@keyframes rb-sh { to { transform: scale(0.78); opacity: 0.5; } }
+@keyframes rb-bl { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.08); } }
+@keyframes rb-pu { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes rb-th { from { transform: scaleY(0.8); opacity: 0.6; } to { transform: scaleY(1.4); opacity: 1; } }
+@keyframes rb-dt { 50% { opacity: 0.3; } }
+@keyframes rb-ar { 0%, 100% { opacity: 0.15; } 50% { opacity: 1; } }
+@keyframes rb-wv { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes rb-sp { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-root *, .rb-root *::before, .rb-root *::after { animation: none !important; transition: none !important; }
+}
