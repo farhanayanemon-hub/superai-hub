@@ -287,7 +287,7 @@
   </p>
 
   <!-- Department Filter & Navigation Tabs -->
-  <div class="sticky top-16 z-30 py-3.5 backdrop-blur-md bg-[#F3F8FF]/85 mb-8 border-y border-[#E3ECF7]/70">
+  <div class="sticky top-16 z-30 py-2.5 backdrop-blur-md bg-[#F3F8FF]/90 mb-8 border-y border-[#E3ECF7]/80">
     <div class="rb-tabs" role="group" aria-label="Helper categories">
       {#each CATEGORIES as c (c.key)}
         <button
@@ -302,68 +302,65 @@
     </div>
   </div>
 
-  <!-- Main Department Sections Container -->
-  <div class="rb-wrap space-y-10 sm:space-y-14" bind:this={wrapEl}>
-    {#each activeDepts as dept (dept.key)}
+  <!-- Main Department Sections Container (Transparent, No Card Boxes) -->
+  <div class="rb-wrap space-y-12 sm:space-y-16" bind:this={wrapEl}>
+    {#each activeDepts as dept, deptIdx (dept.key)}
       <div
         id={`dept-${dept.key}`}
-        class="rb-dept-section rounded-3xl p-5 sm:p-8 border border-[#E3ECF7] bg-white/85 backdrop-blur-md shadow-xs hover:shadow-md transition-all relative overflow-hidden group"
+        class="rb-dept-section relative py-4 sm:py-8"
       >
-        <!-- Glowing top accent line with category gradient -->
-        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r {dept.gradient}"></div>
-        
-        <!-- Subtle decorative ambient glow orb -->
-        <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full {dept.glowClass} blur-3xl pointer-events-none"></div>
-
-        <!-- Section Header with Details & Description -->
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-6 mb-7 border-b border-[#E3ECF7]/70 relative z-10">
-          <div class="space-y-2 max-w-3xl">
-            <div class="flex items-center gap-2.5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border {dept.badgeClass}">
-                <i class="{dept.icon}"></i>
-                {dept.badge}
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]">
-                {dept.agents.length} Specialized Bots
-              </span>
-            </div>
-
-            <h3 class="text-xl sm:text-2xl font-extrabold text-[#102A56] tracking-tight">
-              {dept.title}
-            </h3>
-
-            <p class="text-xs sm:text-sm font-semibold text-[#1677FF]">
-              {dept.tagline}
-            </p>
-
-            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
-              {dept.description}
-            </p>
-
-            <!-- Capabilities highlights chips -->
-            <div class="flex items-center gap-2 flex-wrap pt-1.5">
-              {#each dept.highlights as chip}
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#F3F8FF] text-[#334E68] border border-[#E3ECF7]/70">
-                  <i class="ti ti-check text-[#1677FF] text-xs"></i>
-                  {chip}
-                </span>
-              {/each}
-            </div>
+        <!-- Centered Section Header with Details & Description -->
+        <div class="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-3 px-4">
+          <!-- Centered Department Badge & Count -->
+          <div class="flex items-center justify-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border {dept.badgeClass} shadow-2xs">
+              <i class="{dept.icon} text-sm"></i>
+              {dept.badge}
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-[#1677FF] border border-[#E3ECF7] shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#1677FF] animate-pulse"></span>
+              {dept.agents.length} AI Specialists
+            </span>
           </div>
 
-          <!-- Quick Action CTA -->
-          <div class="shrink-0 self-start lg:self-center">
+          <!-- Centered Main Title -->
+          <h3 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-[#102A56] tracking-tight break-words">
+            {dept.title}
+          </h3>
+
+          <!-- Centered Tagline -->
+          <p class="text-xs sm:text-sm md:text-base font-semibold text-[#1677FF] max-w-2xl mx-auto">
+            {dept.tagline}
+          </p>
+
+          <!-- Centered Detailed Description -->
+          <p class="text-xs sm:text-sm md:text-base text-[#4B6382] leading-relaxed max-w-2xl mx-auto">
+            {dept.description}
+          </p>
+
+          <!-- Centered Capabilities Highlights Chips -->
+          <div class="flex items-center justify-center gap-2 flex-wrap pt-2">
+            {#each dept.highlights as chip}
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-white text-[#334E68] border border-[#E3ECF7] shadow-2xs">
+                <i class="ti ti-check text-[#1677FF] text-xs"></i>
+                {chip}
+              </span>
+            {/each}
+          </div>
+
+          <!-- Centered Quick Action Link -->
+          <div class="flex justify-center pt-2">
             <a
               href={signupUrl}
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-[#1677FF] hover:text-white text-[#102A56] border border-[#E3ECF7] hover:border-[#1677FF] shadow-2xs hover:shadow-xs transition-all duration-200"
+              class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1677FF] hover:text-[#102A56] hover:underline transition-colors"
             >
-              <span>Explore {dept.shortTitle}</span>
-              <i class="ti ti-arrow-right"></i>
+              <span>Explore {dept.shortTitle} Specialists</span>
+              <i class="ti ti-arrow-right text-xs"></i>
             </a>
           </div>
         </div>
 
-        <!-- Robot Showcase Grid for this category -->
+        <!-- Robot Showcase Grid for this category (Floating transparently with NO card boxes) -->
         <div class="rb-grid">
           {#each dept.agents as agent, i (agent.n)}
             <button
@@ -380,6 +377,11 @@
             </button>
           {/each}
         </div>
+
+        <!-- Subtle centered separator between departments when showing All -->
+        {#if cat === 'all' && deptIdx < activeDepts.length - 1}
+          <div class="w-32 h-px mx-auto bg-gradient-to-r from-transparent via-[#CBD9EC] to-transparent mt-12 sm:mt-16" aria-hidden="true"></div>
+        {/if}
       </div>
     {/each}
 
@@ -410,3 +412,16 @@
 
   <p class="rb-hint">Hover or tap any robot to inspect its intelligence profile and launch its dedicated studio</p>
 </section>
+
+<style>
+  .rb-tabs {
+    margin: 0.25rem 0 !important;
+    padding: 0 0.5rem;
+  }
+  @media (max-width: 640px) {
+    .rb-tab {
+      font-size: 0.78rem !important;
+      padding: 4px 10px !important;
+    }
+  }
+</style>

@@ -167,8 +167,8 @@
     <!-- ======================================================== -->
     <!-- 2. MASTER AI CEO + 75+ TRANSPARENT ANIMATED HELPERS SHOWCASE -->
     <!-- ======================================================== -->
-    <section id="helpers" class="scroll-mt-16 py-12 sm:py-16 relative overflow-hidden bg-[#F3F8FF]">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="helpers" class="scroll-mt-16 py-10 sm:py-16 relative overflow-hidden bg-[#F3F8FF]">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <RobotShowcase signupUrl="/signup" />
       </div>
     </section>
@@ -176,7 +176,7 @@
     <!-- ======================================================== -->
     <!-- 3. WHATSAPP & TELEGRAM ENGINE ARCHITECTURE -->
     <!-- ======================================================== -->
-    <section id="features" class="py-24 bg-white border-t border-[#E3ECF7] relative">
+    <section id="features" class="py-16 sm:py-24 bg-white border-t border-[#E3ECF7] relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
           <h2 class="text-3xl sm:text-5xl font-extrabold text-[#102A56] tracking-tight">
