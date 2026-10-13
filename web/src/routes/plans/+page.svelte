@@ -84,9 +84,7 @@
   <!-- Top Navigation Header -->
   <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-10 border-b border-[#E3ECF7]/60">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] text-white flex items-center justify-center shadow-xs">
-        <Icon name="Bot" size={20} />
-      </div>
+      <img src="/logo.png" alt="EzboAgents" class="w-10 h-10 object-contain drop-shadow-xs" />
       <div>
         <div class="flex items-center gap-2">
           <span class="text-base font-extrabold tracking-tight text-[#102A56]">EzboAgents</span>

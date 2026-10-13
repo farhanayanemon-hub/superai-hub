@@ -9,11 +9,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <!-- Brand Logo -->
     <a href="/" class="flex items-center gap-3 group">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] p-[1.5px] shadow-xs group-hover:shadow-md transition-all">
-        <div class="w-full h-full bg-white rounded-[10.5px] flex items-center justify-center">
-          <Icon name="Sparkles" class="text-[#1677FF]" size={20} />
-        </div>
-      </div>
+      <img src="/logo.png" alt="EzboAgents" class="w-10 h-10 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
       <div>
         <div class="flex items-center gap-2">
           <span class="font-extrabold text-lg text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>

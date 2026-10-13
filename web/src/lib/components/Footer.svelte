@@ -7,9 +7,7 @@
     <!-- Brand Info -->
     <div class="space-y-3.5">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] shadow-2xs">
-          <Icon name="Sparkles" size={16} />
-        </div>
+        <img src="/logo.png" alt="EzboAgents" class="w-8 h-8 object-contain drop-shadow-xs" />
         <span class="font-extrabold text-lg text-[#102A56]">Ezbo<span class="text-[#1677FF]">Agents</span></span>
       </div>
       <p class="text-xs text-[#4B6382] leading-relaxed">

@@ -323,11 +323,7 @@
     <div>
       <div class="h-16 px-5 border-b border-[#E3ECF7] flex items-center justify-between">
         <a href="/" class="flex items-center gap-2.5 group">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] p-0.5 shadow-2xs group-hover:scale-105 transition-transform">
-            <div class="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
-              <Icon name="Sparkles" class="text-[#1677FF]" size={18} />
-            </div>
-          </div>
+          <img src="/logo.png" alt="EzboAgents" class="w-9 h-9 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
           <div>
             <div class="flex items-center gap-1.5">
               <span class="font-extrabold text-base text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
@@ -483,6 +479,7 @@
       </button>
 
       <div class="flex items-center gap-2">
+        <img src="/logo.png" alt="EzboAgents" class="w-6 h-6 object-contain drop-shadow-xs" />
         <span class="font-extrabold text-sm text-[#102A56]">Ezbo<span class="text-[#1677FF]">Agents</span></span>
         <span class="px-2 py-0.5 rounded text-[10px] bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7] font-mono font-semibold">
           {$activeDashboardTab.toUpperCase()}

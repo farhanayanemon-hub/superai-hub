@@ -294,9 +294,7 @@
   <!-- Header / Logo -->
   <div class="mb-8 text-center relative z-10">
     <a href="/" class="inline-flex items-center gap-2.5 group">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] flex items-center justify-center text-white font-black shadow-xs group-hover:scale-105 transition-transform">
-        <Icon name="Sparkles" size={20} />
-      </div>
+      <img src="/logo.png" alt="EzboAgents" class="w-11 h-11 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
       <span class="font-extrabold text-2xl tracking-tight text-[#102A56]">
         Ezbo<span class="text-[#1677FF]">Agents</span>
       </span>

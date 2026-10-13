@@ -747,11 +747,7 @@
     <div class="min-h-screen flex items-center justify-center p-4">
       <div class="w-full max-w-md rounded-3xl ui-card-static p-8 space-y-6">
         <div class="text-center space-y-2">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] p-0.5 shadow-xs mx-auto">
-            <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-              <Icon name="Shield" class="text-[#1677FF]" size={26} />
-            </div>
-          </div>
+          <img src="/logo.png" alt="EzboAgents Admin" class="w-14 h-14 object-contain drop-shadow-xs mx-auto" />
           <h1 class="text-2xl font-black text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span> Admin</h1>
           <p class="text-xs text-[#4B6382]">Master Platform Operations &amp; Intelligence Control Hub</p>
         </div>
@@ -809,9 +805,7 @@
       <!-- MOBILE TOPBAR -->
       <div class="lg:hidden flex items-center justify-between p-4 bg-white border-b border-[#E3ECF7] sticky top-0 z-40">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-[#1677FF] flex items-center justify-center text-white">
-            <Icon name="Shield" size={16} />
-          </div>
+          <img src="/logo.png" alt="EzboAgents Admin" class="w-8 h-8 object-contain drop-shadow-xs" />
           <span class="font-black text-[#102A56] text-sm">Ezbo<span class="text-[#1677FF]">Agents</span> Admin</span>
         </div>
         <button
@@ -836,11 +830,7 @@
           <!-- Logo & Brand -->
           <div class="flex items-center justify-between pb-5 border-b border-[#E3ECF7]">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1677FF] to-[#38CFFF] p-0.5 shadow-2xs">
-                <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-                  <Icon name="Shield" class="text-[#1677FF]" size={20} />
-                </div>
-              </div>
+              <img src="/logo.png" alt="EzboAgents Admin" class="w-10 h-10 object-contain drop-shadow-xs" />
               <div>
                 <h1 class="text-sm font-black text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></h1>
                 <div class="flex items-center gap-1.5 mt-0.5">
