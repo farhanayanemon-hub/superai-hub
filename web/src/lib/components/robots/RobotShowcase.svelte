@@ -311,18 +311,6 @@
       >
         <!-- Centered Section Header with Details & Description -->
         <div class="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-3 px-4">
-          <!-- Centered Department Badge & Count -->
-          <div class="flex items-center justify-center gap-2 flex-wrap">
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border {dept.badgeClass} shadow-2xs">
-              <i class="{dept.icon} text-sm"></i>
-              {dept.badge}
-            </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-[#1677FF] border border-[#E3ECF7] shadow-2xs">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#1677FF] animate-pulse"></span>
-              {dept.agents.length} AI Specialists
-            </span>
-          </div>
-
           <!-- Centered Main Title -->
           <h3 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-[#102A56] tracking-tight break-words">
             {dept.title}
