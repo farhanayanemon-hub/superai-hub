@@ -8,21 +8,14 @@
 <header class="sticky top-0 z-40 w-full ui-navbar">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <!-- Brand Logo -->
-    <a href="/" class="flex items-center gap-3 group">
+    <a href="/" class="flex items-center gap-2.5 group">
       <img src="/logo.png" alt="EzboAgents" class="w-10 h-10 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="font-extrabold text-lg text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
-          <span class="hidden min-[380px]:inline-flex px-2 py-0.5 text-[9px] font-bold ui-badge-primary rounded-full tracking-wider uppercase">Executive AI</span>
-        </div>
-        <p class="text-[11px] text-[#5E7694] font-mono">ezboagents.com</p>
-      </div>
+      <span class="font-extrabold text-lg text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
     </a>
 
     <!-- Desktop Navigation Links -->
     <nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-[#4B6382]">
       <a href="/#helpers" class="hover:text-[#1677FF] transition-colors">Helpers</a>
-      <a href="/#features" class="hover:text-[#1677FF] transition-colors">WhatsApp Engine</a>
       <a href="/#pricing" class="hover:text-[#1677FF] transition-colors flex items-center gap-1.5">
         Pricing
         <span class="px-2 py-0.5 text-[10px] font-bold ui-badge-primary rounded-full">2 Plans</span>
@@ -80,7 +73,6 @@
   {#if mobileMenuOpen}
     <div class="md:hidden border-b border-[#E3ECF7] bg-white px-4 py-4 space-y-3 shadow-lg">
       <a href="/#helpers" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">Helpers</a>
-      <a href="/#features" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">WhatsApp Engine</a>
       <a href="/#pricing" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">Pricing (2 Plans)</a>
       <a href="/#faq" onclick={() => (mobileMenuOpen = false)} class="block py-2 text-sm font-semibold text-[#102A56] hover:text-[#1677FF]">FAQ</a>
 
