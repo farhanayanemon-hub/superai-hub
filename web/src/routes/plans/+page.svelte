@@ -141,22 +141,22 @@
       </div>
 
       <!-- Animated Shimmer Title in Gorgeous Font -->
-      <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-membership-title">
+      <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-membership-title px-2 leading-tight">
         Active Membership Required
       </h2>
 
       <!-- Transparent High-Clarity Description -->
-      <p class="text-xs sm:text-sm text-[#4B6382] max-w-xl mx-auto mt-2.5 leading-relaxed font-medium">
+      <p class="text-xs sm:text-sm text-[#4B6382] max-w-xl mx-auto mt-2.5 px-3 leading-relaxed font-medium">
         To protect computing clusters and activate your personal neural channels, select a plan below. Your dashboard and <strong class="text-[#102A56] font-bold">75+ AI helpers</strong> will unlock immediately upon checkout confirmation.
       </p>
     </div>
 
     <!-- Header & Pitch -->
     <div class="text-center max-w-2xl mx-auto mb-10 space-y-3">
-      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight animated-heading-title">
+      <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-heading-title px-2 leading-tight">
         Activate Your Executive Workspace
       </h1>
-      <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
+      <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed px-3">
         Choose how you want to deploy: bring your own API keys for zero token markups, or enjoy our fully managed high-speed cloud cluster.
       </p>
 
