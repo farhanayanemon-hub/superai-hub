@@ -77,22 +77,16 @@
 
 <svelte:head>
   <title>Select Membership Plan • EzboAgents</title>
-  <meta name="description" content="Select a subscription plan to activate your EzboAgents Executive AI Workspace and unlock 50+ specialized agents." />
+  <meta name="description" content="Select a subscription plan to activate your EzboAgents Workspace and unlock the Master AI CEO plus 75+ specialized AI Helpers." />
 </svelte:head>
 
 <div class="min-h-screen bg-[#F3F8FF] text-[#102A56] flex flex-col justify-between relative overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
   <!-- Top Navigation Header -->
   <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-10 border-b border-[#E3ECF7]/60">
-    <div class="flex items-center gap-3">
-      <img src="/logo.png" alt="EzboAgents" class="w-10 h-10 object-contain drop-shadow-xs" />
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-base font-extrabold tracking-tight text-[#102A56]">EzboAgents</span>
-          <span class="hidden min-[380px]:inline-flex ui-badge-primary px-2 py-0.5 text-[10px] rounded-md">CONSORTIUM</span>
-        </div>
-        <p class="text-[10px] text-[#5E7694]">EXECUTIVE AI WORKSPACE</p>
-      </div>
-    </div>
+    <a href="/" class="flex items-center gap-2.5 group">
+      <img src="/logo.png" alt="EzboAgents" class="w-10 h-10 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
+      <span class="font-extrabold text-lg text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
+    </a>
 
     <!-- User Status & Actions -->
     <div class="flex items-center gap-3">
@@ -132,25 +126,37 @@
 
   <!-- Main Content Area -->
   <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 flex-1 flex flex-col justify-center">
-    <!-- Notice Banner for Unsubscribed Gate -->
-    <div class="mb-8 p-4 rounded-2xl bg-white border border-[#CFE2FA] flex items-start sm:items-center gap-3 text-[#102A56] shadow-2xs">
-      <div class="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0 mt-0.5 sm:mt-0">
-        <Icon name="ShieldCheck" size={18} />
+    <!-- Transparent Animated Active Membership Section (No Card Box) -->
+    <div class="mb-10 text-center relative py-2">
+      <!-- Ambient Backlight Glow -->
+      <div class="absolute -top-8 left-1/2 -translate-x-1/2 w-80 sm:w-[480px] h-28 bg-[#38CFFF]/20 blur-3xl pointer-events-none rounded-full"></div>
+
+      <!-- Animated Badge / Indicator -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#CFE2FA] text-[#1677FF] mb-3 backdrop-blur-md shadow-[0_2px_12px_rgba(22,119,255,0.08)]">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38CFFF] opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-[#1677FF]"></span>
+        </span>
+        <span class="text-[11px] font-bold uppercase tracking-wider">Access Verification Gate</span>
       </div>
-      <div class="flex-1 text-xs sm:text-sm">
-        <p class="font-bold text-[#102A56]">Active Membership Required</p>
-        <p class="text-[#4B6382] text-xs mt-0.5">
-          To protect computing clusters and activate your personal neural channels, select a plan below. Your dashboard and 50+ AI executives will unlock immediately upon checkout confirmation.
-        </p>
-      </div>
+
+      <!-- Animated Shimmer Title in Gorgeous Font -->
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-membership-title">
+        Active Membership Required
+      </h2>
+
+      <!-- Transparent High-Clarity Description -->
+      <p class="text-xs sm:text-sm text-[#4B6382] max-w-xl mx-auto mt-2.5 leading-relaxed font-medium">
+        To protect computing clusters and activate your personal neural channels, select a plan below. Your dashboard and <strong class="text-[#102A56] font-bold">75+ AI helpers</strong> will unlock immediately upon checkout confirmation.
+      </p>
     </div>
 
     <!-- Header & Pitch -->
     <div class="text-center max-w-2xl mx-auto mb-10 space-y-3">
-      <h1 class="text-2xl sm:text-4xl font-extrabold text-[#102A56] tracking-tight">
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight animated-heading-title">
         Activate Your Executive Workspace
       </h1>
-      <p class="text-xs sm:text-sm text-[#4B6382]">
+      <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
         Choose how you want to deploy: bring your own API keys for zero token markups, or enjoy our fully managed high-speed cloud cluster.
       </p>
 
@@ -166,7 +172,7 @@
         </button>
         <span class="text-xs sm:text-sm font-semibold {billingInterval === 'yearly' ? 'text-[#1677FF] font-bold' : 'text-[#4B6382]'}">Yearly</span>
         {#if billingInterval === 'yearly'}
-          <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold">
+          <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold shadow-2xs">
             Save 20% • 2 months FREE
           </span>
         {/if}
@@ -175,7 +181,7 @@
 
     <!-- Error / Processing Status Alerts -->
     {#if paymentNotice}
-      <div class="mb-6 p-4 rounded-xl bg-white border border-[#1677FF]/30 text-[#102A56] flex items-center justify-center gap-2 text-xs font-semibold shadow-2xs">
+      <div class="mb-6 p-4 rounded-xl bg-white/90 backdrop-blur-md border border-[#1677FF]/30 text-[#102A56] flex items-center justify-center gap-2 text-xs font-semibold shadow-2xs">
         <Icon name="Loader2" size={16} class="animate-spin text-[#1677FF]" />
         <span>{paymentNotice}</span>
       </div>
@@ -191,21 +197,23 @@
     <!-- 2 Plans Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
       <!-- PLAN 1: BYOK MULTI-ENGINE -->
-      <div class="rounded-3xl bg-white border border-[#E3ECF7] p-6 sm:p-8 flex flex-col justify-between hover:border-[#1677FF]/50 transition-all duration-300 shadow-xs">
+      <div class="rounded-3xl bg-white/80 backdrop-blur-md border border-[#CFE2FA] p-6 sm:p-8 flex flex-col justify-between hover:border-[#1677FF]/60 hover:shadow-[0_16px_40px_rgba(22,119,255,0.12)] transition-all duration-300 group">
         <div>
           <div class="mb-5">
-            <span class="px-3 py-1 rounded-full bg-[#F3F8FF] text-xs font-bold text-[#102A56] border border-[#E3ECF7]">
+            <span class="px-3 py-1 rounded-full bg-[#F3F8FF] text-xs font-bold text-[#102A56] border border-[#CFE2FA] inline-block transition-transform group-hover:scale-105 shadow-2xs">
               {$plansStore.byok.badge}
             </span>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-[#102A56] mt-3">{$plansStore.byok.name}</h2>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-[#102A56] mt-3 tracking-tight group-hover:text-[#1677FF] transition-colors">
+              {$plansStore.byok.name}
+            </h2>
             <div class="flex items-baseline gap-1 mt-2">
-              <span class="text-3xl font-extrabold text-[#102A56]">
+              <span class="text-3xl sm:text-4xl font-extrabold animated-price-title">
                 BDT {billingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice}
               </span>
-              <span class="text-sm font-medium text-[#4B6382]">/mo</span>
+              <span class="text-sm font-semibold text-[#4B6382]">/mo</span>
             </div>
             {#if billingInterval === 'yearly'}
-              <p class="text-xs text-[#4B6382] mt-1">Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)</p>
+              <p class="text-xs text-[#4B6382] mt-1 font-medium">Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)</p>
             {/if}
           </div>
 
@@ -215,7 +223,12 @@
 
           <ul class="space-y-3 text-xs text-[#102A56]">
             {#each $plansStore.byok.features as feature}
-              <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-[#1677FF] shrink-0" /> <span>{feature}</span></li>
+              <li class="flex items-center gap-2.5 group/item transition-transform duration-200 hover:translate-x-1.5">
+                <span class="w-5 h-5 rounded-full bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0 group-hover/item:border-[#1677FF] group-hover/item:bg-[#1677FF]/10 transition-colors shadow-2xs">
+                  <Icon name="Check" size={12} class="text-[#1677FF]" />
+                </span>
+                <span class="text-[#102A56] group-hover/item:text-[#1677FF] transition-colors leading-snug">{feature}</span>
+              </li>
             {/each}
           </ul>
         </div>
@@ -223,7 +236,7 @@
         <button
           onclick={() => handleSubscribe('byok')}
           disabled={isProcessing}
-          class="mt-8 w-full py-4 rounded-xl btn-navy text-xs uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="mt-8 w-full py-4 rounded-xl btn-navy text-xs uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
         >
           {#if isProcessing && activeTierProcessing === 'byok'}
             <Icon name="Loader2" size={14} class="animate-spin" />
@@ -236,27 +249,29 @@
       </div>
 
       <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
-      <div class="rounded-3xl bg-white border-2 border-[#1677FF] p-6 sm:p-8 flex flex-col justify-between relative shadow-md md:scale-[1.01]">
+      <div class="rounded-3xl bg-white/90 backdrop-blur-md border-2 border-[#1677FF] p-6 sm:p-8 flex flex-col justify-between relative shadow-[0_10px_35px_rgba(22,119,255,0.15)] hover:shadow-[0_20px_50px_rgba(22,119,255,0.25)] md:scale-[1.01] transition-all duration-300 group">
         {#if $plansStore.managed.highlightBadge}
-          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#1677FF] text-white text-[11px] font-black uppercase tracking-wider shadow-xs whitespace-nowrap">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#1677FF] via-[#38CFFF] to-[#1677FF] text-white text-[11px] font-black uppercase tracking-wider shadow-[0_0_18px_rgba(22,119,255,0.6)] whitespace-nowrap animated-highlight-badge">
             {$plansStore.managed.highlightBadge}
           </div>
         {/if}
 
         <div>
           <div class="mb-5">
-            <span class="ui-badge-primary px-3 py-1 rounded-full text-xs">
+            <span class="ui-badge-primary px-3 py-1 rounded-full text-xs font-bold inline-block transition-transform group-hover:scale-105">
               {$plansStore.managed.badge}
             </span>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-[#102A56] mt-3">{$plansStore.managed.name}</h2>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-[#102A56] mt-3 tracking-tight group-hover:text-[#1677FF] transition-colors">
+              {$plansStore.managed.name}
+            </h2>
             <div class="flex items-baseline gap-1 mt-2">
-              <span class="text-3xl font-extrabold text-[#102A56]">
+              <span class="text-3xl sm:text-4xl font-extrabold animated-price-title">
                 BDT {billingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice}
               </span>
-              <span class="text-sm font-medium text-[#4B6382]">/mo</span>
+              <span class="text-sm font-semibold text-[#4B6382]">/mo</span>
             </div>
             {#if billingInterval === 'yearly'}
-              <p class="text-xs text-[#4B6382] mt-1">Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)</p>
+              <p class="text-xs text-[#4B6382] mt-1 font-medium">Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)</p>
             {/if}
           </div>
 
@@ -266,7 +281,12 @@
 
           <ul class="space-y-3 text-xs text-[#102A56]">
             {#each $plansStore.managed.features as feature}
-              <li class="flex items-center gap-2 font-semibold text-[#102A56]"><Icon name="Check" size={14} class="text-[#1677FF] shrink-0" /> <span>{feature}</span></li>
+              <li class="flex items-center gap-2.5 group/item transition-transform duration-200 hover:translate-x-1.5">
+                <span class="w-5 h-5 rounded-full bg-[#1677FF]/10 border border-[#1677FF]/30 flex items-center justify-center text-[#1677FF] shrink-0 group-hover/item:bg-[#1677FF] group-hover/item:text-white transition-colors shadow-2xs">
+                  <Icon name="Check" size={12} class="currentColor" />
+                </span>
+                <span class="font-semibold text-[#102A56] group-hover/item:text-[#1677FF] transition-colors leading-snug">{feature}</span>
+              </li>
             {/each}
           </ul>
         </div>
@@ -274,7 +294,7 @@
         <button
           onclick={() => handleSubscribe('managed')}
           disabled={isProcessing}
-          class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98]"
         >
           {#if isProcessing && activeTierProcessing === 'managed'}
             <Icon name="Loader2" size={14} class="animate-spin" />
@@ -297,7 +317,7 @@
 
       <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
         {#each ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard'] as method}
-          <span class="px-3 py-1 rounded-lg bg-white border border-[#E3ECF7] font-semibold text-[#102A56] shadow-2xs text-[11px]">
+          <span class="px-3 py-1 rounded-lg bg-white/80 backdrop-blur-sm border border-[#E3ECF7] font-semibold text-[#102A56] shadow-2xs text-[11px]">
             {method}
           </span>
         {/each}
@@ -306,7 +326,63 @@
   </main>
 
   <!-- Footer -->
-  <footer class="w-full py-4 text-center text-[11px] text-[#5E7694] border-t border-[#E3ECF7] bg-white">
-    EzboAgents • Enterprise AI Consortium • Secure Payment via OPayBD Gateway
+  <footer class="w-full py-4 text-center text-[11px] text-[#5E7694] border-t border-[#E3ECF7] bg-white/80 backdrop-blur-md">
+    EzboAgents • Secure Payment via OPayBD Gateway
   </footer>
 </div>
+
+<style>
+  @keyframes textShimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes badgePulse {
+    0%, 100% {
+      transform: translate(-50%, 0) scale(1);
+      box-shadow: 0 0 14px rgba(22, 119, 255, 0.4);
+    }
+    50% {
+      transform: translate(-50%, 0) scale(1.04);
+      box-shadow: 0 0 24px rgba(56, 207, 255, 0.7);
+    }
+  }
+
+  .animated-membership-title {
+    background: linear-gradient(90deg, #102A56 0%, #1677FF 35%, #38CFFF 50%, #1677FF 65%, #102A56 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShimmer 4.5s ease-in-out infinite;
+  }
+
+  .animated-heading-title {
+    background: linear-gradient(90deg, #102A56 0%, #1677FF 40%, #0E63E0 60%, #102A56 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShimmer 6s ease-in-out infinite;
+  }
+
+  .animated-price-title {
+    background: linear-gradient(135deg, #102A56 0%, #1677FF 45%, #38CFFF 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShimmer 5s ease-in-out infinite;
+  }
+
+  .animated-highlight-badge {
+    animation: badgePulse 3s ease-in-out infinite;
+  }
+</style>
