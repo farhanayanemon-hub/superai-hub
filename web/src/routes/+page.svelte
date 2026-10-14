@@ -61,16 +61,6 @@
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center space-y-6 max-w-4xl mx-auto">
-          <!-- Top Animated Pill: Regular New Bots in 1 Subscription -->
-          <div
-            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E3ECF7] shadow-2xs text-[11px] sm:text-xs font-extrabold text-[#1677FF] max-w-full text-center flex-wrap justify-center"
-          >
-            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-            <span class="break-words">
-              👑 1 Master AI CEO + 75+ AI Helpers • New AI Bots Added Regularly in 1 Subscription!
-            </span>
-          </div>
-
           <!-- Main Title -->
           <h1
             class="text-3xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#102A56] leading-[1.15] sm:leading-[1.12] break-words"
