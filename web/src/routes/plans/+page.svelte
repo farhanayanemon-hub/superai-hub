@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
+  import PaymentMethods from '$lib/components/PaymentMethods.svelte';
   import {
     currentUser,
     isAuthenticated,
@@ -21,24 +22,49 @@
   let paymentError = $state('');
   let paymentNotice = $state('');
 
-  onMount(async () => {
+  let scrollY = $state(0);
+  let scrollProgress = $state(0);
+  let showScrollTop = $derived(scrollY > 280);
+
+  function handleScroll() {
+    if (typeof window === 'undefined') return;
+    const docEl = document.documentElement;
+    const totalHeight = docEl.scrollHeight - docEl.clientHeight;
+    scrollY = window.scrollY || docEl.scrollTop;
+    scrollProgress = totalHeight > 0 ? Math.min(100, Math.max(0, (scrollY / totalHeight) * 100)) : 0;
+  }
+
+  function scrollToTop() {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  onMount(() => {
     loadPublicPlans();
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
-    if ($isAuthenticated && $currentUser) {
-      await syncUserAccessWithServer();
-    }
+    (async () => {
+      if ($isAuthenticated && $currentUser) {
+        await syncUserAccessWithServer();
+      }
 
-    // If the user is already authenticated and subscribed, redirect to dashboard
-    if ($isAuthenticated && $currentUser?.isSubscribed && $subscription.status === 'active') {
-      goto('/dashboard');
-      return;
-    }
+      // If the user is already authenticated and subscribed, redirect to dashboard
+      if ($isAuthenticated && $currentUser?.isSubscribed && $subscription.status === 'active') {
+        goto('/dashboard');
+      }
+    })();
 
     // Check query params if a plan was pre-selected
     const planParam = page.url.searchParams.get('plan');
     if (planParam === 'managed') {
       // Keep state ready
     }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   });
 
   async function handleSubscribe(tier: PlanTier) {
@@ -315,12 +341,8 @@
         <span class="flex items-center gap-1.5"><Icon name="RefreshCw" size={14} class="text-[#5E7694]" /> Cancel Anytime</span>
       </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
-        {#each ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard'] as method}
-          <span class="px-3 py-1 rounded-lg bg-white/80 backdrop-blur-sm border border-[#E3ECF7] font-semibold text-[#102A56] shadow-2xs text-[11px]">
-            {method}
-          </span>
-        {/each}
+      <div class="pt-1">
+        <PaymentMethods />
       </div>
     </div>
   </main>
@@ -329,6 +351,56 @@
   <footer class="w-full py-4 text-center text-[11px] text-[#5E7694] border-t border-[#E3ECF7] bg-white/80 backdrop-blur-md">
     EzboAgents • Secure Payment via OPayBD Gateway
   </footer>
+
+  <!-- Floating Scroll to Top & Progress Indicator -->
+  <button
+    type="button"
+    onclick={scrollToTop}
+    aria-label="Scroll to top of page (Currently at {Math.round(scrollProgress)}%)"
+    class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md border border-[#CFE2FA] shadow-md hover:shadow-lg text-[#102A56] hover:text-[#1677FF] hover:border-[#1677FF]/60 flex items-center justify-center transition-all duration-300 group cursor-pointer {showScrollTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}"
+  >
+    <!-- Circular SVG Progress Ring around the button -->
+    <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-0.5" viewBox="0 0 44 44">
+      <circle
+        cx="22"
+        cy="22"
+        r="18"
+        stroke="#E3ECF7"
+        stroke-width="2.5"
+        fill="transparent"
+      />
+      <circle
+        cx="22"
+        cy="22"
+        r="18"
+        stroke="#1677FF"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        fill="transparent"
+        stroke-dasharray="113.097"
+        stroke-dashoffset={113.097 - (113.097 * scrollProgress) / 100}
+        class="transition-all duration-75 ease-out"
+      />
+    </svg>
+
+    <!-- Upward Arrow Icon & Percentage Number -->
+    <div class="relative flex flex-col items-center justify-center pointer-events-none -mt-0.5">
+      <svg
+        class="w-4 h-4 text-[#1677FF] group-hover:-translate-y-1 transition-transform duration-200 stroke-[2.75]"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 19V5" />
+        <path d="M5 12l7-7 7 7" />
+      </svg>
+      <span class="text-[8.5px] font-mono font-extrabold leading-none text-[#5E7694] group-hover:text-[#1677FF] transition-colors">
+        {Math.round(scrollProgress)}%
+      </span>
+    </div>
+  </button>
 </div>
 
 <style>

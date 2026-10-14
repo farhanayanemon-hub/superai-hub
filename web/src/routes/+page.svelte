@@ -4,6 +4,7 @@
   import RobotAvatar from '$lib/components/RobotAvatar.svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
+  import PaymentMethods from '$lib/components/PaymentMethods.svelte';
   import RobotShowcase from '$lib/components/robots/RobotShowcase.svelte';
   import { isAuthenticated, currentUser } from '$lib/stores/userStore';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
@@ -407,14 +408,7 @@
         <!-- Payment methods -->
         <div class="mt-12 text-center text-xs text-[#4B6382] space-y-2">
           <p>Instant Activation • 100% Secure Checkout • 3-Day Grace Period</p>
-          <div class="flex flex-wrap items-center justify-center gap-3">
-            {#each ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard'] as method}
-              <span
-                class="px-3 py-1 rounded-lg bg-white border border-[#E3ECF7] font-semibold text-[#102A56] shadow-2xs"
-                >{method}</span
-              >
-            {/each}
-          </div>
+          <PaymentMethods class="pt-2" />
         </div>
       </div>
     </section>
@@ -498,10 +492,20 @@
       />
     </svg>
 
-    <!-- Arrow Icon & Percentage Number -->
-    <div class="relative flex flex-col items-center justify-center pointer-events-none">
-      <Icon name="ArrowUp" size={16} class="transition-transform group-hover:-translate-y-0.5 text-[#102A56] group-hover:text-[#1677FF]" />
-      <span class="text-[8px] font-mono font-bold leading-none mt-0.5 text-[#5E7694] group-hover:text-[#1677FF]">
+    <!-- Upward Arrow Icon & Percentage Number -->
+    <div class="relative flex flex-col items-center justify-center pointer-events-none -mt-0.5">
+      <svg
+        class="w-4 h-4 text-[#1677FF] group-hover:-translate-y-1 transition-transform duration-200 stroke-[2.75]"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 19V5" />
+        <path d="M5 12l7-7 7 7" />
+      </svg>
+      <span class="text-[8.5px] font-mono font-extrabold leading-none text-[#5E7694] group-hover:text-[#1677FF] transition-colors">
         {Math.round(scrollProgress)}%
       </span>
     </div>

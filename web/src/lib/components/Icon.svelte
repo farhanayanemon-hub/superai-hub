@@ -10,7 +10,7 @@
     Terminal, Receipt, ShoppingBag, Share2, Briefcase, Code, Grid,
     Bot, Key, QrCode, ExternalLink, Copy, Check, Search, X,
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
-    ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
+    ArrowRight, ArrowUp, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
     Eye, EyeOff, Lock, Plus, Save, Trash2, Loader, ToggleLeft, ToggleRight, TrendingUp, Infinity,
     ChevronDown, ChevronUp, Sliders, ShieldCheck, Cpu
@@ -33,7 +33,7 @@
     Terminal, Receipt, ShoppingBag, Share2, Briefcase, Code, Grid,
     Bot, Key, QrCode, ExternalLink, Copy, Check, Search, X,
     ChevronRight, Play, CheckCircle2, AlertCircle, RefreshCw,
-    ArrowRight, Shield, MessageSquare, Send, CheckCheck, Loader2,
+    ArrowRight, ArrowUp, Shield, MessageSquare, Send, CheckCheck, Loader2,
     LogOut, Settings, CreditCard, User, ChevronLeft, Gift,
     Eye, EyeOff, Lock, Plus, Save, Trash2, Loader, ToggleLeft, ToggleRight, TrendingUp, Infinity,
     ChevronDown, ChevronUp, Sliders, ShieldCheck, Cpu,
