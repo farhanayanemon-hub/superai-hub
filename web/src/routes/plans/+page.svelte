@@ -141,7 +141,7 @@
       </div>
 
       <!-- Animated Shimmer Title in Gorgeous Font -->
-      <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-membership-title px-2 leading-tight">
+      <h2 class="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight animated-membership-title px-2 leading-tight">
         Active Membership Required
       </h2>
 
@@ -153,8 +153,8 @@
 
     <!-- Header & Pitch -->
     <div class="text-center max-w-2xl mx-auto mb-10 space-y-3">
-      <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-heading-title px-2 leading-tight">
-        Activate Your Executive Workspace
+      <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight animated-heading-title px-2 leading-tight max-w-md mx-auto">
+        Activate Your<br class="sm:hidden" /> Executive Workspace
       </h1>
       <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed px-3">
         Choose how you want to deploy: bring your own API keys for zero token markups, or enjoy our fully managed high-speed cloud cluster.
