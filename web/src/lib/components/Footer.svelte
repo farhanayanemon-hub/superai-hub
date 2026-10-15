@@ -55,6 +55,6 @@
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 border-t border-[#E3ECF7] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#5E7694] text-center sm:text-left">
     <p>© 2026 EzboAgents. All rights reserved.</p>
-    <p>Powered by Google Gemini 1.5/2.0 Flash (BYOK) & WhatsApp Baileys Protocol</p>
+    <p>EzboSoft Network</p>
   </div>
 </footer>
