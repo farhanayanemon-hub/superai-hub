@@ -71,6 +71,49 @@ class WhatsAppClientService {
       return false;
     }
   }
+
+  /**
+   * Request an 8-digit Crockford pairing code for phone-based linking
+   */
+  async requestPairingCode(phoneNumber: string): Promise<{ success: boolean; pairingCode?: string; error?: string }> {
+    try {
+      const res = await fetch(`${ENGINE_URL}/api/session/pairing-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber })
+      });
+      const data = await res.json();
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to request pairing code' };
+    }
+  }
+
+  /**
+   * One-shot retrieval of engine connection status
+   */
+  async getStatus(): Promise<{ status: WhatsAppStatus; userJid: string | null; hasQr: boolean } | null> {
+    try {
+      const res = await fetch(`${ENGINE_URL}/api/status`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * One-shot retrieval of engine QR code data URL
+   */
+  async getQr(): Promise<{ status: WhatsAppStatus; userJid: string | null; hasQr: boolean; qrDataUrl: string | null } | null> {
+    try {
+      const res = await fetch(`${ENGINE_URL}/api/qr`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 export const whatsappApi = new WhatsAppClientService();

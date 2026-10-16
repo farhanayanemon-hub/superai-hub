@@ -8,6 +8,7 @@ import {
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import QRCode from 'qrcode';
+import fs from 'node:fs';
 import { AUTH_DIR } from './config.js';
 import { isSafeSelfMessage, extractMessageText, simulateHumanTyping } from './guardrails.js';
 import { CentralBrainRouter } from './brainRouter.js';
@@ -166,18 +167,78 @@ export class BaileysManager {
     }
   }
 
+  /**
+   * Request an 8-character phone pairing code for WhatsApp companion linking
+   */
+  async requestPairingCode(phoneNumber: string): Promise<string> {
+    if (!phoneNumber || typeof phoneNumber !== 'string') {
+      throw new Error('Valid phone number with country code is required (digits only)');
+    }
+
+    const cleanNumber = phoneNumber.replace(/\D/g, '');
+    if (!cleanNumber || cleanNumber.length < 8) {
+      throw new Error('Valid phone number with country code is required (minimum 8 digits)');
+    }
+
+    if (this.status === 'connected') {
+      throw new Error('WhatsApp session is already connected');
+    }
+
+    // Ensure socket is initialized
+    if (!this.sock) {
+      await this.start();
+    }
+
+    // Allow a brief moment for socket to establish handshake if starting
+    let attempts = 0;
+    while (!this.sock && attempts < 15) {
+      await new Promise((r) => setTimeout(r, 200));
+      attempts++;
+    }
+
+    if (!this.sock) {
+      throw new Error('Failed to initialize WhatsApp socket connection');
+    }
+
+    if (this.sock.authState?.creds?.registered) {
+      throw new Error('Account is already registered');
+    }
+
+    const pairingCode = await this.sock.requestPairingCode(cleanNumber);
+    return pairingCode;
+  }
+
   async disconnect(): Promise<void> {
     if (this.sock) {
       try {
         await this.sock.logout();
       } catch (err) {
-        // ignore
+        // ignore logout errors on stale session
       }
       this.sock = null;
     }
+
     this.status = 'disconnected';
     this.userJid = null;
+    this.currentQrRaw = null;
     this.currentQrDataUrl = null;
+    this.isStarting = false;
+
+    // Purge and clean all credentials in AUTH_DIR
+    try {
+      if (fs.existsSync(AUTH_DIR)) {
+        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+      }
+      fs.mkdirSync(AUTH_DIR, { recursive: true });
+      console.log('🧹 AUTH_DIR credentials cleaned successfully.');
+    } catch (err) {
+      console.error('Failed to clean AUTH_DIR credentials:', err);
+    }
+
+    // Automatically schedule start() within 500ms so fresh QR handshake is generated immediately
+    setTimeout(() => {
+      this.start().catch((err) => console.error('Auto-restart after disconnect failed:', err));
+    }, 500);
   }
 
   /**

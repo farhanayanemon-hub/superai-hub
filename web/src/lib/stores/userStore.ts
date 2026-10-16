@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store';
 import type { AITool } from '$lib/config/tools';
 import { getDecryptedKey, saveEncryptedKey, clearStoredKey, encryptVaultKey, decryptVaultKey } from '$lib/services/crypto';
+import { offlineStorage } from '$lib/services/offlineStorage';
 
 export type WhatsAppStatus = 'disconnected' | 'connecting' | 'qr_ready' | 'connected';
 export type DashboardTab = 'chat' | 'agents' | 'store' | 'channels' | 'billing' | 'settings' | 'tools' | 'whatsapp' | 'vault';
@@ -114,6 +115,15 @@ function loadInitialVault(): ApiVaultKey[] {
   }
 }
 
+function loadInitialCeoCustomPrompt(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return localStorage.getItem('ezbo_ceo_custom_prompt') || '';
+  } catch {
+    return '';
+  }
+}
+
 function loadInitialSubscription(): SubscriptionState {
   const initialUser = loadInitialUser();
   const defaultSub: SubscriptionState = {
@@ -167,6 +177,20 @@ export const searchQuery = writable<string>('');
 export const subscription = writable<SubscriptionState>(loadInitialSubscription());
 export const apiVault = writable<ApiVaultKey[]>(loadInitialVault());
 export const activeVaultKeyId = writable<string | null>(null);
+export const ceoCustomPrompt = writable<string>(loadInitialCeoCustomPrompt());
+
+export function setCeoCustomPrompt(prompt: string): void {
+  ceoCustomPrompt.set(prompt);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('ezbo_ceo_custom_prompt', prompt);
+    } catch (e) {
+      console.warn('LocalStorage quota exceeded or unavailable:', e);
+    }
+  }
+}
+
+export const saveCeoCustomPrompt = setCeoCustomPrompt;
 
 // Initialize default vault key from legacy single key
 if (typeof window !== 'undefined') {
@@ -348,6 +372,45 @@ export function incrementManagedUsage(): void {
 }
 
 export const chatMessages = writable<ChatMessage[]>(loadInitialChat());
+
+// Dual-Tier Persistence: Asynchronously load unbounded IndexedDB history and reconcile
+if (typeof window !== 'undefined') {
+  offlineStorage
+    .getAllMessages()
+    .then((storedMsgs) => {
+      if (storedMsgs && storedMsgs.length > 0) {
+        chatMessages.update((current) => {
+          const idMap = new Map<string, ChatMessage>();
+          for (const msg of storedMsgs) {
+            if (msg && msg.id) idMap.set(msg.id, msg);
+          }
+          for (const msg of current) {
+            if (msg && msg.id) idMap.set(msg.id, msg);
+          }
+          const reconciled = Array.from(idMap.values());
+          try {
+            localStorage.setItem(
+              'superai_chat_history',
+              JSON.stringify(reconciled.slice(-50))
+            );
+          } catch {
+            // ignore
+          }
+          return reconciled;
+        });
+      } else {
+        const current = get(chatMessages);
+        if (current && current.length > 0) {
+          for (const msg of current) {
+            offlineStorage.saveMessage(msg).catch(() => {});
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      console.warn('[userStore] Failed to hydrate messages from offlineStorage:', err);
+    });
+}
 
 // -------------------------------------------------------------
 // Authentication Helper Actions (Production-Ready)
@@ -769,6 +832,12 @@ export function addChatMessage(message: ChatMessage) {
     }
     return updated;
   });
+
+  if (typeof window !== 'undefined') {
+    offlineStorage.saveMessage(message).catch((err) => {
+      console.warn('[userStore] Failed to save message to offlineStorage:', err);
+    });
+  }
 }
 
 export function clearChatHistory() {
@@ -776,5 +845,8 @@ export function clearChatHistory() {
   chatMessages.set(initial);
   if (typeof window !== 'undefined') {
     localStorage.removeItem('superai_chat_history');
+    offlineStorage.clearMessages().catch((err) => {
+      console.warn('[userStore] Failed to clear offlineStorage messages:', err);
+    });
   }
 }

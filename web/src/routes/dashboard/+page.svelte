@@ -1,6 +1,8 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import DashboardChat from '$lib/components/DashboardChat.svelte';
+  import FloatingCeoChat from '$lib/components/FloatingCeoChat.svelte';
+  import ChannelModal from '$lib/components/ChannelModal.svelte';
   import ToolCard from '$lib/components/ToolCard.svelte';
   import ToolDrawer from '$lib/components/ToolDrawer.svelte';
   import ApiVaultManager from '$lib/components/ApiVaultManager.svelte';
@@ -33,12 +35,62 @@
     syncUserAccessWithServer,
     closeToolDrawer,
     apiVault,
+    ceoCustomPrompt,
+    setCeoCustomPrompt,
     type DashboardTab,
     type PlanTier
   } from '$lib/stores/userStore';
 
+  let sidebarOpen = $state(true);
   let mobileSidebarOpen = $state(false);
+  let isChannelModalOpen = $state(false);
+  let isCeoChatOpen = $state(false);
   let hasCheckedServerAccess = $state(false);
+
+  // Settings Tab AI CEO Persona & Custom Instructions State
+  let customInstructions = $state($ceoCustomPrompt || '');
+  let instructionsSaveNotice = $state('');
+
+  $effect(() => {
+    if ($ceoCustomPrompt && !customInstructions) {
+      customInstructions = $ceoCustomPrompt;
+    }
+  });
+
+  const CEO_PRESETS = [
+    {
+      title: 'Bengali Professional',
+      subtitle: 'বাংলায় প্রফেশনাল উত্তর',
+      prompt: 'আপনি EzboAgents-এর প্রধান এআই সিইও। সর্বদা ব্যবসায়িক, মার্জিত, প্রফেশনাল ও সাবলীল বাংলায় বিস্তারিত ও লাভজনক স্ট্র্যাটেজিক উত্তর দিন।'
+    },
+    {
+      title: 'Concise Strategist',
+      subtitle: 'Bullet-pointed, high-converting',
+      prompt: 'Act as a top-tier executive strategist. Keep answers crisp, highly structured, bullet-pointed, and focused purely on execution with zero fluff.'
+    },
+    {
+      title: 'E-Commerce & Marketing Master',
+      subtitle: 'ROAS, hook & sales focused',
+      prompt: 'Act as an elite direct-response marketer and e-commerce growth specialist. Relentlessly focus on ROAS, irresistible offers, scroll-stopping hooks, and conversion rate optimization.'
+    }
+  ];
+
+  function applyCeoPreset(prompt: string) {
+    customInstructions = prompt;
+    setCeoCustomPrompt(prompt);
+    instructionsSaveNotice = 'Instructions saved!';
+    setTimeout(() => {
+      instructionsSaveNotice = '';
+    }, 3000);
+  }
+
+  function handleSaveInstructions() {
+    setCeoCustomPrompt(customInstructions);
+    instructionsSaveNotice = 'Instructions saved!';
+    setTimeout(() => {
+      instructionsSaveNotice = '';
+    }, 3000);
+  }
 
   // BYOK Tab local state
   let inputKey = $state($apiKey || '');
@@ -267,6 +319,9 @@
   function switchTab(tab: DashboardTab) {
     activeDashboardTab.set(tab);
     mobileSidebarOpen = false;
+    if (tab === 'chat') {
+      isCeoChatOpen = true;
+    }
   }
 
   const filteredTools = $derived(
@@ -312,153 +367,132 @@
       tabindex="0"
       onclick={() => (mobileSidebarOpen = false)}
       onkeydown={(e) => { if (e.key === 'Escape') mobileSidebarOpen = false; }}
-      class="fixed inset-0 ui-modal-backdrop z-40 lg:hidden"
+      class="fixed inset-0 bg-[#102A56]/40 backdrop-blur-md z-40 lg:hidden"
     ></div>
   {/if}
 
   <aside
-    class="fixed lg:static inset-y-0 left-0 z-50 w-72 max-w-[85vw] ui-sidebar flex flex-col justify-between transition-transform duration-300 ease-in-out shrink-0 {mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}"
+    class="fixed lg:static inset-y-0 left-0 z-50 max-w-[85vw] ui-sidebar flex flex-col justify-between shrink-0 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] {mobileSidebarOpen ? 'translate-x-0 w-72 opacity-100' : '-translate-x-full w-72 opacity-0 lg:opacity-100'} {sidebarOpen ? 'lg:w-72 lg:translate-x-0 lg:opacity-100' : 'lg:w-0 lg:-translate-x-full lg:opacity-0 lg:pointer-events-none'}"
   >
-    <!-- Top Brand & Badge -->
-    <div>
-      <div class="h-16 px-5 border-b border-[#E3ECF7] flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2.5 group">
-          <img src="/logo.png" alt="EzboAgents" class="w-9 h-9 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
-          <div>
-            <div class="flex items-center gap-1.5">
-              <span class="font-extrabold text-base text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7] uppercase">VIP</span>
+    <div class="w-72 flex flex-col justify-between h-full">
+      <!-- Top Brand -->
+      <div>
+        <div class="h-16 px-5 border-b border-[#E3ECF7] flex items-center justify-between">
+          <a href="/" class="flex items-center gap-2.5 group">
+            <img src="/logo.png" alt="EzboAgents" class="w-9 h-9 object-contain drop-shadow-xs group-hover:scale-105 transition-transform" />
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-base text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
+              </div>
             </div>
-            <p class="text-[10px] text-[#5E7694] font-mono">ezboagents.com</p>
-          </div>
-        </a>
+          </a>
 
-        <button
-          type="button"
-          onclick={() => (mobileSidebarOpen = false)}
-          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] transition-colors cursor-pointer"
-          aria-label="Close Sidebar"
-        >
-          <Icon name="X" size={18} />
-        </button>
-      </div>
-
-      <!-- Navigation Menu Items -->
-      <nav class="p-3 space-y-1.5">
-        <!-- 1. AI CEO Executive Chat (Main Interface) -->
-        <button
-          type="button"
-          onclick={() => switchTab('chat')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'chat' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-        >
-          <div class="flex items-center gap-3">
-            <Icon name="Crown" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-[#1677FF]'} />
-            <span>AI CEO Chat</span>
-          </div>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'chat' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
-            Master
-          </span>
-        </button>
-
-        <!-- 2. 75 AI Helpers -->
-        <button
-          type="button"
-          onclick={() => switchTab('agents')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-        >
-          <div class="flex items-center gap-3">
-            <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
-            <span>AI Helpers (75)</span>
-          </div>
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
-            {TOOLS.length}
-          </span>
-        </button>
-
-        <!-- 3. Agents Store (Autonomous Agents) -->
-        <button
-          type="button"
-          onclick={() => switchTab('store')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'store' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-        >
-          <div class="flex items-center gap-3">
-            <Icon name="ShoppingBag" size={17} class={$activeDashboardTab === 'store' ? 'text-white' : 'text-[#1677FF]'} />
-            <span>Agents Store</span>
-          </div>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'store' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
-            Autonomous
-          </span>
-        </button>
-
-        <!-- 4. Channels (Multi-Channel Integration, renamed from WhatsApp Sync) -->
-        <button
-          type="button"
-          onclick={() => switchTab('channels')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-        >
-          <div class="flex items-center gap-3">
-            <Icon name="QrCode" size={17} class={$activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp' ? 'text-white' : 'text-[#1677FF]'} />
-            <span>Channels</span>
-          </div>
-          <span class="flex items-center gap-1 text-[10px]">
-            <span class="w-2 h-2 rounded-full {$whatsappStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-[#7A91AD]'}"></span>
-          </span>
-        </button>
-
-        <!-- 5. Subscription & Billing -->
-        <button
-          type="button"
-          onclick={() => switchTab('billing')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'billing' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-        >
-          <div class="flex items-center gap-3">
-            <Icon name="CreditCard" size={17} class={$activeDashboardTab === 'billing' ? 'text-white' : 'text-[#1677FF]'} />
-            <span>Billing & Plans</span>
-          </div>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'billing' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
-            Realtime
-          </span>
-        </button>
-
-        <!-- 6. Settings & Profile (Contains API Key Vault) -->
-        <button
-          type="button"
-          onclick={() => switchTab('settings')}
-          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-        >
-          <div class="flex items-center gap-3">
-            <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'text-white' : 'text-[#5E7694]'} />
-            <span>Settings</span>
-          </div>
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
-            Vault
-          </span>
-        </button>
-      </nav>
-    </div>
-
-    <!-- Bottom User Section & Sign Out -->
-    <div class="p-3 border-t border-[#E3ECF7] bg-[#F3F8FF]">
-      <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] shadow-2xs flex items-center justify-between">
-        <div class="flex items-center gap-2.5 overflow-hidden">
-          <div class="w-8 h-8 rounded-lg bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-bold text-xs shrink-0">
-            {$currentUser?.name ? $currentUser.name.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <div class="truncate">
-            <p class="text-xs font-bold text-[#102A56] truncate">{$currentUser?.name || 'User'}</p>
-            <p class="text-[10px] text-[#4B6382] truncate">{$currentUser?.email || 'user@ezboagents.com'}</p>
-          </div>
+          <button
+            type="button"
+            onclick={() => (mobileSidebarOpen = false)}
+            class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] transition-colors cursor-pointer"
+            aria-label="Close Sidebar"
+          >
+            <Icon name="X" size={18} />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onclick={handleLogout}
-          class="w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
-          title="Sign Out"
-          aria-label="Sign Out"
-        >
-          <Icon name="LogOut" size={16} />
-        </button>
+        <!-- Navigation Menu Items -->
+        <nav class="p-3 space-y-1.5">
+          <!-- 1. AI CEO Executive Chat (Main Interface) -->
+          <button
+            type="button"
+            onclick={() => switchTab('chat')}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'chat' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="Crown" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>AI CEO Chat</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'chat' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
+              Master
+            </span>
+          </button>
+
+          <!-- 2. AI Helpers -->
+          <button
+            type="button"
+            onclick={() => switchTab('agents')}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>AI Helpers</span>
+            </div>
+          </button>
+
+          <!-- 3. Store -->
+          <button
+            type="button"
+            onclick={() => switchTab('store')}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'store' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="ShoppingBag" size={17} class={$activeDashboardTab === 'store' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>Store</span>
+            </div>
+          </button>
+
+          <!-- 4. Subscription & Billing -->
+          <button
+            type="button"
+            onclick={() => switchTab('billing')}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'billing' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="CreditCard" size={17} class={$activeDashboardTab === 'billing' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>Billing & Plans</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'billing' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
+              Realtime
+            </span>
+          </button>
+
+          <!-- 5. Settings & Profile (Contains API Key Vault) -->
+          <button
+            type="button"
+            onclick={() => switchTab('settings')}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'text-white' : 'text-[#5E7694]'} />
+              <span>Settings</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
+              Vault
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom User Section & Sign Out -->
+      <div class="p-3 border-t border-[#E3ECF7] bg-[#F3F8FF]">
+        <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] shadow-2xs flex items-center justify-between">
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <div class="w-8 h-8 rounded-lg bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-bold text-xs shrink-0">
+              {$currentUser?.name ? $currentUser.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div class="truncate">
+              <p class="text-xs font-bold text-[#102A56] truncate">{$currentUser?.name || 'User'}</p>
+              <p class="text-[10px] text-[#4B6382] truncate">{$currentUser?.email || 'user@ezboagents.com'}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick={handleLogout}
+            class="w-10 h-10 flex items-center justify-center rounded-xl text-[#5E7694] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+            title="Sign Out"
+            aria-label="Sign Out"
+          >
+            <Icon name="LogOut" size={16} />
+          </button>
+        </div>
       </div>
     </div>
   </aside>
@@ -467,26 +501,61 @@
   <!-- 2. MAIN WORKSPACE AREA -->
   <!-- ======================================================== -->
   <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#F3F8FF] relative">
-    <!-- Top Mobile Header Bar -->
-    <div class="lg:hidden h-14 px-3 sm:px-4 border-b border-[#E3ECF7] bg-white flex items-center justify-between shrink-0 shadow-2xs">
-      <button
-        type="button"
-        onclick={() => (mobileSidebarOpen = true)}
-        class="w-10 h-10 flex items-center justify-center rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#102A56] hover:border-[#1677FF] cursor-pointer"
-        aria-label="Open Sidebar Menu"
-      >
-        <Icon name="Grid" size={18} />
-      </button>
+    <!-- Top Navigation Bar with Animated 3-Line Hamburger Menu Toggle (Desktop & Mobile) -->
+    <div class="h-14 sm:h-16 px-3 sm:px-6 border-b border-[#CFE2FA]/70 bg-white/70 backdrop-blur-xl flex items-center justify-between shrink-0 shadow-2xs z-30 transition-all">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- Animated 3-line hamburger menu toggle button for Desktop and Mobile -->
+        <button
+          type="button"
+          onclick={() => {
+            if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+              mobileSidebarOpen = !mobileSidebarOpen;
+            } else {
+              sidebarOpen = !sidebarOpen;
+            }
+          }}
+          class="w-10 h-10 flex flex-col items-center justify-center gap-1.2 rounded-xl bg-white/80 hover:bg-[#EAF2FF] border border-[#CFE2FA] hover:border-[#1677FF] text-[#102A56] transition-all cursor-pointer shadow-xs group"
+          aria-label="Toggle Navigation Sidebar"
+          title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+        >
+          <span
+            class="w-4.5 h-0.5 bg-[#102A56] group-hover:bg-[#1677FF] rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] {(!sidebarOpen || mobileSidebarOpen) ? 'rotate-45 translate-y-1.7' : ''}"
+          ></span>
+          <span
+            class="w-4.5 h-0.5 bg-[#102A56] group-hover:bg-[#1677FF] rounded-full transition-all duration-200 {(!sidebarOpen || mobileSidebarOpen) ? 'opacity-0 -translate-x-2' : ''}"
+          ></span>
+          <span
+            class="w-4.5 h-0.5 bg-[#102A56] group-hover:bg-[#1677FF] rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] {(!sidebarOpen || mobileSidebarOpen) ? '-rotate-45 -translate-y-1.7' : ''}"
+          ></span>
+        </button>
 
-      <div class="flex items-center gap-2">
-        <img src="/logo.png" alt="EzboAgents" class="w-6 h-6 object-contain drop-shadow-xs" />
-        <span class="font-extrabold text-sm text-[#102A56]">Ezbo<span class="text-[#1677FF]">Agents</span></span>
-        <span class="px-2 py-0.5 rounded text-[10px] bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7] font-mono font-semibold">
-          {$activeDashboardTab.toUpperCase()}
-        </span>
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <img src="/logo.png" alt="EzboAgents" class="w-7 h-7 object-contain drop-shadow-xs" />
+          <span class="font-extrabold text-sm sm:text-base text-[#102A56] tracking-tight">Ezbo<span class="text-[#1677FF]">Agents</span></span>
+          <span class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA] uppercase tracking-wide">
+            {$activeDashboardTab}
+          </span>
+        </div>
       </div>
 
-      <a href="/" class="text-xs text-[#4B6382] hover:text-[#102A56] font-medium px-2 py-1">Home</a>
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onclick={() => switchTab('chat')}
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-bold text-[#1677FF] transition-all cursor-pointer shadow-2xs"
+        >
+          <Icon name="Crown" size={14} class="text-[#1677FF]" />
+          <span>Master AI CEO</span>
+        </button>
+
+        <a
+          href="/"
+          class="px-3 py-1.5 rounded-xl bg-white/80 hover:bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-semibold text-[#4B6382] hover:text-[#102A56] transition-all"
+        >
+          Home
+        </a>
+      </div>
     </div>
 
     <!-- Tab View Router -->
@@ -551,7 +620,7 @@
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {#each unlockedBotsList as bot}
-                  <div class="p-5 rounded-3xl ui-card flex flex-col justify-between space-y-4">
+                  <div class="p-5 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all flex flex-col justify-between space-y-4">
                     <div>
                       <div class="flex items-start gap-3">
                         <img src={bot.avatar} alt={bot.name} class="w-12 h-12 rounded-2xl object-cover border border-[#E3ECF7] shrink-0" />
@@ -574,7 +643,7 @@
                         {/each}
                       </div>
                     </div>
-                    <div class="px-3 py-2 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-[11px] text-[#102A56] font-medium">
+                    <div class="px-3 py-2 rounded-xl bg-white/60 border border-[#CFE2FA] text-[11px] text-[#102A56] font-medium">
                       ⚙️ Web-Only Autonomous Agent (Not controlled via WhatsApp/Telegram)
                     </div>
                   </div>
@@ -585,7 +654,7 @@
 
           <!-- Base Tools Catalog -->
           {#if filteredTools.length === 0 && unlockedBotsList.length === 0}
-            <div class="text-center py-20 ui-card-static rounded-3xl p-8 space-y-4">
+            <div class="text-center py-20 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 rounded-3xl p-8 space-y-4 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
               <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
                 <Icon name="Sparkles" size={28} />
               </div>
@@ -632,13 +701,13 @@
       {:else if $activeDashboardTab === 'store'}
         <div class="h-full flex flex-col space-y-5 overflow-y-auto pr-1 pb-12">
           <!-- Store Header -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 ui-card-static p-4 sm:p-6 rounded-3xl">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 p-4 sm:p-6 rounded-3xl shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
             <div>
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ui-badge-primary text-xs font-bold mb-2">
                 <Icon name="Cpu" size={13} />
                 <span>Standalone Autonomous Agents • Web Dashboard Setup Only</span>
               </div>
-              <h2 class="text-xl font-black text-[#102A56] tracking-tight">Autonomous Agents Store</h2>
+              <h2 class="text-xl font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent tracking-tight">Autonomous Agents Store</h2>
               <p class="text-xs text-[#4B6382] mt-1 max-w-2xl leading-relaxed">
                 Agents in the <strong class="text-[#102A56]">Agents Store</strong> operate as standalone <strong class="text-[#102A56]">Autonomous Agents</strong>. Once unlocked, they are configured and operated exclusively inside this Web Dashboard — <strong class="text-[#102A56]">they cannot be controlled via WhatsApp or Telegram</strong> (only the Master AI CEO and the 75 AI Helpers are controllable via WhatsApp and Telegram).
               </p>
@@ -704,7 +773,7 @@
 
           <!-- Store Grid -->
           {#if filteredStoreBots.length === 0}
-            <div class="text-center py-20 ui-card-static rounded-3xl p-8 space-y-4">
+            <div class="text-center py-20 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 rounded-3xl p-8 space-y-4 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
               <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
                 <Icon name="ShoppingBag" size={28} />
               </div>
@@ -727,7 +796,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {#each filteredStoreBots as bot (bot.id)}
                 {@const isUnlocked = ($subscription.unlockedStoreBots || []).includes(bot.id)}
-                <div class="rounded-3xl glass-card p-6 flex flex-col justify-between space-y-5">
+                <div class="rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 p-6 flex flex-col justify-between space-y-5 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
                   <div class="space-y-4">
                     <!-- Header: Avatar, Name & Badges -->
                     <div class="flex items-start gap-3.5">
@@ -824,10 +893,10 @@
       {:else if $activeDashboardTab === 'channels' || $activeDashboardTab === 'whatsapp'}
         <div class="h-full overflow-y-auto max-w-5xl mx-auto space-y-6 pb-12">
           <!-- Header -->
-          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+          <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
-                <h2 class="text-xl font-bold text-[#102A56] flex items-center gap-2.5">
+                <h2 class="text-xl font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent flex items-center gap-2.5">
                   <Icon name="QrCode" size={22} class="text-[#1677FF]" />
                   <span>Channels & Communication Hub</span>
                 </h2>
@@ -926,12 +995,12 @@
           <!-- ======================================================== -->
           <!-- CHANNEL 2: TELEGRAM BOT EXECUTIVE HUB (LIVE INTEGRATION) -->
           <!-- ======================================================== -->
-          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+          <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F0FBFF] text-[#089CD0] border border-[#BAEFFF] uppercase">Channel 2</span>
-                  <h3 class="text-sm font-bold text-[#102A56]">Telegram Bot Executive Hub</h3>
+                  <h3 class="text-sm font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent">Telegram Bot Executive Hub</h3>
                 </div>
                 <p class="text-xs text-[#4B6382] mt-1">
                   Chat with your 50+ AI executives and generate images 24/7 without QR code scanning or disconnection risk.
@@ -1081,9 +1150,9 @@
           </div>
 
           <!-- Omni-Channel Expansion Roadmap Cards -->
-          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-4">
+          <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all space-y-4">
             <div>
-              <h3 class="text-sm font-bold text-[#102A56] flex items-center gap-2">
+              <h3 class="text-sm font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent flex items-center gap-2">
                 <Icon name="Layers" size={18} class="text-[#1677FF]" />
                 <span>Multi-Channel Expansions</span>
               </h3>
@@ -1472,8 +1541,75 @@
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'settings' || $activeDashboardTab === 'vault'}
         <div class="h-full overflow-y-auto max-w-4xl mx-auto space-y-6 pb-12">
+          <!-- Master AI CEO Persona & Custom Instructions Card -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 space-y-6 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
+              <div>
+                <h3 class="text-base sm:text-lg font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent flex items-center gap-2">
+                  <Icon name="Crown" size={20} class="text-[#1677FF]" />
+                  <span>Master AI CEO Persona & Custom Instructions</span>
+                </h3>
+                <p class="text-xs text-[#4B6382] mt-1">
+                  Give custom directives to your AI CEO. The CEO will strictly follow these instructions across all tasks and delegations.
+                </p>
+              </div>
+
+              {#if instructionsSaveNotice}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 animate-pulse">
+                  <Icon name="Check" size={13} />
+                  <span>{instructionsSaveNotice}</span>
+                </span>
+              {/if}
+            </div>
+
+            <!-- Presets Buttons -->
+            <div class="space-y-2">
+              <span class="text-[11px] font-bold text-[#5E7694] uppercase tracking-wider block">One-Click Quick Presets</span>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {#each CEO_PRESETS as preset}
+                  <button
+                    type="button"
+                    onclick={() => applyCeoPreset(preset.prompt)}
+                    class="p-3 rounded-2xl bg-white/80 hover:bg-[#EBF4FF] border border-[#CFE2FA] hover:border-[#1677FF] text-left transition-all cursor-pointer group shadow-2xs hover:shadow-xs"
+                  >
+                    <div class="font-bold text-xs text-[#102A56] group-hover:text-[#1677FF] transition-colors">{preset.title}</div>
+                    <div class="text-[10px] text-[#4B6382] mt-0.5">{preset.subtitle}</div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+
+            <!-- Textarea with Live Character Counter -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <label for="ceo-instructions" class="text-xs font-bold text-[#102A56]">Executive Directives</label>
+                <span class="text-[11px] font-mono font-semibold text-[#5E7694]">
+                  {customInstructions.length} / 2,000 characters
+                </span>
+              </div>
+              <textarea
+                id="ceo-instructions"
+                bind:value={customInstructions}
+                maxlength="2000"
+                rows="4"
+                placeholder="e.g. Always respond in professional Bengali. Provide high-converting marketing frameworks with structured action steps..."
+                class="w-full ui-textarea p-3.5 text-xs sm:text-sm resize-none rounded-2xl bg-white/90 border border-[#CFE2FA] focus:border-[#1677FF] transition-all"
+              ></textarea>
+              <div class="flex items-center justify-end gap-3 pt-1">
+                <button
+                  type="button"
+                  onclick={handleSaveInstructions}
+                  class="px-5 py-2.5 rounded-xl blue-btn text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md transition-all active:scale-95"
+                >
+                  <Icon name="Save" size={14} />
+                  <span>Save Directive</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Account Profile Card -->
-          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
+          <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 space-y-6 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
               <div>
                 <h2 class="text-xl font-bold text-[#102A56] flex items-center gap-2">
@@ -1580,4 +1716,17 @@
 
   <!-- Interactive Tool Drawer (Active when user clicks Launch on any tool in the Tools Catalog) -->
   <ToolDrawer onOpenByok={() => { closeToolDrawer(); switchTab('settings'); }} />
+
+  <!-- Floating ChatGPT-style Master AI CEO Chat Window & Launcher -->
+  <FloatingCeoChat
+    bind:isOpen={isCeoChatOpen}
+    activeTab={$activeDashboardTab}
+    onOpenChannels={() => { isChannelModalOpen = true; }}
+  />
+
+  <!-- Embedded Channel Connection Modal (WhatsApp & Telegram) -->
+  <ChannelModal
+    bind:isOpen={isChannelModalOpen}
+    onClose={() => { isChannelModalOpen = false; }}
+  />
 </div>

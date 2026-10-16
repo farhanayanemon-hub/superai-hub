@@ -23,6 +23,7 @@ interface ChatRequest {
   mode?: 'ceo' | 'helper';
   language?: string;
   tone?: string;
+  ceoCustomPrompt?: string;
   history?: ChatHistoryTurn[];
   // BYOK single key (Pro / legacy)
   apiKey?: string;
@@ -60,6 +61,7 @@ export const POST: RequestHandler = async ({ request }) => {
       mode = 'ceo',
       language,
       tone,
+      ceoCustomPrompt,
       history = [],
       apiKey,
       vaultKey,
@@ -86,7 +88,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const systemPrompt = buildCeoOrHelperSystemPrompt(matchedHelper, {
       language,
       tone,
-      mode
+      mode,
+      ceoCustomPrompt
     });
 
     // Determine the key and provider to use

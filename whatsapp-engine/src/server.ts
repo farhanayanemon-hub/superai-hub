@@ -20,6 +20,7 @@ app.get('/', (req: Request, res: Response) => {
       'GET /api/qr/stream',
       'POST /api/session/start',
       'POST /api/session/disconnect',
+      'POST /api/session/pairing-code',
       'POST /api/chat/test'
     ]
   });
@@ -80,6 +81,21 @@ app.post('/api/session/disconnect', async (req: Request, res: Response) => {
     res.json({ success: true, message: 'Session disconnected' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Request 8-digit pairing code for WhatsApp companion linking
+app.post('/api/session/pairing-code', async (req: Request, res: Response) => {
+  const { phoneNumber } = req.body;
+  if (!phoneNumber || typeof phoneNumber !== 'string') {
+    return res.status(400).json({ success: false, error: 'phoneNumber is required' });
+  }
+
+  try {
+    const code = await baileysManager.requestPairingCode(phoneNumber);
+    res.json({ success: true, pairingCode: code });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to request pairing code' });
   }
 });
 
