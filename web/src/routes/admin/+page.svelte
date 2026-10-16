@@ -61,7 +61,7 @@
   let mobileSidebarOpen = $state(false);
 
   // Passphrase gate
-  let authSecret = $state('ezbo-admin-2026');
+  let authSecret = $state('');
   let newPassphrase = $state('');
   let passphraseUpdateMsg = $state('');
   let isAuthenticated = $state(false);
@@ -771,7 +771,6 @@
               placeholder="Enter master admin passphrase..."
               class="ui-input px-4 py-3 text-sm font-mono"
             />
-            <p class="text-[11px] text-[#5E7694] mt-1">Default development passphrase: <code class="text-[#1677FF] bg-[#F3F8FF] border border-[#E3ECF7] px-1 py-0.5 rounded font-mono">ezbo-admin-2026</code></p>
           </div>
 
           <button
