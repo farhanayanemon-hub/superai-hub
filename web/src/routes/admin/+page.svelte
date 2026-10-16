@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
+  import BrandIcon from '$lib/components/BrandIcon.svelte';
   import { onMount } from 'svelte';
   import { DEFAULT_PLANS, type PlansSettings, type PlanConfig } from '$lib/config/plans';
   import { STORE_BOTS } from '$lib/config/storeBots';
@@ -2309,8 +2310,10 @@
                 <!-- Gemini Key -->
                 <div class="space-y-1.5 p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   <div class="flex items-center justify-between">
-                    <label for="gemini-key" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
-                      <span class="w-2 h-2 rounded-full bg-[#1677FF]"></span>
+                    <label for="gemini-key" class="text-xs font-bold text-[#102A56] flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                        <BrandIcon name="gemini" size={16} />
+                      </div>
                       <span>Google Gemini API</span>
                     </label>
                     <button
@@ -2337,8 +2340,10 @@
                 <!-- OpenAI Key -->
                 <div class="space-y-1.5 p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   <div class="flex items-center justify-between">
-                    <label for="openai-key" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <label for="openai-key" class="text-xs font-bold text-[#102A56] flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                        <BrandIcon name="openai" size={16} />
+                      </div>
                       <span>OpenAI (ChatGPT)</span>
                     </label>
                     <button
@@ -2365,8 +2370,10 @@
                 <!-- Grok Key -->
                 <div class="space-y-1.5 p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   <div class="flex items-center justify-between">
-                    <label for="grok-key" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
-                      <span class="w-2 h-2 rounded-full bg-[#102A56]"></span>
+                    <label for="grok-key" class="text-xs font-bold text-[#102A56] flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                        <BrandIcon name="grok" size={16} />
+                      </div>
                       <span>xAI Grok API</span>
                     </label>
                     <button
@@ -2393,8 +2400,10 @@
                 <!-- DeepSeek Key -->
                 <div class="space-y-1.5 p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   <div class="flex items-center justify-between">
-                    <label for="deepseek-key" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
-                      <span class="w-2 h-2 rounded-full bg-[#089CD0]"></span>
+                    <label for="deepseek-key" class="text-xs font-bold text-[#102A56] flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                        <BrandIcon name="deepseek" size={16} />
+                      </div>
                       <span>DeepSeek Platform</span>
                     </label>
                     <button
@@ -2421,8 +2430,10 @@
                 <!-- OpenRouter Key -->
                 <div class="space-y-1.5 p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   <div class="flex items-center justify-between">
-                    <label for="openrouter-key" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
-                      <span class="w-2 h-2 rounded-full bg-[#1677FF]"></span>
+                    <label for="openrouter-key" class="text-xs font-bold text-[#102A56] flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                        <BrandIcon name="openrouter" size={16} />
+                      </div>
                       <span>OpenRouter (Claude 3.5)</span>
                     </label>
                     <button
@@ -2449,8 +2460,10 @@
                 <!-- Replicate Key -->
                 <div class="space-y-1.5 p-4 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7]">
                   <div class="flex items-center justify-between">
-                    <label for="replicate-key" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
-                      <span class="w-2 h-2 rounded-full bg-[#38CFFF]"></span>
+                    <label for="replicate-key" class="text-xs font-bold text-[#102A56] flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                        <BrandIcon name="replicate" size={16} />
+                      </div>
                       <span>Replicate (Flux Image)</span>
                     </label>
                     <button
@@ -2519,9 +2532,14 @@
                     <div class="p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between {providersAllowed[prov.id] !== false ? 'bg-white border-[#1677FF]/40 shadow-xs' : 'bg-white/50 border-[#E3ECF7] opacity-60'}">
                       <div>
                         <div class="flex items-center justify-between mb-2">
-                          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]">
-                            {prov.tag}
-                          </span>
+                          <div class="flex items-center gap-1.5">
+                            <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                              <BrandIcon name={prov.id} size={15} />
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]">
+                              {prov.tag}
+                            </span>
+                          </div>
                           <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                             {prov.freeBadge}
                           </span>
@@ -2610,9 +2628,14 @@
                   <div class="p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between {modelsEnabled[model.id] ? 'bg-white border-[#1677FF]/35 shadow-2xs' : 'bg-[#F3F8FF]/70 border-[#E3ECF7] opacity-65'}">
                     <div>
                       <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded {modelsEnabled[model.id] ? 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]' : 'bg-[#E3ECF7] text-[#4B6382]'}">
-                          {model.provider}
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                          <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                            <BrandIcon modelId={model.id} size={15} />
+                          </div>
+                          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded {modelsEnabled[model.id] ? 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]' : 'bg-[#E3ECF7] text-[#4B6382]'}">
+                            {model.provider}
+                          </span>
+                        </div>
                         <span class="text-[10px] font-mono text-[#5E7694]">{model.latency}</span>
                       </div>
                       <h3 class="text-xs font-bold text-[#102A56] leading-tight">{model.name}</h3>

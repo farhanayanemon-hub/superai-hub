@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
+  import BrandIcon from '$lib/components/BrandIcon.svelte';
   import {
     apiVault,
     addVaultKey,
@@ -277,9 +278,12 @@
       >
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
-              100% Free
-            </span>
+            <div class="flex items-center gap-1.5">
+              <BrandIcon name="openrouter" size={16} />
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                100% Free
+              </span>
+            </div>
             <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center {$routingStrategy === 'auto_free_rotate' ? 'border-[#1677FF] bg-[#1677FF]' : 'border-[#CFE2FA]'}">
               {#if $routingStrategy === 'auto_free_rotate'}
                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -301,9 +305,12 @@
       >
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA]">
-              Fixed Pin
-            </span>
+            <div class="flex items-center gap-1.5">
+              <BrandIcon name={selectedActiveModel || 'gemini'} size={16} />
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA]">
+                Fixed Pin
+              </span>
+            </div>
             <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center {$routingStrategy === 'single_model' ? 'border-[#1677FF] bg-[#1677FF]' : 'border-[#CFE2FA]'}">
               {#if $routingStrategy === 'single_model'}
                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -325,9 +332,16 @@
       >
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
-              High Availability
-            </span>
+            <div class="flex items-center gap-1.5">
+              <div class="flex items-center -space-x-1">
+                <BrandIcon name="gemini" size={13} />
+                <BrandIcon name="openai" size={13} />
+                <BrandIcon name="deepseek" size={13} />
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
+                Multi-Key
+              </span>
+            </div>
             <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center {$routingStrategy === 'multi_provider_rotate' ? 'border-[#1677FF] bg-[#1677FF]' : 'border-[#CFE2FA]'}">
               {#if $routingStrategy === 'multi_provider_rotate'}
                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -366,8 +380,8 @@
           <!-- Provider Header & Toggle -->
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF]">
-                <Icon name={p.icon} size={16} />
+              <div class="w-9 h-9 rounded-xl bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                <BrandIcon name={p.id} size={20} />
               </div>
               <div>
                 <div class="flex items-center gap-1.5 flex-wrap">
@@ -532,15 +546,20 @@
         >
           <div class="space-y-1.5">
             <div class="flex items-center justify-between gap-1.5">
-              {#if m.isFree}
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500 text-white shadow-2xs">
-                  FREE
-                </span>
-              {:else}
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA]">
-                  {m.promptPrice}
-                </span>
-              {/if}
+              <div class="flex items-center gap-1.5">
+                <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shadow-2xs shrink-0">
+                  <BrandIcon modelId={m.id} size={15} />
+                </div>
+                {#if m.isFree}
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500 text-white shadow-2xs">
+                    FREE
+                  </span>
+                {:else}
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA]">
+                    {m.promptPrice}
+                  </span>
+                {/if}
+              </div>
 
               <span class="text-[9px] text-[#889DB5] font-mono">
                 {(m.contextLength / 1024).toFixed(0)}k ctx
