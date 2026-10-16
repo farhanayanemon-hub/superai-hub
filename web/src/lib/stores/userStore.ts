@@ -4,8 +4,9 @@ import { getDecryptedKey, saveEncryptedKey, clearStoredKey, encryptVaultKey, dec
 import { offlineStorage } from '$lib/services/offlineStorage';
 
 export type WhatsAppStatus = 'disconnected' | 'connecting' | 'qr_ready' | 'connected';
-export type DashboardTab = 'chat' | 'agents' | 'store' | 'channels' | 'billing' | 'settings' | 'tools' | 'whatsapp' | 'vault';
+export type DashboardTab = 'chat' | 'agents' | 'store' | 'owned-agents' | 'channels' | 'billing' | 'settings' | 'api-keys' | 'tools' | 'whatsapp' | 'vault';
 export type AIProvider = 'gemini' | 'openai' | 'grok' | 'deepseek' | 'openrouter' | 'replicate';
+export type RoutingStrategy = 'auto_free_rotate' | 'single_model' | 'multi_provider_rotate';
 export type PlanTier = 'byok' | 'managed' | 'free' | 'pro' | 'ultra' | 'complete';
 export type BillingInterval = 'monthly' | 'yearly';
 
@@ -16,6 +17,7 @@ export interface ApiVaultKey {
   encryptedKey: string;
   model?: string;
   isDefault: boolean;
+  isEnabled?: boolean;
   addedAt: string;
   lastValidated?: string;
   isValid?: boolean;
@@ -160,6 +162,26 @@ function loadInitialSubscription(): SubscriptionState {
   }
 }
 
+function loadInitialRoutingStrategy(): RoutingStrategy {
+  if (typeof window === 'undefined') return 'auto_free_rotate';
+  try {
+    return (localStorage.getItem('ezbo_routing_strategy') as RoutingStrategy) || 'auto_free_rotate';
+  } catch {
+    return 'auto_free_rotate';
+  }
+}
+
+function loadInitialProviderToggles(): Record<string, boolean> {
+  const defaults = { gemini: true, openrouter: true, openai: true, grok: true, deepseek: true, replicate: true };
+  if (typeof window === 'undefined') return defaults;
+  try {
+    const raw = localStorage.getItem('ezbo_provider_toggles');
+    return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
+  } catch {
+    return defaults;
+  }
+}
+
 // -------------------------------------------------------------
 // Stores
 // -------------------------------------------------------------
@@ -178,6 +200,66 @@ export const subscription = writable<SubscriptionState>(loadInitialSubscription(
 export const apiVault = writable<ApiVaultKey[]>(loadInitialVault());
 export const activeVaultKeyId = writable<string | null>(null);
 export const ceoCustomPrompt = writable<string>(loadInitialCeoCustomPrompt());
+export const routingStrategy = writable<RoutingStrategy>(loadInitialRoutingStrategy());
+export const providerToggles = writable<Record<string, boolean>>(loadInitialProviderToggles());
+export const adminAllowedProviders = writable<Record<string, boolean>>({
+  gemini: true,
+  openrouter: true,
+  openai: true,
+  grok: true,
+  deepseek: true,
+  replicate: true
+});
+
+if (typeof window !== 'undefined') {
+  fetch('/api/admin/settings')
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success && data.settings?.providersAllowed) {
+        adminAllowedProviders.set(data.settings.providersAllowed);
+      }
+    })
+    .catch(() => {});
+}
+
+export function setRoutingStrategy(strategy: RoutingStrategy): void {
+  routingStrategy.set(strategy);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('ezbo_routing_strategy', strategy);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export function setProviderToggle(provider: string, enabled: boolean): void {
+  providerToggles.update((curr) => {
+    const updated = { ...curr, [provider]: enabled };
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ezbo_provider_toggles', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+    }
+    return updated;
+  });
+}
+
+export function toggleVaultKeyEnabled(keyId: string): void {
+  apiVault.update((keys) => {
+    const updated = keys.map((k) => (k.id === keyId ? { ...k, isEnabled: k.isEnabled === false ? true : false } : k));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ezbo_api_vault', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+    }
+    return updated;
+  });
+}
 
 export function setCeoCustomPrompt(prompt: string): void {
   ceoCustomPrompt.set(prompt);

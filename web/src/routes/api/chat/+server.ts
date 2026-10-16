@@ -35,6 +35,7 @@ interface ChatRequest {
   };
   // Complete plan flag
   usePlatformKey?: boolean;
+  routingStrategy?: 'auto_free_rotate' | 'single_model' | 'multi_provider_rotate';
 }
 
 const OPENAI_COMPATIBLE_ENDPOINTS: Record<string, string> = {
@@ -218,53 +219,77 @@ export const POST: RequestHandler = async ({ request }) => {
     // 2. Direct native execution for OpenAI-compatible providers
     if (resolvedApiKey && resolvedProvider in OPENAI_COMPATIBLE_ENDPOINTS) {
       const endpoint = OPENAI_COMPATIBLE_ENDPOINTS[resolvedProvider];
-      const model = vaultKey?.model || DEFAULT_MODELS[resolvedProvider] || 'gpt-4o';
+      const candidateModels =
+        resolvedProvider === 'openrouter' && body.routingStrategy === 'auto_free_rotate'
+          ? [
+              vaultKey?.model || 'meta-llama/llama-3.3-70b-instruct:free',
+              'google/gemini-2.0-flash-exp:free',
+              'deepseek/deepseek-r1:free',
+              'mistralai/mistral-7b-instruct:free',
+              'qwen/qwen-2.5-coder-32b-instruct:free'
+            ]
+          : [vaultKey?.model || DEFAULT_MODELS[resolvedProvider] || 'gpt-4o'];
 
-      const providerRes = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${resolvedApiKey}`,
-          ...(resolvedProvider === 'openrouter'
-            ? { 'HTTP-Referer': 'https://ezboagents.com', 'X-Title': 'EzboAgents' }
-            : {})
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...history.slice(-8).map((turn) => ({
-              role: turn.role,
-              content: turn.content
-            })),
-            { role: 'user', content: message }
-          ]
-        })
-      });
+      let lastError = '';
+      let successfulReply = '';
+      let successfulModel = candidateModels[0];
 
-      const providerData = await providerRes.json().catch(() => ({}));
-      if (!providerRes.ok) {
-        const errorMsg =
-          providerData?.error?.message || `Provider returned HTTP ${providerRes.status}`;
-        return json(
-          { success: false, error: `${resolvedProvider.toUpperCase()} Error: ${errorMsg}` },
-          { status: providerRes.status }
-        );
+      for (const modelToTry of candidateModels) {
+        try {
+          const providerRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${resolvedApiKey}`,
+              ...(resolvedProvider === 'openrouter'
+                ? { 'HTTP-Referer': 'https://ezboagents.com', 'X-Title': 'EzboAgents' }
+                : {})
+            },
+            body: JSON.stringify({
+              model: modelToTry,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                ...history.slice(-8).map((turn) => ({
+                  role: turn.role,
+                  content: turn.content
+                })),
+                { role: 'user', content: message }
+              ]
+            })
+          });
+
+          const providerData = await providerRes.json().catch(() => ({}));
+          if (providerRes.ok && providerData.choices?.[0]?.message?.content) {
+            successfulReply = providerData.choices[0].message.content;
+            successfulModel = modelToTry;
+            break;
+          } else {
+            lastError =
+              providerData?.error?.message || `Provider returned HTTP ${providerRes.status}`;
+          }
+        } catch (fetchErr: any) {
+          lastError = fetchErr.message;
+        }
       }
 
-      const reply =
-        providerData.choices?.[0]?.message?.content || 'No output received from model.';
-      return json({
-        success: true,
-        input: message,
-        delegatedHelper: delegatedHelperMeta,
-        result: {
-          type: 'text',
-          text: reply
-        },
-        provider: resolvedProvider,
-        model
-      });
+      if (successfulReply) {
+        return json({
+          success: true,
+          input: message,
+          delegatedHelper: delegatedHelperMeta,
+          result: {
+            type: 'text',
+            text: successfulReply
+          },
+          provider: resolvedProvider,
+          model: successfulModel
+        });
+      }
+
+      return json(
+        { success: false, error: `${resolvedProvider.toUpperCase()} Error: ${lastError}` },
+        { status: 502 }
+      );
     }
 
     // 3. Forward to Railway engine fallback

@@ -83,6 +83,10 @@ export const POST: RequestHandler = async ({ request }) => {
       cleanPatch.modelsEnabled = patch.modelsEnabled;
     }
 
+    if (patch.providersAllowed && typeof patch.providersAllowed === 'object') {
+      cleanPatch.providersAllowed = patch.providersAllowed;
+    }
+
     if (patch.plans && typeof patch.plans === 'object') {
       cleanPatch.plans = patch.plans;
     }

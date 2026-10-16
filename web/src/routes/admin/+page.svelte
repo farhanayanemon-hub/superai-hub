@@ -52,6 +52,7 @@
     telegramBotUsername?: string;
     hasTelegramBot?: boolean;
     plans?: PlansSettings;
+    providersAllowed?: Record<string, boolean>;
     userGrants?: Record<string, ServerUserGrant>;
     registeredUsers?: Record<string, any>;
   }
@@ -135,6 +136,60 @@
     'claude-3.5-sonnet': true,
     'flux-schnell': true
   });
+
+  let providersAllowed = $state<Record<string, boolean>>({
+    gemini: true,
+    openrouter: true,
+    openai: true,
+    grok: true,
+    deepseek: true,
+    replicate: true
+  });
+
+  const CLIENT_PROVIDERS_CATALOG = [
+    {
+      id: 'gemini',
+      name: 'Google Gemini',
+      tag: 'Google AI Studio',
+      desc: 'Free tier available (Gemini 2.0 Flash / Pro). Recommended default.',
+      freeBadge: 'Free Tier Available'
+    },
+    {
+      id: 'openrouter',
+      name: 'OpenRouter',
+      tag: '200+ Multi-Model Gateway',
+      desc: 'Auto-rotating free models (:free) or top-up credit balance.',
+      freeBadge: 'Free & Paid Models'
+    },
+    {
+      id: 'openai',
+      name: 'OpenAI',
+      tag: 'OpenAI Platform',
+      desc: 'Allows users to supply personal OpenAI keys for GPT-4o & GPT-4o-mini.',
+      freeBadge: 'BYOK Paid'
+    },
+    {
+      id: 'grok',
+      name: 'xAI (Grok)',
+      tag: 'xAI Console',
+      desc: 'Allows users to connect xAI keys for Grok-2 and Grok-3.',
+      freeBadge: 'BYOK Paid'
+    },
+    {
+      id: 'deepseek',
+      name: 'DeepSeek',
+      tag: 'DeepSeek Platform',
+      desc: 'DeepSeek-V3 & R1 reasoning at ultra-low token cost.',
+      freeBadge: 'Low-Cost BYOK'
+    },
+    {
+      id: 'replicate',
+      name: 'Replicate (Flux Images)',
+      tag: 'Replicate API',
+      desc: 'Flux Schnell & SDXL image generation tokens.',
+      freeBadge: 'Image AI'
+    }
+  ];
 
   let isLoading = $state(false);
   let isSaving = $state(false);
@@ -239,6 +294,16 @@
         hasTelegramBot = !!s.hasTelegramBot;
         if (s.modelsEnabled) {
           modelsEnabled = { ...s.modelsEnabled };
+        }
+        if (s.providersAllowed) {
+          providersAllowed = {
+            gemini: s.providersAllowed.gemini !== false,
+            openrouter: s.providersAllowed.openrouter !== false,
+            openai: s.providersAllowed.openai !== false,
+            grok: s.providersAllowed.grok !== false,
+            deepseek: s.providersAllowed.deepseek !== false,
+            replicate: s.providersAllowed.replicate !== false
+          };
         }
         if (s.plans) {
           editablePlans = JSON.parse(JSON.stringify(s.plans));
@@ -512,6 +577,7 @@
         telegramBotToken,
         telegramBotUsername,
         modelsEnabled,
+        providersAllowed,
         plans: editablePlans
       };
 
@@ -564,6 +630,7 @@
           telegramBotUsername = s.telegramBotUsername || telegramBotUsername;
           hasTelegramBot = !!s.hasTelegramBot;
           if (s.modelsEnabled) modelsEnabled = { ...s.modelsEnabled };
+          if (s.providersAllowed) providersAllowed = { ...providersAllowed, ...s.providersAllowed };
         }
       } else {
         saveFeedback = data.error || 'Failed to update settings. Please check your admin secret.';
@@ -2405,6 +2472,94 @@
                     <span>Powers: High-Res AI Images</span>
                     <a href="https://replicate.com/account/api-tokens" target="_blank" rel="noopener" class="text-[#1677FF] hover:underline font-medium">Get Key &rarr;</a>
                   </div>
+                </div>
+              </div>
+
+              <!-- Client BYOK Provider Access Control (User Permission Switches) -->
+              <div class="p-6 sm:p-8 rounded-3xl bg-[#F3F8FF] border-2 border-[#1677FF]/25 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-[#1677FF] text-white uppercase tracking-wider">
+                        Client BYOK Access Control
+                      </span>
+                      <h3 class="text-sm font-extrabold text-[#102A56] flex items-center gap-2">
+                        <span>ইউজারদের জন্য এলাউড API প্রোভাইডার কনফিগারেশন</span>
+                      </h3>
+                    </div>
+                    <p class="text-xs text-[#4B6382] mt-1 leading-relaxed">
+                      এডমিন প্যানেল থেকে আপনি যে যে প্রোভাইডার <strong>Enable</strong> রাখবেন, ইউজাররা তাদের ড্যাশবোর্ডে <strong>"API Key Management"</strong> ট্যাবে শুধু সেই সেই প্রোভাইডার দেখতে পারবে এবং তাদের নিজস্ব API Key বসাতে পারবে। যে প্রোভাইডার আপনি <strong>Disable</strong> করবেন, তা সাধারণ ইউজারদের থেকে সম্পূর্ণ লুকিয়ে রাখা হবে।
+                    </p>
+                  </div>
+
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onclick={() => {
+                        CLIENT_PROVIDERS_CATALOG.forEach((p) => { providersAllowed[p.id] = true; });
+                      }}
+                      class="px-3 py-1.5 rounded-xl btn-secondary text-xs cursor-pointer font-bold"
+                    >
+                      Enable All
+                    </button>
+                    <button
+                      type="button"
+                      onclick={() => {
+                        CLIENT_PROVIDERS_CATALOG.forEach((p) => { providersAllowed[p.id] = false; });
+                      }}
+                      class="px-3 py-1.5 rounded-xl btn-secondary text-xs cursor-pointer font-bold"
+                    >
+                      Disable All
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {#each CLIENT_PROVIDERS_CATALOG as prov}
+                    <div class="p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between {providersAllowed[prov.id] !== false ? 'bg-white border-[#1677FF]/40 shadow-xs' : 'bg-white/50 border-[#E3ECF7] opacity-60'}">
+                      <div>
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]">
+                            {prov.tag}
+                          </span>
+                          <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            {prov.freeBadge}
+                          </span>
+                        </div>
+                        <h4 class="text-xs font-bold text-[#102A56]">{prov.name}</h4>
+                        <p class="text-[11px] text-[#4B6382] mt-1 leading-relaxed">{prov.desc}</p>
+                      </div>
+
+                      <div class="mt-4 pt-3 border-t border-[#E3ECF7] flex items-center justify-between">
+                        <span class="text-xs font-semibold {providersAllowed[prov.id] !== false ? 'text-emerald-600 font-bold' : 'text-rose-500 font-semibold'}">
+                          {providersAllowed[prov.id] !== false ? '✓ User Allowed' : '✕ Hidden from Users'}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`Toggle user access for ${prov.name}`}
+                          onclick={() => { providersAllowed[prov.id] = providersAllowed[prov.id] === false ? true : false; }}
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer {providersAllowed[prov.id] !== false ? 'bg-[#1677FF]' : 'bg-[#C8D8EC]'}"
+                        >
+                          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-2xs {providersAllowed[prov.id] !== false ? 'translate-x-6' : 'translate-x-1'}"></span>
+                        </button>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-white border border-[#CFE2FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#102A56]">
+                  <div class="flex items-center gap-2">
+                    <Icon name="CheckCircle2" size={16} class="text-[#1677FF] shrink-0" />
+                    <span>পরিবর্তন সংরক্ষণ করতে নিচে <strong>"Save Configuration"</strong> বাটনে ক্লিক করুন। সাথে সাথে ইউজার ড্যাশবোর্ডে সিঙ্ক হয়ে যাবে।</span>
+                  </div>
+                  <button
+                    type="button"
+                    onclick={saveSettings}
+                    disabled={isSaving}
+                    class="px-4 py-2 rounded-xl blue-btn text-white font-bold text-xs cursor-pointer shadow-xs disabled:opacity-50 shrink-0 text-center"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                  </button>
                 </div>
               </div>
             </div>

@@ -5,6 +5,8 @@
   import ToolCard from '$lib/components/ToolCard.svelte';
   import ToolDrawer from '$lib/components/ToolDrawer.svelte';
   import ApiVaultManager from '$lib/components/ApiVaultManager.svelte';
+  import ApiKeyManager from '$lib/components/ApiKeyManager.svelte';
+  import OwnedAgentsManager from '$lib/components/OwnedAgentsManager.svelte';
   import { STORE_BOTS, STORE_CATEGORIES, type StoreBot } from '$lib/config/storeBots';
   import { initiateSubscriptionPayment, initiateBotPayment, verifyOpayTransaction } from '$lib/services/opay';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
@@ -422,6 +424,23 @@
             </div>
           </button>
 
+          <!-- 3a. Owned Agents (Child Tab under Store) -->
+          <button
+            type="button"
+            onclick={() => switchTab('owned-agents')}
+            class="w-[calc(100%-1rem)] ml-4 px-3 py-2 rounded-xl text-[11px] font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'owned-agents' ? 'bg-[#1677FF]/15 text-[#1677FF] font-bold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-2.5">
+              <Icon name="Bot" size={14} class={$activeDashboardTab === 'owned-agents' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
+              <span>Owned Agents</span>
+            </div>
+            {#if ($subscription?.unlockedStoreBots?.length || 0) > 0}
+              <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#1677FF] text-white">
+                {$subscription?.unlockedStoreBots?.length}
+              </span>
+            {/if}
+          </button>
+
           <!-- 4. Subscription & Billing -->
           <button
             type="button"
@@ -437,19 +456,33 @@
             </span>
           </button>
 
-          <!-- 5. Settings & Profile (Contains API Key Vault) -->
+          <!-- 5. Settings & Profile -->
           <button
             type="button"
             onclick={() => switchTab('settings')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
-              <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'text-white' : 'text-[#5E7694]'} />
+              <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' ? 'text-white' : 'text-[#5E7694]'} />
               <span>Settings</span>
             </div>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-medium {$activeDashboardTab === 'settings' || $activeDashboardTab === 'vault' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7]'}">
-              Vault
-            </span>
+          </button>
+
+          <!-- 5a. API Key Management (Child Tab under Settings) -->
+          <button
+            type="button"
+            onclick={() => switchTab('api-keys')}
+            class="w-[calc(100%-1rem)] ml-4 px-3 py-2 rounded-xl text-[11px] font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF]/15 text-[#1677FF] font-bold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-2.5">
+              <Icon name="Key" size={14} class={$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
+              <span>API Key Management</span>
+            </div>
+            {#if $apiVault.length > 0}
+              <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500 text-white">
+                {$apiVault.length}
+              </span>
+            {/if}
           </button>
         </nav>
       </div>
@@ -1621,54 +1654,43 @@
             </div>
           </div>
 
-          <!-- Universal API Key Vault (Moved inside Settings per request) -->
-          <div class="p-6 sm:p-8 rounded-3xl ui-card-static space-y-6">
-            <div class="border-b border-[#E3ECF7] pb-3">
-              <h3 class="text-base font-bold text-[#102A56] flex items-center gap-2">
-                <Icon name="Key" size={18} class="text-[#1677FF]" />
-                <span>Universal API Key Vault</span>
-              </h3>
-              <p class="text-xs text-[#4B6382] mt-0.5">
-                Add and manage client-side encrypted API keys for Gemini, OpenAI, Grok, DeepSeek, and OpenRouter.
-              </p>
+          <!-- API Key Management Gateway Card -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 space-y-4 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
+              <div>
+                <h3 class="text-base font-bold text-[#102A56] flex items-center gap-2">
+                  <Icon name="Key" size={18} class="text-[#1677FF]" />
+                  <span>API Key Management & Model Hub</span>
+                </h3>
+                <p class="text-xs text-[#4B6382] mt-1">
+                  Connect encrypted BYOK API keys (OpenRouter, Gemini, OpenAI, Groq, DeepSeek), sync 200+ live models, and select smart auto-rotating free models.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onclick={() => switchTab('api-keys')}
+                class="px-5 py-2.5 rounded-xl blue-btn text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all shrink-0 text-center"
+              >
+                <span>Open API Key Management</span>
+                <Icon name="ArrowRight" size={14} />
+              </button>
             </div>
 
-            <ApiVaultManager />
-
-            {#if $subscription.tier !== 'ultra' && $subscription.tier !== 'complete'}
-              <div class="mt-6 pt-6 border-t border-[#E3ECF7] space-y-3">
-                <h4 class="text-sm font-bold text-[#102A56]">Basic Gemini BYOK Key</h4>
-                <p class="text-xs text-[#4B6382]">Connect your free API key from Google AI Studio for personal BYOK access.</p>
-                <div class="space-y-3">
-                  <input
-                    type="password"
-                    bind:value={inputKey}
-                    placeholder="AIzaSy..."
-                    class="ui-input px-4 py-2.5 text-xs font-mono"
-                  />
-                  {#if keyValidationMsg}
-                    <div class="p-3 rounded-xl text-xs flex items-center gap-2 {keyValidationState === 'valid' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : keyValidationState === 'invalid' ? 'bg-rose-50 border border-rose-200 text-rose-700' : 'bg-[#F3F8FF] text-[#102A56] border border-[#E3ECF7]'}">
-                      <Icon name={keyValidationState === 'valid' ? 'Check' : 'AlertCircle'} size={14} />
-                      <span>{keyValidationMsg}</span>
-                    </div>
-                  {/if}
-                  <div class="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onclick={testAndSaveApiKey}
-                      disabled={keyValidationState === 'testing'}
-                      class="px-5 py-2 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {keyValidationState === 'testing' ? 'Validating...' : 'Save & Validate Key'}
-                    </button>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="px-3.5 py-2 rounded-xl btn-secondary text-xs flex items-center gap-1.5">
-                      <span>Get Free Key</span>
-                      <Icon name="ExternalLink" size={13} />
-                    </a>
-                  </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] space-y-1">
+                <span class="text-[10px] font-bold text-[#1677FF] uppercase tracking-wider block">Auto Free Rotation</span>
+                <p class="text-[11px] text-[#4B6382]">Smart fallback loop using OpenRouter free models (:free) with zero billing.</p>
               </div>
-            {/if}
+              <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] space-y-1">
+                <span class="text-[10px] font-bold text-[#1677FF] uppercase tracking-wider block">Single Dedicated Model</span>
+                <p class="text-[11px] text-[#4B6382]">Lock in your preferred model (Llama 3.3, Claude 3.5 Sonnet, GPT-4o).</p>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] space-y-1">
+                <span class="text-[10px] font-bold text-[#1677FF] uppercase tracking-wider block">Client-Side Vault</span>
+                <p class="text-[11px] text-[#4B6382]">AES-GCM encrypted in browser storage. Admin-filtered provider access.</p>
+              </div>
+            </div>
           </div>
 
           <!-- Danger Zone / Sign Out -->
@@ -1686,6 +1708,18 @@
             </button>
           </div>
         </div>
+
+      <!-- ==================================================== -->
+      <!-- TAB 7: OWNED AUTONOMOUS AGENTS -->
+      <!-- ==================================================== -->
+      {:else if $activeDashboardTab === 'owned-agents'}
+        <OwnedAgentsManager onBrowseStore={() => switchTab('store')} />
+
+      <!-- ==================================================== -->
+      <!-- TAB 8: API KEY MANAGEMENT & MODEL EXPLORER -->
+      <!-- ==================================================== -->
+      {:else if $activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault'}
+        <ApiKeyManager />
       {/if}
     </div>
   </main>

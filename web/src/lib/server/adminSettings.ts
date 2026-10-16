@@ -51,6 +51,7 @@ export interface AdminConfig {
   openrouterApiKey: string;
   replicateApiKey: string;
   modelsEnabled: AdminModelToggles;
+  providersAllowed?: Record<string, boolean>;
   smtpHost?: string;
   smtpPort?: number;
   smtpUser?: string;
@@ -63,6 +64,15 @@ export interface AdminConfig {
   userGrants?: Record<string, UserAccessGrant>;
   registeredUsers?: Record<string, RegisteredUserSummary>;
 }
+
+export const DEFAULT_PROVIDERS_ALLOWED: Record<string, boolean> = {
+  gemini: true,
+  openrouter: true,
+  openai: true,
+  grok: true,
+  deepseek: true,
+  replicate: true
+};
 
 const DEFAULT_MODELS: AdminModelToggles = {
   'gemini-2.0-flash': true,
@@ -104,6 +114,7 @@ function loadConfigFromStorage(): AdminConfig {
     smtpSecure: process.env.SMTP_SECURE === 'true',
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
     telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot',
+    providersAllowed: { ...DEFAULT_PROVIDERS_ALLOWED },
     plans: DEFAULT_PLANS,
     userGrants: {},
     registeredUsers: {}
@@ -128,6 +139,10 @@ function loadConfigFromStorage(): AdminConfig {
         modelsEnabled: {
           ...DEFAULT_MODELS,
           ...(saved.modelsEnabled || {})
+        },
+        providersAllowed: {
+          ...DEFAULT_PROVIDERS_ALLOWED,
+          ...(saved.providersAllowed || {})
         },
         smtpHost: saved.smtpHost ?? envConfig.smtpHost,
         smtpPort: saved.smtpPort ?? envConfig.smtpPort,
@@ -164,6 +179,11 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
     modelsEnabled: {
       ...current.modelsEnabled,
       ...(patch.modelsEnabled || {})
+    },
+    providersAllowed: {
+      ...DEFAULT_PROVIDERS_ALLOWED,
+      ...(current.providersAllowed || {}),
+      ...(patch.providersAllowed || {})
     },
     plans: patch.plans ? {
       byok: { ...(current.plans?.byok || DEFAULT_PLANS.byok), ...patch.plans.byok },
@@ -324,6 +344,7 @@ export function getMaskedAdminConfig() {
     hasOpenrouterKey: !!config.openrouterApiKey,
     hasReplicateKey: !!config.replicateApiKey,
     modelsEnabled: config.modelsEnabled,
+    providersAllowed: config.providersAllowed || { ...DEFAULT_PROVIDERS_ALLOWED },
     smtpHost: config.smtpHost || '',
     smtpPort: config.smtpPort || 587,
     smtpUser: config.smtpUser || '',
