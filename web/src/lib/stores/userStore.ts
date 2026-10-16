@@ -182,6 +182,16 @@ function loadInitialProviderToggles(): Record<string, boolean> {
   }
 }
 
+function loadInitialOpenRouterModels(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('ezbo_openrouter_selected_models');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 // -------------------------------------------------------------
 // Stores
 // -------------------------------------------------------------
@@ -202,6 +212,7 @@ export const activeVaultKeyId = writable<string | null>(null);
 export const ceoCustomPrompt = writable<string>(loadInitialCeoCustomPrompt());
 export const routingStrategy = writable<RoutingStrategy>(loadInitialRoutingStrategy());
 export const providerToggles = writable<Record<string, boolean>>(loadInitialProviderToggles());
+export const openrouterSelectedModels = writable<string[]>(loadInitialOpenRouterModels());
 export const adminAllowedProviders = writable<Record<string, boolean>>({
   gemini: true,
   openrouter: true,
@@ -332,14 +343,73 @@ export function setDefaultVaultKey(id: string): void {
   activeVaultKeyId.set(id);
 }
 
+export function setOpenRouterSelectedModels(models: string[]): void {
+  openrouterSelectedModels.set(models);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('ezbo_openrouter_selected_models', JSON.stringify(models));
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export function addOpenRouterSelectedModel(modelId: string): void {
+  openrouterSelectedModels.update((current) => {
+    if (current.includes(modelId)) return current;
+    const updated = [...current, modelId];
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ezbo_openrouter_selected_models', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+    }
+    return updated;
+  });
+}
+
+export function removeOpenRouterSelectedModel(modelId: string): void {
+  openrouterSelectedModels.update((current) => {
+    const updated = current.filter((m) => m !== modelId);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ezbo_openrouter_selected_models', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+    }
+    return updated;
+  });
+}
+
+const providerRoundRobinPointers: Record<string, number> = {};
+
+export function getActiveVaultKeys(provider?: AIProvider): ApiVaultKey[] {
+  const vault = get(apiVault);
+  return vault.filter((k) => k.isEnabled !== false && (!provider || k.provider === provider));
+}
+
+export function getRoundRobinVaultKeys(provider?: AIProvider): ApiVaultKey[] {
+  const activeKeys = getActiveVaultKeys(provider);
+  if (activeKeys.length <= 1) return activeKeys;
+  const keyType = provider || 'global';
+  const curr = providerRoundRobinPointers[keyType] ?? 0;
+  const start = curr % activeKeys.length;
+  providerRoundRobinPointers[keyType] = (start + 1) % activeKeys.length;
+  return [...activeKeys.slice(start), ...activeKeys.slice(0, start)];
+}
+
 export function getActiveVaultKey(): ApiVaultKey | null {
   const vault = get(apiVault);
+  const enabledKeys = vault.filter((k) => k.isEnabled !== false);
+  const candidates = enabledKeys.length > 0 ? enabledKeys : vault;
   const activeId = get(activeVaultKeyId);
   if (activeId) {
-    const found = vault.find((k) => k.id === activeId);
+    const found = candidates.find((k) => k.id === activeId);
     if (found) return found;
   }
-  return vault.find((k) => k.isDefault) || vault[0] || null;
+  return candidates.find((k) => k.isDefault) || candidates[0] || null;
 }
 
 // -------------------------------------------------------------

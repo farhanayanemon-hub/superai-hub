@@ -20,13 +20,14 @@ const TIERS = [
   { id: 2, name: 'Tier 2: Boundary & Corner Cases', file: 'tier2_boundary_cases.test.mjs' },
   { id: 3, name: 'Tier 3: Cross-Feature Interactions', file: 'tier3_cross_feature.test.mjs' },
   { id: 4, name: 'Tier 4: Real-World Scenarios & Full Build', file: 'tier4_real_world_build.test.mjs' },
-  { id: 5, name: 'Tier 5: Adversarial Stress & Edge Cases', file: 'adversarial_challenge.test.mjs' }
+  { id: 5, name: 'Tier 5: Adversarial Stress & Edge Cases', file: 'adversarial_challenge.test.mjs' },
+  { id: 6, name: 'Tier 6: OpenRouter Multi-Model & Multi-Key Failover', file: 'openrouter_multimodel_multikey.test.mjs' }
 ];
 
 // Parse CLI arguments
 const args = process.argv.slice(2);
 const tierArg = args.find(a => a.startsWith('--tier='));
-let selectedTierIds = [1, 2, 3, 4, 5];
+let selectedTierIds = [1, 2, 3, 4, 5, 6];
 if (tierArg) {
   selectedTierIds = tierArg.replace('--tier=', '').split(',').map(n => parseInt(n.trim(), 10)).filter(Boolean);
 }

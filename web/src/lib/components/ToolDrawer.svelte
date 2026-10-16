@@ -6,8 +6,12 @@
     closeToolDrawer,
     apiKey,
     isKeyValid,
+    currentUser,
     subscription,
     getActiveVaultKey,
+    getRoundRobinVaultKeys,
+    openrouterSelectedModels,
+    routingStrategy,
     incrementManagedUsage
   } from '$lib/stores/userStore';
   import { decryptVaultKey } from '$lib/services/crypto';
@@ -114,7 +118,10 @@
 
     try {
       const activeVaultKey = getActiveVaultKey();
-      const isCompletePlan = $subscription?.tier === 'complete';
+      const isCompletePlan =
+        $subscription?.tier === 'complete' ||
+        $subscription?.tier === 'managed' ||
+        $currentUser?.tier === 'managed';
 
       const payload: Record<string, any> = {
         message: userPrompt,
@@ -128,11 +135,23 @@
       if (isCompletePlan) {
         payload.usePlatformKey = true;
       } else if (activeVaultKey && activeVaultKey.encryptedKey) {
+        const roundRobinKeys = getRoundRobinVaultKeys(activeVaultKey.provider);
         payload.vaultKey = {
           provider: activeVaultKey.provider,
           key: decryptVaultKey(activeVaultKey.encryptedKey, activeVaultKey.provider),
-          model: activeVaultKey.model
+          model: activeVaultKey.model,
+          models: activeVaultKey.provider === 'openrouter' ? $openrouterSelectedModels : undefined,
+          label: activeVaultKey.label
         };
+        payload.vaultKeys = roundRobinKeys.map((k) => ({
+          provider: k.provider,
+          key: decryptVaultKey(k.encryptedKey, k.provider),
+          model: k.model,
+          models: k.provider === 'openrouter' ? $openrouterSelectedModels : undefined,
+          label: k.label
+        }));
+        payload.openrouterModels = $openrouterSelectedModels;
+        payload.routingStrategy = $routingStrategy;
       } else if ($apiKey) {
         payload.apiKey = $apiKey;
       }

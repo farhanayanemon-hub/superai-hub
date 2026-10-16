@@ -32,7 +32,17 @@ interface ChatRequest {
     provider: AIProvider;
     key: string;
     model?: string;
+    models?: string[];
+    label?: string;
   };
+  vaultKeys?: Array<{
+    provider: AIProvider;
+    key: string;
+    model?: string;
+    models?: string[];
+    label?: string;
+  }>;
+  openrouterModels?: string[];
   // Complete plan flag
   usePlatformKey?: boolean;
   routingStrategy?: 'auto_free_rotate' | 'single_model' | 'multi_provider_rotate';
@@ -49,7 +59,7 @@ const DEFAULT_MODELS: Record<string, string> = {
   openai: 'gpt-4o',
   grok: 'grok-3',
   deepseek: 'deepseek-chat',
-  openrouter: 'meta-llama/llama-3.1-70b-instruct'
+  openrouter: 'meta-llama/llama-3.3-70b-instruct:free'
 };
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -108,12 +118,41 @@ export const POST: RequestHandler = async ({ request }) => {
     } else if (vaultKey?.key) {
       resolvedApiKey = vaultKey.key;
       resolvedProvider = vaultKey.provider;
+    } else if (body.vaultKeys && body.vaultKeys.length > 0 && body.vaultKeys[0].key) {
+      resolvedApiKey = body.vaultKeys[0].key;
+      resolvedProvider = body.vaultKeys[0].provider;
     } else if (apiKey) {
       resolvedApiKey = apiKey;
       resolvedProvider = 'gemini';
     } else if (adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY) {
       resolvedApiKey = adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY;
       resolvedProvider = 'gemini';
+    }
+
+    // Build candidate keys for resolved provider
+    type CandidateKey = { provider: AIProvider; key: string; model?: string; models?: string[]; label?: string };
+    let candidateKeys: CandidateKey[] = [];
+
+    if (body.vaultKeys && body.vaultKeys.length > 0) {
+      candidateKeys = body.vaultKeys.filter((k) => k.provider === resolvedProvider && k.key);
+    }
+
+    if (candidateKeys.length === 0) {
+      if (vaultKey?.key) {
+        candidateKeys = [{
+          provider: vaultKey.provider || resolvedProvider,
+          key: vaultKey.key,
+          model: vaultKey.model,
+          models: vaultKey.models,
+          label: vaultKey.label || 'Primary Key'
+        }];
+      } else if (resolvedApiKey) {
+        candidateKeys = [{
+          provider: resolvedProvider,
+          key: resolvedApiKey,
+          label: 'Default Key'
+        }];
+      }
     }
 
     const requestedModel =
@@ -164,111 +203,172 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // 1. Native Gemini Execution if Gemini API Key is present
-    if (resolvedApiKey && resolvedProvider === 'gemini') {
-      const geminiModel = vaultKey?.model || 'gemini-2.0-flash';
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${resolvedApiKey}`;
+    // 1. Native Gemini Execution with Smart Round-Robin & Auto Failover across active keys
+    if (resolvedProvider === 'gemini' && candidateKeys.length > 0) {
+      let lastGeminiErr = '';
 
-      const contents = [
-        ...history.slice(-8).map((turn) => ({
-          role: turn.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: turn.content }]
-        })),
-        {
-          role: 'user',
-          parts: [{ text: message }]
-        }
-      ];
+      for (const kObj of candidateKeys) {
+        const geminiKey = kObj.key;
+        if (!geminiKey) continue;
+        const geminiModel = kObj.model || requestedModel || 'gemini-2.0-flash';
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
-      const geminiRes = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents,
-          generationConfig: {
-            temperature: 0.75,
-            maxOutputTokens: 2048
+        const contents = [
+          ...history.slice(-8).map((turn) => ({
+            role: turn.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: turn.content }]
+          })),
+          {
+            role: 'user',
+            parts: [{ text: message }]
           }
-        })
-      });
+        ];
 
-      if (geminiRes.ok) {
-        const geminiData = await geminiRes.json();
-        const reply =
-          geminiData?.candidates?.[0]?.content?.parts
-            ?.map((p: any) => p.text || '')
-            .join('\n') || 'No output received from Gemini.';
+        try {
+          const geminiRes = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: systemPrompt }]
+              },
+              contents,
+              generationConfig: {
+                temperature: 0.75,
+                maxOutputTokens: 2048
+              }
+            })
+          });
 
-        return json({
-          success: true,
-          input: message,
-          delegatedHelper: delegatedHelperMeta,
-          result: {
-            type: 'text',
-            text: reply
-          },
-          provider: 'gemini',
-          model: geminiModel
-        });
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const reply =
+              geminiData?.candidates?.[0]?.content?.parts
+                ?.map((p: any) => p.text || '')
+                .join('\n') || 'No output received from Gemini.';
+
+            return json({
+              success: true,
+              input: message,
+              delegatedHelper: delegatedHelperMeta,
+              result: {
+                type: 'text',
+                text: reply
+              },
+              provider: 'gemini',
+              model: geminiModel,
+              keyLabel: kObj.label
+            });
+          }
+
+          const errBody = await geminiRes.text().catch(() => '');
+          lastGeminiErr = `HTTP ${geminiRes.status}: ${errBody}`;
+          const isRateLimitOrQuota =
+            geminiRes.status === 429 ||
+            /RESOURCE_EXHAUSTED|quota|rate_limit|exceeded/i.test(errBody);
+
+          if (isRateLimitOrQuota) {
+            console.warn(
+              `[gemini-failover] Key "${kObj.label || 'key'}" hit rate-limit/quota. Failing over to next active key...`
+            );
+            continue;
+          }
+        } catch (gErr: any) {
+          lastGeminiErr = gErr.message;
+          continue;
+        }
       }
     }
 
-    // 2. Direct native execution for OpenAI-compatible providers
-    if (resolvedApiKey && resolvedProvider in OPENAI_COMPATIBLE_ENDPOINTS) {
+    // 2. OpenRouter & OpenAI-compatible execution with Multi-Model & Multi-Key Failover
+    if (resolvedProvider in OPENAI_COMPATIBLE_ENDPOINTS && candidateKeys.length > 0) {
       const endpoint = OPENAI_COMPATIBLE_ENDPOINTS[resolvedProvider];
-      const candidateModels =
-        resolvedProvider === 'openrouter' && body.routingStrategy === 'auto_free_rotate'
-          ? [
-              vaultKey?.model || 'meta-llama/llama-3.3-70b-instruct:free',
-              'google/gemini-2.0-flash-exp:free',
-              'deepseek/deepseek-r1:free',
-              'mistralai/mistral-7b-instruct:free',
-              'qwen/qwen-2.5-coder-32b-instruct:free'
-            ]
-          : [vaultKey?.model || DEFAULT_MODELS[resolvedProvider] || 'gpt-4o'];
+
+      let candidateModels: string[] = [];
+      if (resolvedProvider === 'openrouter') {
+        if (body.openrouterModels && body.openrouterModels.length > 0) {
+          candidateModels = body.openrouterModels;
+        } else if (vaultKey?.models && vaultKey.models.length > 0) {
+          candidateModels = vaultKey.models;
+        } else if (body.routingStrategy === 'auto_free_rotate') {
+          candidateModels = [
+            vaultKey?.model || 'meta-llama/llama-3.3-70b-instruct:free',
+            'google/gemini-2.0-flash-exp:free',
+            'deepseek/deepseek-r1:free',
+            'mistralai/mistral-7b-instruct:free',
+            'qwen/qwen-2.5-coder-32b-instruct:free'
+          ];
+        } else {
+          candidateModels = [vaultKey?.model || DEFAULT_MODELS.openrouter];
+        }
+      } else {
+        candidateModels = [vaultKey?.model || DEFAULT_MODELS[resolvedProvider] || 'gpt-4o'];
+      }
 
       let lastError = '';
       let successfulReply = '';
       let successfulModel = candidateModels[0];
+      let successfulKeyLabel = '';
 
-      for (const modelToTry of candidateModels) {
-        try {
-          const providerRes = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${resolvedApiKey}`,
-              ...(resolvedProvider === 'openrouter'
-                ? { 'HTTP-Referer': 'https://ezboagents.com', 'X-Title': 'EzboAgents' }
-                : {})
-            },
-            body: JSON.stringify({
-              model: modelToTry,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                ...history.slice(-8).map((turn) => ({
-                  role: turn.role,
-                  content: turn.content
-                })),
-                { role: 'user', content: message }
-              ]
-            })
-          });
+      openAiCompatibleKeyLoop: for (const keyObj of candidateKeys) {
+        const currentKey = keyObj.key;
+        if (!currentKey) continue;
 
-          const providerData = await providerRes.json().catch(() => ({}));
-          if (providerRes.ok && providerData.choices?.[0]?.message?.content) {
-            successfulReply = providerData.choices[0].message.content;
-            successfulModel = modelToTry;
-            break;
-          } else {
-            lastError =
-              providerData?.error?.message || `Provider returned HTTP ${providerRes.status}`;
+        for (const modelToTry of candidateModels) {
+          try {
+            const providerRes = await fetch(endpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${currentKey}`,
+                ...(resolvedProvider === 'openrouter'
+                  ? { 'HTTP-Referer': 'https://ezboagents.com', 'X-Title': 'EzboAgents' }
+                  : {})
+              },
+              body: JSON.stringify({
+                model: modelToTry,
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  ...history.slice(-8).map((turn) => ({
+                    role: turn.role,
+                    content: turn.content
+                  })),
+                  { role: 'user', content: message }
+                ]
+              })
+            });
+
+            const providerData = await providerRes.json().catch(() => ({}));
+            if (providerRes.ok && providerData.choices?.[0]?.message?.content) {
+              successfulReply = providerData.choices[0].message.content;
+              successfulModel = modelToTry;
+              successfulKeyLabel = keyObj.label || '';
+              break openAiCompatibleKeyLoop;
+            }
+
+            const errMsg = providerData?.error?.message || `Provider returned HTTP ${providerRes.status}`;
+            lastError = errMsg;
+
+            const isRateLimitOrQuota =
+              providerRes.status === 429 ||
+              providerRes.status === 402 ||
+              /rate limit|quota|credits|exceeded|too many requests|insufficient_quota/i.test(errMsg);
+
+            if (isRateLimitOrQuota) {
+              console.warn(
+                `[${resolvedProvider}-failover] Model "${modelToTry}" with key "${keyObj.label || 'key'}" hit rate-limit/quota (${providerRes.status}: ${errMsg}). Failing over...`
+              );
+              continue;
+            } else {
+              console.warn(
+                `[${resolvedProvider}-failover] Model "${modelToTry}" error: ${errMsg}. Trying next candidate...`
+              );
+              continue;
+            }
+          } catch (fetchErr: any) {
+            lastError = fetchErr.message;
+            continue;
           }
-        } catch (fetchErr: any) {
-          lastError = fetchErr.message;
         }
       }
 
@@ -282,7 +382,8 @@ export const POST: RequestHandler = async ({ request }) => {
             text: successfulReply
           },
           provider: resolvedProvider,
-          model: successfulModel
+          model: successfulModel,
+          keyLabel: successfulKeyLabel
         });
       }
 
