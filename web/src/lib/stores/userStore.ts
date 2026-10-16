@@ -99,7 +99,7 @@ function loadInitialChat(): ChatMessage[] {
     {
       id: 'welcome',
       role: 'assistant',
-      content: `👋 **Welcome to your EzboAgents Executive Console!**\n\nI am connected to your Multi-API Vault and central AI engine. Whatever you can do from WhatsApp, you can do right here:\n\n• **Chat freely** with advanced AI models.\n• **Generate high-resolution AI images** using \`/image [your prompt]\`.\n• Add and manage multiple API keys in your **API Vault**.\n• Type \`/help\` anytime for a full guide.\n\nHow can I help grow your business today?`,
+      content: 'Hi, how can I help you today?',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ];
@@ -169,7 +169,7 @@ export const apiKey = writable<string>(initialKey);
 export const isKeyValid = writable<boolean>(!!initialKey);
 export const whatsappStatus = writable<WhatsAppStatus>('disconnected');
 export const whatsappQr = writable<string | null>(null);
-export const activeDashboardTab = writable<DashboardTab>('chat');
+export const activeDashboardTab = writable<DashboardTab>('agents');
 export const activeTool = writable<AITool | null>(null);
 export const isDrawerOpen = writable<boolean>(false);
 export const activeCategory = writable<string>('all');

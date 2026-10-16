@@ -54,6 +54,7 @@
   $effect(() => {
     if (isOpen && activeChannel === 'whatsapp') {
       whatsappApi.initStream();
+      whatsappApi.triggerSessionStart();
       return () => {
         whatsappApi.closeStream();
       };
@@ -122,6 +123,9 @@
       await whatsappApi.triggerDisconnect();
       pairingCode = null;
       pairingError = null;
+      setTimeout(() => {
+        whatsappApi.triggerSessionStart();
+      }, 600);
     } finally {
       isDisconnectingWa = false;
     }

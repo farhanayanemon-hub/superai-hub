@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import ChannelModal from '$lib/components/ChannelModal.svelte';
-  import { TOOLS, AI_CEO_PROFILE, type AITool } from '$lib/config/tools';
+  import { TOOLS, type AITool } from '$lib/config/tools';
   import {
     chatMessages,
     addChatMessage,
@@ -16,8 +16,19 @@
     type ChatMessage
   } from '$lib/stores/userStore';
   import { decryptVaultKey } from '$lib/services/crypto';
+  import { offlineStorage } from '$lib/services/offlineStorage';
   import { marked } from 'marked';
   import { onMount, tick } from 'svelte';
+
+  export interface ChatSession {
+    id: string;
+    title: string;
+    createdAt: number;
+    updatedAt: number;
+    messages: ChatMessage[];
+  }
+
+  const SESSIONS_STORAGE_KEY = 'ezbo_ceo_sessions_v3';
 
   let {
     isOpen = $bindable(false),
@@ -29,8 +40,16 @@
     onOpenChannels?: () => void;
   }>();
 
-  // Internal state
+  // Multi-session chat history state
+  let sessions = $state<ChatSession[]>([]);
+  let activeSessionId = $state<string>('session-default');
+  let isInnerSidebarOpen = $state(false);
+  let isTypingWelcome = $state(false);
+
+  // Channels modal state
   let isChannelsModalOpen = $state(false);
+
+  // Input & Attachment state
   let inputMessage = $state('');
   let selectedHelperId = $state('ceo');
   let isSending = $state(false);
@@ -40,73 +59,61 @@
   let isPlusMenuOpen = $state(false);
   let speechBubbleDismissed = $state(false);
 
+  // Media Attachment state
+  let attachedImage = $state<{ url: string; name: string } | null>(null);
+  let fileInputRef = $state<HTMLInputElement | null>(null);
+  let cameraInputRef = $state<HTMLInputElement | null>(null);
+
   // Slash Command (/) Autocomplete state
   let isSlashOpen = $state(false);
   let slashQuery = $state('');
   let selectedSlashIndex = $state(0);
 
-  // Quick action presets for '+' button aligned with tools.ts catalog
-  // Presets mapping:
-  // - #34: id: 'ai_commercial_image_generator', code: '#34', name: 'AI Commercial Image Generator'
-  // - #24: id: 'ai_humanizer_bypasser' / 'ai_text_humanizer', code: '#24', name: 'AI Text Humanizer 100% Natural' ('AI Text Humanizer (100% Natural Bypass)')
-  // - #64: id: 'freelance_proposal_writer' / 'inbox_sales_objection_handler', code: '#64', name: 'Inbox Sales & Objection Handler' ('Freelance Job Proposal & Cover Letter Writer')
-  // - #66: id: 'excel_sheets_formula_bot' / 'excel_sheets_formula_generator', code: '#66', name: 'Excel & Google Sheets Formula Generator'
-  const quickActions = [
-    {
-      id: 'marketing_plan',
-      code: 'CEO-00',
-      name: '360° AI CEO Marketing Plan',
-      label: '360° AI CEO Marketing Plan',
-      icon: 'Crown',
-      tag: 'Strategy',
-      prompt: 'Build a comprehensive 30-day marketing, ads, and conversion plan for our business.'
-    },
-    {
-      id: 'fb_insta_ads',
-      code: '#01',
-      name: 'Facebook & Instagram Ads Generator',
-      label: '#01 Facebook & IG Ads Generator',
-      icon: 'Megaphone',
-      tag: '#01',
-      prompt: '[⚡ #01 Facebook & Instagram Ads Generator] Write 3 high-converting ad angles with scroll-stopping hooks for: '
-    },
-    {
-      id: 'ai_text_humanizer',
-      code: '#24',
-      name: 'AI Text Humanizer 100% Natural',
-      label: '#24 AI Text Humanizer',
-      icon: 'Wand2',
-      tag: '#24',
-      prompt: '[⚡ #24 AI Text Humanizer 100% Natural] Humanize this text to make it sound 100% human and natural: '
-    },
-    {
-      id: 'ai_commercial_image_generator',
-      code: '#34',
-      name: 'AI Commercial Image Generator',
-      label: '#34 AI Commercial Image Generator',
-      icon: 'Image',
-      tag: '#34',
-      prompt: '[⚡ #34 AI Commercial Image Generator] High-resolution commercial product photograph with studio lighting, 8k: '
-    },
-    {
-      id: 'inbox_sales_objection_handler',
-      code: '#64',
-      name: 'Inbox Sales & Objection Handler',
-      label: '#64 Inbox Sales & Objection Handler',
-      icon: 'Briefcase',
-      tag: '#64',
-      prompt: '[⚡ #64 Inbox Sales & Objection Handler] Craft a high-converting objection handling script for: '
-    },
-    {
-      id: 'excel_sheets_formula_generator',
-      code: '#66',
-      name: 'Excel & Google Sheets Formula Generator',
-      label: '#66 Excel & Google Sheets Formula Generator',
-      icon: 'Table',
-      tag: '#66',
-      prompt: '[⚡ #66 Excel & Google Sheets Formula Generator] Provide the exact formula and explanation for: '
+  // Active session and messages
+  const activeSession = $derived(
+    sessions.find((s) => s.id === activeSessionId) || sessions[0]
+  );
+  const currentMessages = $derived(
+    activeSession ? activeSession.messages : []
+  );
+
+  function loadStoredSessions(): ChatSession[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = localStorage.getItem(SESSIONS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      // ignore
     }
-  ];
+    return [
+      {
+        id: 'session-default',
+        title: 'New Conversation',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        messages: [
+          {
+            id: 'welcome-default',
+            role: 'assistant',
+            content: 'Hi, how can I help you today?',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]
+      }
+    ];
+  }
+
+  function saveSessions() {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    } catch {
+      // ignore
+    }
+  }
 
   // Auto-scroll to bottom of conversation feed
   async function scrollToBottom() {
@@ -148,14 +155,124 @@
 
   // Watch messages for auto-scroll
   $effect(() => {
-    if ($chatMessages.length) {
+    if (currentMessages.length || isTypingWelcome) {
       scrollToBottom();
     }
   });
 
   onMount(() => {
+    sessions = loadStoredSessions();
+    if (sessions.length > 0) {
+      activeSessionId = sessions[0].id;
+      chatMessages.set(sessions[0].messages);
+    }
     scrollToBottom();
   });
+
+  // Start a new chat session with animated typing
+  function startNewChat() {
+    const newId = `session-${Date.now()}`;
+    const newSession: ChatSession = {
+      id: newId,
+      title: 'New Conversation',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      messages: []
+    };
+
+    sessions = [newSession, ...sessions];
+    activeSessionId = newId;
+    isInnerSidebarOpen = false;
+    inputMessage = '';
+    attachedImage = null;
+    selectedHelperId = 'ceo';
+
+    // Show brief typing animation for welcome message
+    isTypingWelcome = true;
+    setTimeout(() => {
+      isTypingWelcome = false;
+      const welcomeMsg: ChatMessage = {
+        id: `welcome-${Date.now()}`,
+        role: 'assistant',
+        content: 'Hi, how can I help you today?',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      newSession.messages = [welcomeMsg];
+      sessions = sessions.map((s) => (s.id === newId ? { ...s, messages: [welcomeMsg] } : s));
+      chatMessages.set([welcomeMsg]);
+      saveSessions();
+      scrollToBottom();
+    }, 900);
+  }
+
+  function switchSession(sessionId: string) {
+    activeSessionId = sessionId;
+    const target = sessions.find((s) => s.id === sessionId);
+    if (target) {
+      chatMessages.set(target.messages);
+    }
+    isInnerSidebarOpen = false;
+    attachedImage = null;
+    scrollToBottom();
+  }
+
+  function deleteSession(sessionId: string, e: MouseEvent) {
+    e.stopPropagation();
+    if (sessions.length <= 1) {
+      startNewChat();
+      return;
+    }
+    sessions = sessions.filter((s) => s.id !== sessionId);
+    saveSessions();
+    offlineStorage.clearMessages(sessionId).catch(() => {});
+
+    if (activeSessionId === sessionId) {
+      const next = sessions[0];
+      activeSessionId = next.id;
+      chatMessages.set(next.messages);
+    }
+  }
+
+  function formatSessionTime(timestamp: number): string {
+    if (!timestamp) return '';
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+
+  function generateSessionTitle(text: string): string {
+    const clean = text
+      .replace(/\[⚡[^\]]+\]/g, '')
+      .replace(/[#*`_]/g, '')
+      .trim();
+    if (!clean) return 'Assistance Request';
+    return clean.length > 24 ? clean.slice(0, 24) + '...' : clean;
+  }
+
+  // Handle image selected from file input or camera
+  function handleImagePicked(e: Event) {
+    const target = e.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      attachedImage = {
+        url: dataUrl,
+        name: file.name
+      };
+      if (textareaRef) textareaRef.focus();
+    };
+    reader.readAsDataURL(file);
+    target.value = '';
+  }
 
   // Filtered helpers for slash command popover
   const filteredTools = $derived.by(() => {
@@ -184,7 +301,7 @@
     const slashMatch = textBeforeCursor.match(/(?:^|\s)\/([a-zA-Z0-9_#\s-]*)$/);
     if (slashMatch) {
       isSlashOpen = true;
-      isPlusMenuOpen = false; // Mutual exclusivity: close '+' quick action menu when slash menu opens
+      isPlusMenuOpen = false;
       slashQuery = slashMatch[1].trim();
       selectedSlashIndex = 0;
     } else {
@@ -203,6 +320,11 @@
       if (isPlusMenuOpen) {
         e.preventDefault();
         isPlusMenuOpen = false;
+        return;
+      }
+      if (isInnerSidebarOpen) {
+        e.preventDefault();
+        isInnerSidebarOpen = false;
         return;
       }
     }
@@ -259,21 +381,15 @@
     }, 50);
   }
 
-  function handleSelectQuickAction(action: (typeof quickActions)[0]) {
-    inputMessage = action.prompt;
-    isPlusMenuOpen = false;
-    setTimeout(() => {
-      if (textareaRef) {
-        textareaRef.focus();
-      }
-    }, 50);
-  }
-
   async function handleSend() {
     const text = inputMessage.trim();
-    if (!text || isSending) return;
+    if ((!text && !attachedImage) || isSending) return;
+
+    const messageText = text || 'Please inspect this attached image.';
+    const imagePayload = attachedImage ? attachedImage.url : undefined;
 
     inputMessage = '';
+    attachedImage = null;
     isSlashOpen = false;
     isPlusMenuOpen = false;
 
@@ -281,11 +397,24 @@
     const userMsg: ChatMessage = {
       id: userMsgId,
       role: 'user',
-      content: text,
+      content: messageText,
+      imageUrl: imagePayload,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    addChatMessage(userMsg);
+    // Update session title if default
+    if (activeSession && (activeSession.title === 'New Conversation' || activeSession.title === 'Untitled Chat')) {
+      activeSession.title = generateSessionTitle(messageText);
+    }
+
+    // Append to active session and save
+    if (activeSession) {
+      activeSession.messages = [...activeSession.messages, userMsg];
+      activeSession.updatedAt = Date.now();
+      sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+      saveSessions();
+    }
+    chatMessages.set(activeSession ? activeSession.messages : [userMsg]);
     scrollToBottom();
 
     isSending = true;
@@ -295,11 +424,12 @@
       const isCompletePlan = $subscription?.tier === 'complete';
 
       const payload: Record<string, any> = {
-        message: text,
+        message: messageText,
+        imageUrl: imagePayload,
         helperId: selectedHelperId === 'ceo' ? undefined : selectedHelperId,
         mode: selectedHelperId === 'ceo' ? 'ceo' : 'helper',
         ceoCustomPrompt: $ceoCustomPrompt || undefined,
-        history: $chatMessages.slice(-6).map((m) => ({
+        history: (activeSession ? activeSession.messages : []).slice(-6).map((m) => ({
           role: m.role,
           content: m.content
         }))
@@ -333,11 +463,11 @@
       let toolMatched: string | undefined = data.delegatedHelper
         ? `[${data.delegatedHelper.code}] ${data.delegatedHelper.name}`
         : undefined;
-      let imageUrl: string | undefined = undefined;
+      let replyImageUrl: string | undefined = undefined;
 
       if (data.result) {
         if (data.result.type === 'image') {
-          imageUrl =
+          replyImageUrl =
             data.result.url ||
             data.result.image?.imageUrl ||
             data.result.imageUrl ||
@@ -365,11 +495,18 @@
         role: 'assistant',
         content: replyContent,
         toolMatched,
-        imageUrl,
+        imageUrl: replyImageUrl,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
-      addChatMessage(botMsg);
+      if (activeSession) {
+        activeSession.messages = [...activeSession.messages, botMsg];
+        activeSession.updatedAt = Date.now();
+        sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+        saveSessions();
+      }
+      chatMessages.set(activeSession ? activeSession.messages : [botMsg]);
+
       if (isCompletePlan) {
         incrementManagedUsage();
       }
@@ -381,7 +518,13 @@
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'error'
       };
-      addChatMessage(errMsg);
+
+      if (activeSession) {
+        activeSession.messages = [...activeSession.messages, errMsg];
+        sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+        saveSessions();
+      }
+      chatMessages.set(activeSession ? activeSession.messages : [errMsg]);
     } finally {
       isSending = false;
       scrollToBottom();
@@ -461,12 +604,11 @@
           alt="Master AI CEO"
           class="w-full h-full object-contain drop-shadow-xs"
           onerror={(e) => {
-            // Fallback if logo not found
             (e.currentTarget as HTMLElement).style.display = 'none';
           }}
         />
       </div>
-      <!-- Glowing Status Beacon (Emerald / Cyan Live Pulse) -->
+      <!-- Glowing Status Beacon (Live Pulse) -->
       <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse"></span>
     </button>
   </div>
@@ -476,7 +618,6 @@
 <!-- 2. CHATGPT-STYLE FLOATING GLASS WINDOW -->
 <!-- ====================================================================== -->
 {#if isOpen}
-  <!-- Mobile viewport clamping (replaces legacy fixed bottom-6 right-6 z-50 w-[95vw] sm:w-[520px] md:w-[580px] h-[78vh] max-h-[720px] for 375px zero-overflow) -->
   <div
     class="fixed bottom-4 right-2.5 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-20px)] sm:w-[520px] md:w-[580px] max-w-full h-[78vh] max-h-[720px] bg-white/95 backdrop-blur-2xl border border-[#CFE2FA] rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
     role="dialog"
@@ -484,10 +625,21 @@
   >
     <!-- Header -->
     <div
-      class="h-16 px-4 sm:px-5 border-b border-[#E3ECF7] bg-white/90 backdrop-blur-md flex items-center justify-between shrink-0 gap-2 select-none"
+      class="h-16 px-3.5 sm:px-5 border-b border-[#E3ECF7] bg-white/90 backdrop-blur-md flex items-center justify-between shrink-0 gap-2 select-none"
     >
-      <!-- CEO Identity & Status -->
-      <div class="flex items-center gap-2.5 min-w-0">
+      <!-- Left: Hamburger Menu (☰) + CEO Identity & Status -->
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <!-- 3-line hamburger menu toggle button -->
+        <button
+          type="button"
+          onclick={() => (isInnerSidebarOpen = !isInnerSidebarOpen)}
+          class="w-8 h-8 rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center cursor-pointer transition-colors shrink-0 shadow-2xs"
+          title="Chat History & Channels (☰)"
+          aria-label="Toggle Chat History and Channels"
+        >
+          <Icon name="Menu" size={17} />
+        </button>
+
         <div class="relative w-9 h-9 rounded-full bg-linear-to-tr from-[#1677FF] to-[#38CFFF] p-0.5 shrink-0 shadow-xs">
           <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden p-0.5">
             <img src="/ezbo-ceo.png" alt="AI CEO" class="w-full h-full object-contain" />
@@ -504,26 +656,13 @@
             </span>
           </div>
           <p class="text-[10px] text-[#5E7694] truncate">
-            Controls All 75 AI Specialist Helpers
+            {activeSession?.title || 'Controls All 75 AI Specialist Helpers'}
           </p>
         </div>
       </div>
 
-      <!-- Header Actions -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <!-- Prominent "⚡ Connect Channels" Button with Live Pulse -->
-        <button
-          type="button"
-          onclick={openChannelsModal}
-          class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#F3F8FF] hover:bg-[#E4F0FF] border border-[#CFE2FA] text-[#1677FF] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs group"
-          title="Connect WhatsApp & Telegram"
-          aria-label="Connect Multi-Channel Gateway"
-        >
-          <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-ping"></span>
-          <span class="hidden xs:inline sm:inline">⚡ Connect Channels</span>
-          <span class="inline xs:hidden sm:hidden">⚡ Channels</span>
-        </button>
-
+      <!-- Right: Minimize & Close Controls -->
+      <div class="flex items-center gap-1.5 shrink-0">
         <!-- Minimize (-) Button -->
         <button
           type="button"
@@ -550,311 +689,454 @@
       </div>
     </div>
 
-    <!-- ====================================================================== -->
-    <!-- Conversation Stream (ChatGPT-like clean feed) -->
-    <!-- ====================================================================== -->
-    <div
-      bind:this={messagesContainer}
-      class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 scroll-smooth bg-linear-to-b from-[#F8FAFC]/60 to-white/80"
-    >
-      {#if $chatMessages.length === 0 && !isSending}
-        <!-- Welcome Hero with Quick Suggestions -->
-        <div class="h-full min-h-[280px] flex flex-col items-center justify-center text-center p-4 max-w-md mx-auto">
-          <div class="w-14 h-14 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shadow-xs mb-3">
-            <img src="/ezbo-ceo.png" alt="AI CEO" class="w-10 h-10 object-contain" />
-          </div>
-          <h4 class="text-base font-extrabold text-[#102A56]">
-            Master AI CEO Ready
-          </h4>
-          <p class="text-xs text-[#5E7694] mt-1 leading-relaxed">
-            Instruct the CEO directly, type <code class="text-[#1677FF] font-bold font-mono">/</code> to pick any of the 75 specialist helpers, or tap a quick prompt below.
-          </p>
+    <!-- Main Workspace Container (Holds Drawer & Conversation) -->
+    <div class="relative flex-1 overflow-hidden flex flex-col">
+      <!-- ====================================================================== -->
+      <!-- Inner Sidebar Drawer (Chat History & Connect Channels) -->
+      <!-- ====================================================================== -->
+      {#if isInnerSidebarOpen}
+        <!-- Frosted Backdrop overlay -->
+        <div
+          class="absolute inset-0 bg-[#0B1F42]/30 backdrop-blur-xs z-30 transition-opacity"
+          onclick={() => (isInnerSidebarOpen = false)}
+          role="button"
+          tabindex="0"
+          onkeydown={(e) => {
+            if (e.key === 'Escape') isInnerSidebarOpen = false;
+          }}
+          aria-label="Close Sidebar"
+        ></div>
 
-          <div class="flex flex-wrap justify-center gap-1.5 mt-4">
-            {#each quickActions.slice(0, 4) as action}
-              <button
-                type="button"
-                onclick={() => handleSelectQuickAction(action)}
-                class="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F3F8FF] border border-[#CFE2FA] text-[#102A56] hover:text-[#1677FF] text-xs font-semibold transition-all cursor-pointer shadow-2xs text-left"
+        <!-- Drawer Panel -->
+        <div
+          class="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-white/98 backdrop-blur-2xl border-r border-[#CFE2FA] z-40 shadow-2xl flex flex-col p-3.5 animate-in slide-in-from-left duration-200"
+        >
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF]">
+                <img src="/ezbo-ceo.png" alt="CEO" class="w-5 h-5 object-contain" />
+              </div>
+              <div>
+                <span class="text-xs font-bold text-[#102A56] block leading-tight">AI CEO Console</span>
+                <span class="text-[9px] text-[#5E7694]">History & Channels</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick={() => (isInnerSidebarOpen = false)}
+              class="w-7 h-7 rounded-lg text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF] flex items-center justify-center cursor-pointer"
+              aria-label="Close Drawer"
+            >
+              <Icon name="X" size={15} />
+            </button>
+          </div>
+
+          <!-- New Chat Button -->
+          <div class="py-2.5">
+            <button
+              type="button"
+              onclick={startNewChat}
+              class="w-full py-2.5 px-3 rounded-xl blue-btn text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-[1.01] active:scale-[0.99] transition-all"
+            >
+              <Icon name="Plus" size={15} />
+              <span>New Chat</span>
+            </button>
+          </div>
+
+          <!-- Connect Channels Button -->
+          <div class="pb-2.5 border-b border-[#F1F5F9]">
+            <button
+              type="button"
+              onclick={() => {
+                isInnerSidebarOpen = false;
+                openChannelsModal();
+              }}
+              class="w-full p-2.5 rounded-xl bg-[#F3F8FF] hover:bg-[#E4F0FF] border border-[#CFE2FA] flex items-center justify-between text-xs transition-all cursor-pointer group shadow-2xs"
+              title="Connect WhatsApp & Telegram"
+            >
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <div class="text-left">
+                  <p class="font-bold text-[#102A56] group-hover:text-[#1677FF] text-xs">⚡ Connect Channels</p>
+                  <span class="text-[10px] text-[#5E7694]">WhatsApp & Telegram</span>
+                </div>
+              </div>
+              <Icon name="ChevronRight" size={14} class="text-[#1677FF]" />
+            </button>
+          </div>
+
+          <!-- Chat History Section -->
+          <div class="flex-1 overflow-y-auto py-2 space-y-1">
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#889DB5] px-2 py-1 flex items-center justify-between">
+              <span>Conversations</span>
+              <span>{sessions.length}</span>
+            </p>
+
+            {#each sessions as s (s.id)}
+              <div
+                class="group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all cursor-pointer {s.id === activeSessionId ? 'bg-[#1677FF]/10 text-[#1677FF] font-bold border border-[#1677FF]/30' : 'hover:bg-[#F3F8FF] text-[#102A56]'}"
+                onclick={() => switchSession(s.id)}
+                role="button"
+                tabindex="0"
+                onkeydown={(e) => {
+                  if (e.key === 'Enter') switchSession(s.id);
+                }}
               >
-                {action.label}
-              </button>
+                <div class="min-w-0 flex-1 pr-2">
+                  <p class="text-xs truncate">{s.title || 'New Conversation'}</p>
+                  <span class="text-[9px] text-[#889DB5] font-normal">{formatSessionTime(s.updatedAt)}</span>
+                </div>
+
+                {#if sessions.length > 1}
+                  <button
+                    type="button"
+                    onclick={(e) => deleteSession(s.id, e)}
+                    class="opacity-0 group-hover:opacity-100 hover:text-rose-600 p-1 rounded-md transition-opacity cursor-pointer"
+                    title="Delete conversation"
+                    aria-label="Delete session"
+                  >
+                    <Icon name="Trash2" size={13} />
+                  </button>
+                {/if}
+              </div>
             {/each}
           </div>
         </div>
       {/if}
 
-      {#each $chatMessages as msg (msg.id)}
-        {#if msg.role === 'user'}
-          <!-- User Message Bubble (ChatGPT Pill on right) -->
-          <div class="flex items-start justify-end gap-2">
-            <div
-              class="max-w-[85%] bg-[#1677FF] text-white rounded-2xl rounded-tr-xs px-4 py-3 shadow-xs"
-            >
-              <p class="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words font-medium">
-                {msg.content}
-              </p>
-              <div class="text-[9px] text-[#CFE2FA] text-right mt-1 font-mono">
-                {msg.timestamp}
+      <!-- ====================================================================== -->
+      <!-- Conversation Stream (ChatGPT-like clean feed) -->
+      <!-- ====================================================================== -->
+      <div
+        bind:this={messagesContainer}
+        class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 scroll-smooth bg-linear-to-b from-[#F8FAFC]/60 to-white/80"
+      >
+        {#each currentMessages as msg (msg.id)}
+          {#if msg.role === 'user'}
+            <!-- User Message Bubble (ChatGPT Pill on right) -->
+            <div class="flex items-start justify-end gap-2">
+              <div
+                class="max-w-[85%] bg-[#1677FF] text-white rounded-2xl rounded-tr-xs px-4 py-3 shadow-xs space-y-2"
+              >
+                {#if msg.imageUrl}
+                  <div class="rounded-xl overflow-hidden border border-white/20 bg-black/10 max-w-xs">
+                    <img
+                      src={msg.imageUrl}
+                      alt="User Attachment"
+                      class="w-full h-auto object-cover max-h-56 rounded-xl"
+                    />
+                  </div>
+                {/if}
+
+                <p class="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words font-medium">
+                  {msg.content}
+                </p>
+                <div class="text-[9px] text-[#CFE2FA] text-right mt-1 font-mono">
+                  {msg.timestamp}
+                </div>
+              </div>
+              <div
+                class="w-7 h-7 rounded-full bg-[#E4F0FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0 text-xs font-bold"
+              >
+                {$currentUser?.name ? $currentUser.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </div>
-            <div
-              class="w-7 h-7 rounded-full bg-[#E4F0FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0 text-xs font-bold"
-            >
-              {$currentUser?.name ? $currentUser.name.charAt(0).toUpperCase() : 'U'}
+          {:else}
+            <!-- Assistant / CEO Message (Clean, Card-Free Stream) -->
+            <div class="flex items-start gap-2.5">
+              <div
+                class="w-7 h-7 rounded-full bg-linear-to-tr from-[#1677FF] to-[#38CFFF] p-0.5 shrink-0 mt-0.5 shadow-2xs"
+              >
+                <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                  <img src="/ezbo-ceo.png" alt="AI CEO" class="w-5 h-5 object-contain" />
+                </div>
+              </div>
+
+              <div class="max-w-[90%] space-y-2">
+                <!-- Delegated Helper Badge if present -->
+                {#if msg.toolMatched}
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F3F8FF] border border-[#CFE2FA] text-[10px] font-bold text-[#1677FF]">
+                    <Icon name="Zap" size={10} />
+                    <span>Delegated: {msg.toolMatched}</span>
+                  </div>
+                {/if}
+
+                <!-- Content Bubble -->
+                <div
+                  class="bg-white/90 border {msg.status === 'error'
+                    ? 'border-rose-200 bg-rose-50/30'
+                    : 'border-[#E3ECF7]'} rounded-2xl rounded-tl-xs p-3.5 sm:p-4 text-[#102A56] shadow-xs space-y-2.5"
+                >
+                  <!-- Rendered Image if present -->
+                  {#if msg.imageUrl}
+                    <div class="rounded-xl overflow-hidden border border-[#E3ECF7] bg-[#F8FAFC] max-w-sm">
+                      <img
+                        src={msg.imageUrl}
+                        alt="AI Generated Visual"
+                        class="w-full h-auto object-cover max-h-72 rounded-xl"
+                        loading="lazy"
+                      />
+                    </div>
+                  {/if}
+
+                  <!-- Rendered Markdown Text -->
+                  <div
+                    class="prose prose-xs sm:prose-sm max-w-none text-[#102A56] leading-relaxed break-words"
+                  >
+                    {@html renderMarkdown(msg.content)}
+                  </div>
+
+                  <!-- Footer with Copy Button & Timestamp -->
+                  <div class="flex items-center justify-between pt-1 border-t border-[#F1F5F9] text-[10px] text-[#5E7694]">
+                    <span class="font-mono">{msg.timestamp}</span>
+
+                    <button
+                      type="button"
+                      onclick={() => copyText(msg.id, msg.content)}
+                      class="px-2 py-0.5 rounded-md hover:bg-[#F3F8FF] text-[#5E7694] hover:text-[#1677FF] transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                      title="Copy message content"
+                    >
+                      {#if copiedMessageId === msg.id}
+                        <Icon name="Check" size={11} class="text-emerald-600" />
+                        <span class="text-emerald-700">Copied</span>
+                      {:else}
+                        <Icon name="Copy" size={11} />
+                        <span>Copy</span>
+                      {/if}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        {:else}
-          <!-- Assistant / CEO Message (Clean, Card-Free Stream) -->
-          <div class="flex items-start gap-2.5">
+          {/if}
+        {/each}
+
+        <!-- Animated Typing Indicator for initial welcome message -->
+        {#if isTypingWelcome}
+          <div class="flex items-start gap-2.5 animate-in fade-in duration-150">
             <div
-              class="w-7 h-7 rounded-full bg-linear-to-tr from-[#1677FF] to-[#38CFFF] p-0.5 shrink-0 mt-0.5 shadow-2xs"
+              class="w-7 h-7 rounded-full bg-linear-to-tr from-[#1677FF] to-[#38CFFF] p-0.5 shrink-0 shadow-2xs"
             >
               <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
                 <img src="/ezbo-ceo.png" alt="AI CEO" class="w-5 h-5 object-contain" />
               </div>
             </div>
-
-            <div class="max-w-[90%] space-y-2">
-              <!-- Delegated Helper Badge if present -->
-              {#if msg.toolMatched}
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F3F8FF] border border-[#CFE2FA] text-[10px] font-bold text-[#1677FF]">
-                  <Icon name="Zap" size={10} />
-                  <span>Delegated: {msg.toolMatched}</span>
-                </div>
-              {/if}
-
-              <!-- Content Bubble -->
-              <div
-                class="bg-white/90 border {msg.status === 'error'
-                  ? 'border-rose-200 bg-rose-50/30'
-                  : 'border-[#E3ECF7]'} rounded-2xl rounded-tl-xs p-3.5 sm:p-4 text-[#102A56] shadow-xs space-y-2.5"
-              >
-                <!-- Rendered Image if present -->
-                {#if msg.imageUrl}
-                  <div class="rounded-xl overflow-hidden border border-[#E3ECF7] bg-[#F8FAFC] max-w-sm">
-                    <img
-                      src={msg.imageUrl}
-                      alt="AI Generated Visual"
-                      class="w-full h-auto object-cover max-h-72 rounded-xl"
-                      loading="lazy"
-                    />
-                  </div>
-                {/if}
-
-                <!-- Rendered Markdown Text -->
-                <div
-                  class="prose prose-xs sm:prose-sm max-w-none text-[#102A56] leading-relaxed break-words"
-                >
-                  {@html renderMarkdown(msg.content)}
-                </div>
-
-                <!-- Footer with Copy Button & Timestamp -->
-                <div class="flex items-center justify-between pt-1 border-t border-[#F1F5F9] text-[10px] text-[#5E7694]">
-                  <span class="font-mono">{msg.timestamp}</span>
-
-                  <button
-                    type="button"
-                    onclick={() => copyText(msg.id, msg.content)}
-                    class="px-2 py-0.5 rounded-md hover:bg-[#F3F8FF] text-[#5E7694] hover:text-[#1677FF] transition-colors flex items-center gap-1 cursor-pointer font-medium"
-                    title="Copy message content"
-                  >
-                    {#if copiedMessageId === msg.id}
-                      <Icon name="Check" size={11} class="text-emerald-600" />
-                      <span class="text-emerald-700">Copied</span>
-                    {:else}
-                      <Icon name="Copy" size={11} />
-                      <span>Copy</span>
-                    {/if}
-                  </button>
-                </div>
-              </div>
+            <div class="p-3 rounded-2xl bg-white border border-[#E3ECF7] shadow-xs flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce"></span>
+              <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce [animation-delay:150ms]"></span>
+              <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce [animation-delay:300ms]"></span>
+              <span class="text-xs text-[#5E7694] ml-1 font-medium">CEO is typing...</span>
             </div>
           </div>
         {/if}
-      {/each}
 
-      {#if isSending}
-        <!-- Typing indicator -->
-        <div class="flex items-start gap-2.5">
-          <div
-            class="w-7 h-7 rounded-full bg-linear-to-tr from-[#1677FF] to-[#38CFFF] p-0.5 shrink-0 shadow-2xs"
-          >
-            <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-              <img src="/ezbo-ceo.png" alt="AI CEO" class="w-5 h-5 object-contain" />
+        <!-- Ongoing Request Typing Indicator -->
+        {#if isSending}
+          <div class="flex items-start gap-2.5">
+            <div
+              class="w-7 h-7 rounded-full bg-linear-to-tr from-[#1677FF] to-[#38CFFF] p-0.5 shrink-0 shadow-2xs"
+            >
+              <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                <img src="/ezbo-ceo.png" alt="AI CEO" class="w-5 h-5 object-contain" />
+              </div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-white border border-[#E3ECF7] shadow-xs flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce"></span>
+              <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce [animation-delay:150ms]"></span>
+              <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce [animation-delay:300ms]"></span>
+              <span class="text-xs text-[#5E7694] ml-1.5 font-medium">CEO orchestrating...</span>
             </div>
           </div>
-          <div class="p-3.5 rounded-2xl bg-white border border-[#E3ECF7] shadow-xs flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce"></span>
-            <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce [animation-delay:150ms]"></span>
-            <span class="w-2 h-2 rounded-full bg-[#1677FF] animate-bounce [animation-delay:300ms]"></span>
-            <span class="text-xs text-[#5E7694] ml-1.5 font-medium">CEO orchestrating...</span>
-          </div>
-        </div>
-      {/if}
-    </div>
+        {/if}
+      </div>
 
-    <!-- ====================================================================== -->
-    <!-- Chat Input Bar & Popovers -->
-    <!-- ====================================================================== -->
-    <div class="relative p-3 sm:p-4 border-t border-[#E3ECF7] bg-white/95 shrink-0">
-      <!-- 1. Plus (+) Quick Actions Popover -->
-      {#if isPlusMenuOpen}
-        <div
-          class="absolute bottom-full left-4 mb-2 w-72 bg-white/95 backdrop-blur-xl border border-[#CFE2FA] rounded-2xl shadow-2xl p-2 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150"
-        >
-          <div class="flex items-center justify-between px-2.5 py-1.5 border-b border-[#F1F5F9] text-xs font-bold text-[#102A56]">
-            <span>Quick CEO Tools & Presets</span>
+      <!-- ====================================================================== -->
+      <!-- Chat Input Bar & Popovers (Clean, Margin-Corrected, Zero Footer Hints) -->
+      <!-- ====================================================================== -->
+      <div class="relative p-3 sm:p-4 border-t border-[#E3ECF7] bg-white/95 shrink-0">
+        <!-- Hidden File & Camera Inputs -->
+        <input
+          bind:this={fileInputRef}
+          type="file"
+          accept="image/*"
+          class="hidden"
+          onchange={handleImagePicked}
+        />
+        <input
+          bind:this={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          class="hidden"
+          onchange={handleImagePicked}
+        />
+
+        <!-- Attached Image Preview Chip -->
+        {#if attachedImage}
+          <div class="mb-2.5 flex items-center gap-2 p-1.5 pr-2.5 bg-[#F3F8FF] border border-[#CFE2FA] rounded-xl w-fit shadow-2xs animate-in fade-in duration-150">
+            <img src={attachedImage.url} alt="Attached Preview" class="w-9 h-9 rounded-lg object-cover border border-[#CFE2FA]" />
+            <div class="min-w-0">
+              <span class="text-xs font-bold text-[#102A56] block max-w-[160px] truncate">{attachedImage.name}</span>
+              <span class="text-[9px] text-emerald-600 font-semibold">Ready to send</span>
+            </div>
             <button
               type="button"
-              onclick={() => (isPlusMenuOpen = false)}
-              class="text-[#5E7694] hover:text-[#102A56] cursor-pointer"
+              onclick={() => (attachedImage = null)}
+              class="text-[#5E7694] hover:text-rose-600 ml-1 p-1 rounded-md cursor-pointer transition-colors"
+              title="Remove image"
             >
               <Icon name="X" size={14} />
             </button>
           </div>
+        {/if}
 
-          <div class="py-1 space-y-0.5 max-h-60 overflow-y-auto">
-            {#each quickActions as action}
+        <!-- 1. Plus (+) Attachment Menu Popover -->
+        {#if isPlusMenuOpen}
+          <div
+            class="absolute bottom-full left-3 sm:left-4 mb-2 w-64 bg-white/98 backdrop-blur-xl border border-[#CFE2FA] rounded-2xl shadow-2xl p-2 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150"
+          >
+            <div class="flex items-center justify-between px-2.5 py-1.5 border-b border-[#F1F5F9] text-xs font-bold text-[#102A56]">
+              <span>Attach Media</span>
               <button
                 type="button"
-                onclick={() => handleSelectQuickAction(action)}
+                onclick={() => (isPlusMenuOpen = false)}
+                class="text-[#5E7694] hover:text-[#102A56] cursor-pointer"
+              >
+                <Icon name="X" size={14} />
+              </button>
+            </div>
+
+            <div class="py-1 space-y-1">
+              <button
+                type="button"
+                onclick={() => {
+                  cameraInputRef?.click();
+                  isPlusMenuOpen = false;
+                }}
                 class="w-full px-2.5 py-2 rounded-xl hover:bg-[#F3F8FF] text-left transition-colors flex items-center gap-2.5 cursor-pointer group"
               >
-                <div class="w-7 h-7 rounded-lg bg-[#F3F8FF] group-hover:bg-white border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0">
-                  <Icon name={action.icon} size={14} />
+                <div class="w-8 h-8 rounded-lg bg-[#F3F8FF] group-hover:bg-white border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0">
+                  <Icon name="Camera" size={16} />
                 </div>
-                <div class="min-w-0 flex-1">
-                  <p class="text-xs font-bold text-[#102A56] group-hover:text-[#1677FF] truncate">
-                    {action.label}
-                  </p>
-                  <span class="text-[10px] text-[#5E7694]">{action.tag}</span>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-[#102A56] group-hover:text-[#1677FF]">Take Photo</p>
+                  <span class="text-[10px] text-[#5E7694]">Open device camera</span>
                 </div>
+              </button>
+
+              <button
+                type="button"
+                onclick={() => {
+                  fileInputRef?.click();
+                  isPlusMenuOpen = false;
+                }}
+                class="w-full px-2.5 py-2 rounded-xl hover:bg-[#F3F8FF] text-left transition-colors flex items-center gap-2.5 cursor-pointer group"
+              >
+                <div class="w-8 h-8 rounded-lg bg-[#F3F8FF] group-hover:bg-white border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0">
+                  <Icon name="Image" size={16} />
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-[#102A56] group-hover:text-[#1677FF]">Upload Image</p>
+                  <span class="text-[10px] text-[#5E7694]">Choose from gallery or files</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        {/if}
+
+        <!-- 2. Slash Command (/) Autocomplete Popover (Lists 75 AI Helpers) -->
+        {#if isSlashOpen && filteredTools.length > 0}
+          <div
+            class="absolute bottom-full left-3 right-3 sm:left-4 sm:right-4 mb-2 max-h-64 bg-white/95 backdrop-blur-xl border border-[#CFE2FA] rounded-2xl shadow-2xl overflow-y-auto z-30 divide-y divide-[#F1F5F9]"
+          >
+            <div class="p-2.5 bg-[#F3F8FF] border-b border-[#CFE2FA] flex items-center justify-between text-xs font-bold text-[#102A56] sticky top-0 z-10">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[#1677FF]">⚡</span>
+                <span>Select Specialist Helper ({filteredTools.length} found)</span>
+              </div>
+              <span class="text-[10px] text-[#5E7694]">↑↓ to navigate • Enter to select</span>
+            </div>
+
+            {#each filteredTools as tool, idx}
+              <button
+                type="button"
+                onclick={() => selectHelper(tool)}
+                class="w-full px-3 py-2 text-left flex items-center justify-between gap-2 cursor-pointer transition-colors {idx ===
+                selectedSlashIndex
+                  ? 'bg-[#1677FF]/10 text-[#1677FF]'
+                  : 'hover:bg-[#F8FAFC] text-[#102A56]'}"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="px-1.5 py-0.5 rounded-md bg-[#1677FF]/10 text-[#1677FF] font-mono font-bold text-[11px] shrink-0">
+                    {tool.code}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="text-xs font-bold truncate">{tool.name}</p>
+                    <p class="text-[10px] text-[#5E7694] truncate">{tool.agentName} • {tool.categoryName}</p>
+                  </div>
+                </div>
+
+                {#if tool.badge}
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F3F8FF] border border-[#CFE2FA] text-[#1677FF] shrink-0">
+                    {tool.badge}
+                  </span>
+                {/if}
               </button>
             {/each}
           </div>
+        {/if}
 
-          <div class="pt-1 border-t border-[#F1F5F9] flex items-center justify-between px-2">
-            <button
-              type="button"
-              onclick={() => {
-                clearChatHistory();
-                isPlusMenuOpen = false;
-              }}
-              class="text-[11px] text-rose-600 hover:text-rose-700 font-semibold py-1 flex items-center gap-1 cursor-pointer"
-            >
-              <Icon name="RotateCcw" size={12} />
-              <span>Reset Chat History</span>
-            </button>
-          </div>
-        </div>
-      {/if}
-
-      <!-- 2. Slash Command (/) Autocomplete Popover (Lists 75 AI Helpers) -->
-      {#if isSlashOpen && filteredTools.length > 0}
-        <div
-          class="absolute bottom-full left-3 right-3 sm:left-4 sm:right-4 mb-2 max-h-64 bg-white/95 backdrop-blur-xl border border-[#CFE2FA] rounded-2xl shadow-2xl overflow-y-auto z-30 divide-y divide-[#F1F5F9]"
-        >
-          <div class="p-2.5 bg-[#F3F8FF] border-b border-[#CFE2FA] flex items-center justify-between text-xs font-bold text-[#102A56] sticky top-0 z-10">
-            <div class="flex items-center gap-1.5">
-              <span class="text-[#1677FF]">⚡</span>
-              <span>Select Specialist Helper ({filteredTools.length} found)</span>
-            </div>
-            <span class="text-[10px] text-[#5E7694]">↑↓ to navigate • Enter to select</span>
-          </div>
-
-          {#each filteredTools as tool, idx}
-            <button
-              type="button"
-              onclick={() => selectHelper(tool)}
-              class="w-full px-3 py-2 text-left flex items-center justify-between gap-2 cursor-pointer transition-colors {idx ===
-              selectedSlashIndex
-                ? 'bg-[#1677FF]/10 text-[#1677FF]'
-                : 'hover:bg-[#F8FAFC] text-[#102A56]'}"
-            >
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="px-1.5 py-0.5 rounded-md bg-[#1677FF]/10 text-[#1677FF] font-mono font-bold text-[11px] shrink-0">
-                  {tool.code}
-                </span>
-                <div class="min-w-0">
-                  <p class="text-xs font-bold truncate">{tool.name}</p>
-                  <p class="text-[10px] text-[#5E7694] truncate">{tool.agentName} • {tool.categoryName}</p>
-                </div>
-              </div>
-
-              {#if tool.badge}
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F3F8FF] border border-[#CFE2FA] text-[#1677FF] shrink-0">
-                  {tool.badge}
-                </span>
-              {/if}
-            </button>
-          {/each}
-        </div>
-      {/if}
-
-      <!-- Main Input Bar Form -->
-      <form
-        onsubmit={(e) => {
-          e.preventDefault();
-          handleSend();
-        }}
-        class="flex items-end gap-2"
-      >
-        <!-- Sleek '+' Plus Action Button (Replaces old image icon) -->
-        <button
-          type="button"
-          onclick={() => {
-            isPlusMenuOpen = !isPlusMenuOpen;
-            if (isPlusMenuOpen) isSlashOpen = false;
+        <!-- Main Input Bar Form -->
+        <form
+          onsubmit={(e) => {
+            e.preventDefault();
+            handleSend();
           }}
-          class="w-10 h-10 rounded-xl bg-[#F3F8FF] hover:bg-[#E4F0FF] border border-[#CFE2FA] text-[#1677FF] transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95"
-          title="Quick CEO Actions & Tools (+)"
-          aria-label="Quick Actions"
+          class="flex items-end gap-2"
         >
-          <Icon name="Plus" size={20} />
-        </button>
+          <!-- Sleek '+' Plus Action Button (Opens Photo/Camera menu) -->
+          <button
+            type="button"
+            onclick={() => {
+              isPlusMenuOpen = !isPlusMenuOpen;
+              if (isPlusMenuOpen) isSlashOpen = false;
+            }}
+            class="w-10 h-10 rounded-xl bg-[#F3F8FF] hover:bg-[#E4F0FF] border border-[#CFE2FA] text-[#1677FF] transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95"
+            title="Attach Photo or Image (+)"
+            aria-label="Attach Photo or Image"
+          >
+            <Icon name="Plus" size={20} />
+          </button>
 
-        <!-- Prompt Textarea -->
-        <div class="flex-1 relative min-w-0">
-          <textarea
-            bind:this={textareaRef}
-            bind:value={inputMessage}
-            oninput={handleInput}
-            onkeydown={handleKeyDown}
-            rows="1"
-            placeholder="Ask CEO anything, or type / to invoke any of 75 AI Helpers..."
-            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CFE2FA] text-xs sm:text-sm text-[#102A56] placeholder-[#889DB5] focus:outline-none focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 bg-[#F8FAFC] resize-none max-h-32 leading-relaxed"
-          ></textarea>
-        </div>
+          <!-- Prompt Textarea -->
+          <div class="flex-1 relative min-w-0">
+            <textarea
+              bind:this={textareaRef}
+              bind:value={inputMessage}
+              oninput={handleInput}
+              onkeydown={handleKeyDown}
+              rows="1"
+              placeholder="Ask CEO anything, or type / to invoke any of 75 AI Helpers..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-[#CFE2FA] text-xs sm:text-sm text-[#102A56] placeholder-[#889DB5] focus:outline-none focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 bg-[#F8FAFC] resize-none max-h-32 leading-relaxed"
+            ></textarea>
+          </div>
 
-        <!-- Send Button -->
-        <button
-          type="submit"
-          disabled={isSending || !inputMessage.trim()}
-          class="w-10 h-10 rounded-xl blue-btn text-white font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
-          title="Send message (Enter)"
-          aria-label="Send message to AI CEO"
-        >
-          {#if isSending}
-            <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          {:else}
-            <Icon name="ArrowRight" size={18} />
-          {/if}
-        </button>
-      </form>
-
-      <!-- Subtitle hint under input -->
-      <div class="flex items-center justify-between mt-2 text-[10px] text-[#5E7694] px-1 flex-wrap gap-1">
-        <span>
-          Press <strong>Enter</strong> to send • Type <strong>/</strong> for 75 Helpers
-        </span>
-        <button
-          type="button"
-          onclick={openChannelsModal}
-          class="text-[#1677FF] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-        >
-          <span>WhatsApp & Telegram Synced</span>
-        </button>
+          <!-- Send Button -->
+          <button
+            type="submit"
+            disabled={isSending || (!inputMessage.trim() && !attachedImage)}
+            class="w-10 h-10 rounded-xl blue-btn text-white font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
+            title="Send message (Enter)"
+            aria-label="Send message to AI CEO"
+          >
+            {#if isSending}
+              <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            {:else}
+              <Icon name="ArrowRight" size={18} />
+            {/if}
+          </button>
+        </form>
       </div>
     </div>
   </div>

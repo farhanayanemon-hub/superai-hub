@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
-  import DashboardChat from '$lib/components/DashboardChat.svelte';
   import FloatingCeoChat from '$lib/components/FloatingCeoChat.svelte';
   import ChannelModal from '$lib/components/ChannelModal.svelte';
   import ToolCard from '$lib/components/ToolCard.svelte';
@@ -399,22 +398,7 @@
 
         <!-- Navigation Menu Items -->
         <nav class="p-3 space-y-1.5">
-          <!-- 1. AI CEO Executive Chat (Main Interface) -->
-          <button
-            type="button"
-            onclick={() => switchTab('chat')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'chat' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-          >
-            <div class="flex items-center gap-3">
-              <Icon name="Crown" size={17} class={$activeDashboardTab === 'chat' ? 'text-white' : 'text-[#1677FF]'} />
-              <span>AI CEO Chat</span>
-            </div>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'chat' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
-              Master
-            </span>
-          </button>
-
-          <!-- 2. AI Helpers -->
+          <!-- 1. AI Helpers -->
           <button
             type="button"
             onclick={() => switchTab('agents')}
@@ -561,17 +545,9 @@
     <!-- Tab View Router -->
     <div class="flex-1 overflow-hidden p-3 sm:p-5">
       <!-- ==================================================== -->
-      <!-- TAB 1: AI ASSISTANT CHAT (MAIN INTERFACE) -->
+      <!-- TAB 1: 75 AI HELPERS STUDIO + UNLOCKED STORE BOTS -->
       <!-- ==================================================== -->
-      {#if $activeDashboardTab === 'chat'}
-        <div class="h-full">
-          <DashboardChat />
-        </div>
-
-      <!-- ==================================================== -->
-      <!-- TAB 2: 75 AI HELPERS STUDIO + UNLOCKED STORE BOTS -->
-      <!-- ==================================================== -->
-      {:else if $activeDashboardTab === 'agents' || $activeDashboardTab === 'tools'}
+      {#if $activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' || $activeDashboardTab === 'chat'}
         <div class="h-full flex flex-col space-y-4 overflow-y-auto pr-1">
           <!-- Master AI CEO Banner + Search -->
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 ui-banner-navy text-white p-4 sm:p-6 rounded-3xl">
