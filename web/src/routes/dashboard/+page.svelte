@@ -456,9 +456,6 @@
               <Icon name="CreditCard" size={17} class={$activeDashboardTab === 'billing' ? 'text-white' : 'text-[#1677FF]'} />
               <span>Billing & Plans</span>
             </div>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {$activeDashboardTab === 'billing' ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]'}">
-              Realtime
-            </span>
           </button>
 
           <!-- 5. Settings & Profile -->

@@ -50,16 +50,6 @@
       badge: 'Free Tier Available'
     },
     {
-      id: 'openrouter',
-      name: 'OpenRouter',
-      description: 'Unified AI gateway with 200+ models. Includes free zero-cost models and paid flagships.',
-      placeholder: 'sk-or-v1-...',
-      defaultModel: 'meta-llama/llama-3.3-70b-instruct:free',
-      docsUrl: 'https://openrouter.ai/keys',
-      icon: 'Cpu',
-      badge: 'Free & Top-Up'
-    },
-    {
       id: 'openai',
       name: 'OpenAI',
       description: 'GPT-4o, GPT-4o-mini, and OpenAI reasoning models.',
@@ -94,6 +84,16 @@
       defaultModel: 'black-forest-labs/flux-schnell',
       docsUrl: 'https://replicate.com/account/api-tokens',
       icon: 'Image'
+    },
+    {
+      id: 'openrouter',
+      name: 'OpenRouter',
+      description: 'Unified AI gateway with 200+ models. Includes free zero-cost models and paid flagships.',
+      placeholder: 'sk-or-v1-...',
+      defaultModel: 'meta-llama/llama-3.3-70b-instruct:free',
+      docsUrl: 'https://openrouter.ai/keys',
+      icon: 'Cpu',
+      badge: 'Free & Top-Up'
     }
   ];
 
