@@ -357,7 +357,7 @@
   <meta name="description" content="EzboAgents Executive Console - Master AI CEO Orchestrator, 75 Business & Freelancer AI Helpers, WhatsApp & Telegram Sync, and Multi-Provider AI Vault." />
 </svelte:head>
 
-<div class="h-screen w-screen bg-[#F3F8FF] text-[#102A56] flex overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
+<div class="h-screen w-full max-w-full bg-[#F3F8FF] text-[#102A56] flex overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
   <!-- ======================================================== -->
   <!-- 1. RESPONSIVE LEFT SIDEBAR -->
   <!-- ======================================================== -->

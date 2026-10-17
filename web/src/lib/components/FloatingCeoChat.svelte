@@ -1090,8 +1090,8 @@
                     {tool.code}
                   </span>
                   <div class="min-w-0">
-                    <p class="text-xs font-bold truncate">{tool.name}</p>
-                    <p class="text-[10px] text-[#5E7694] truncate">{tool.agentName} • {tool.categoryName}</p>
+                    <p class="text-xs font-bold break-words">{tool.name}</p>
+                    <p class="text-[10px] text-[#5E7694] break-words">{tool.agentName} • {tool.categoryName}</p>
                   </div>
                 </div>
 

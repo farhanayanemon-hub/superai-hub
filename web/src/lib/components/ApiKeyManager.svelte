@@ -571,7 +571,7 @@
                           <span class="w-2 h-2 rounded-full shrink-0 {isKeyEnabled ? 'bg-emerald-500' : 'bg-gray-300'}"></span>
                           <div class="min-w-0">
                             <div class="flex items-center gap-1.5 flex-wrap">
-                              <span class="text-xs font-bold text-[#102A56] truncate">{k.label || `${p.name} Key #${kIdx + 1}`}</span>
+                              <span class="text-xs font-bold text-[#102A56] break-words">{k.label || `${p.name} Key #${kIdx + 1}`}</span>
                               {#if kIdx === 0 && providerKeys.length > 1}
                                 <span class="px-1.5 py-0.2 rounded text-[8px] font-extrabold uppercase bg-blue-50 text-[#1677FF] border border-[#CFE2FA]">
                                   Primary
@@ -705,14 +705,16 @@
                         {#each $openrouterSelectedModels as modelId, idx (modelId)}
                           {@const isFree = isModelFree(modelId)}
                           {@const name = getModelDisplayName(modelId)}
-                          <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold shadow-2xs transition-all {idx === 0 ? 'bg-[#1677FF]/10 border-[#1677FF]/40 text-[#102A56]' : 'bg-white border-[#CFE2FA] text-[#243B53]'}">
-                            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase {idx === 0 ? 'bg-[#1677FF] text-white' : 'bg-gray-100 text-[#5E7694]'}">
+                          <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold shadow-2xs transition-all max-w-full flex-wrap sm:flex-nowrap {idx === 0 ? 'bg-[#1677FF]/10 border-[#1677FF]/40 text-[#102A56]' : 'bg-white border-[#CFE2FA] text-[#243B53]'}">
+                            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase shrink-0 {idx === 0 ? 'bg-[#1677FF] text-white' : 'bg-gray-100 text-[#5E7694]'}">
                               {idx === 0 ? '#1 Primary' : `#${idx + 1} Fallback`}
                             </span>
-                            <BrandIcon {modelId} size={14} />
-                            <span class="max-w-[140px] sm:max-w-[200px] truncate" title={modelId}>{name}</span>
+                            <div class="shrink-0 flex items-center">
+                              <BrandIcon {modelId} size={14} />
+                            </div>
+                            <span class="break-words font-medium text-[11px] sm:text-xs min-w-0" title={modelId}>{name}</span>
                             {#if isFree}
-                              <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white shadow-2xs">
+                              <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase bg-emerald-500 text-white shadow-2xs shrink-0">
                                 FREE
                               </span>
                             {/if}
@@ -805,32 +807,32 @@
                           {@const isSelected = $openrouterSelectedModels.includes(m.id)}
                           {@const selectIndex = $openrouterSelectedModels.indexOf(m.id)}
 
-                          <div class="p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2.5 {isSelected ? 'bg-[#1677FF]/5 border-[#1677FF]/40' : m.isFree ? 'bg-emerald-50/20 border-emerald-100 hover:border-emerald-300' : 'bg-white border-[#F1F5F9] hover:border-[#CFE2FA]'}">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                              <div class="w-7 h-7 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shrink-0 shadow-2xs">
+                          <div class="p-2.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 {isSelected ? 'bg-[#1677FF]/5 border-[#1677FF]/40' : m.isFree ? 'bg-emerald-50/20 border-emerald-100 hover:border-emerald-300' : 'bg-white border-[#F1F5F9] hover:border-[#CFE2FA]'}">
+                            <div class="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+                              <div class="w-7 h-7 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center shrink-0 shadow-2xs mt-0.5 sm:mt-0">
                                 <BrandIcon modelId={m.id} size={15} />
                               </div>
-                              <div class="min-w-0">
+                              <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                  <span class="text-xs font-bold text-[#102A56] truncate">{m.name}</span>
+                                  <span class="text-xs font-bold text-[#102A56] break-words whitespace-normal">{m.name}</span>
                                   {#if m.isFree}
-                                    <span class="px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase bg-emerald-500 text-white shadow-2xs">
+                                    <span class="px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase bg-emerald-500 text-white shadow-2xs shrink-0">
                                       FREE
                                     </span>
                                   {:else}
-                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA]">
+                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-[#F3F8FF] text-[#1677FF] border border-[#CFE2FA] shrink-0">
                                       {m.promptPrice}
                                     </span>
                                   {/if}
                                 </div>
-                                <div class="text-[10px] text-[#5E7694] font-mono truncate">{m.id}</div>
+                                <div class="text-[10px] text-[#5E7694] font-mono break-all mt-0.5">{m.id}</div>
                               </div>
                             </div>
 
                             <button
                               type="button"
                               onclick={() => toggleModelInChain(m.id)}
-                              class="px-3 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer shrink-0 {isSelected ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs' : 'bg-[#F3F8FF] hover:bg-[#E4F0FF] text-[#1677FF] border border-[#CFE2FA]'}"
+                              class="w-full sm:w-auto px-3.5 py-2 sm:py-1 rounded-lg text-xs sm:text-[10px] font-bold transition-all cursor-pointer shrink-0 text-center justify-center flex items-center {isSelected ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs' : 'bg-[#F3F8FF] hover:bg-[#E4F0FF] text-[#1677FF] border border-[#CFE2FA]'}"
                             >
                               {isSelected ? `✓ In Chain (#${selectIndex + 1})` : '+ Add to Chain'}
                             </button>

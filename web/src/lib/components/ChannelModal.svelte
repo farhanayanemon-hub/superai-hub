@@ -219,7 +219,7 @@
   >
     <!-- Modal Container -->
     <div
-      class="w-full max-w-2xl bg-white/95 backdrop-blur-2xl border border-[#CFE2FA] rounded-3xl shadow-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto flex flex-col transition-all duration-200"
+      class="w-full max-w-2xl bg-white/95 backdrop-blur-2xl border border-[#CFE2FA] rounded-3xl shadow-2xl p-4 sm:p-8 relative max-h-[90vh] overflow-y-auto flex flex-col transition-all duration-200"
     >
       <!-- Close Button -->
       <button
@@ -459,7 +459,7 @@
                   <label for="wa-phone-input" class="block text-xs font-bold text-[#102A56]">
                     Phone Number (with Country Code)
                   </label>
-                  <div class="flex gap-2">
+                  <div class="flex flex-col sm:flex-row gap-2">
                     <div class="relative flex-1">
                       <input
                         id="wa-phone-input"
@@ -473,7 +473,7 @@
                       type="button"
                       onclick={handleRequestPairingCode}
                       disabled={isRequestingPairing || !phoneNumber.trim()}
-                      class="px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0 flex items-center gap-1.5"
+                      class="w-full sm:w-auto px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0 flex items-center justify-center gap-1.5"
                     >
                       {#if isRequestingPairing}
                         <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -498,24 +498,24 @@
 
                 {#if pairingCode}
                   <!-- Formatted 8-digit Crockford Code Blocks -->
-                  <div class="p-5 rounded-2xl bg-linear-to-b from-[#F3F8FF] to-white border border-[#CFE2FA] text-center space-y-3">
+                  <div class="p-4 sm:p-5 rounded-2xl bg-linear-to-b from-[#F3F8FF] to-white border border-[#CFE2FA] text-center space-y-3">
                     <p class="text-xs font-bold text-[#5E7694] uppercase tracking-wider">
                       Your 8-Digit Pairing Code
                     </p>
 
-                    <div class="flex items-center justify-center gap-3">
+                    <div class="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap">
                       {#each formattedCodeParts as part, idx}
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-0.5 sm:gap-1">
                           {#each part.split('') as char}
                             <span
-                              class="w-9 h-11 sm:w-11 sm:h-13 rounded-xl bg-white border-2 border-[#1677FF]/40 text-[#102A56] font-mono font-black text-lg sm:text-2xl flex items-center justify-center shadow-xs select-all"
+                              class="w-7 h-9 min-[380px]:w-8 min-[380px]:h-10 sm:w-11 sm:h-13 rounded-lg sm:rounded-xl bg-white border-2 border-[#1677FF]/40 text-[#102A56] font-mono font-black text-sm min-[380px]:text-base sm:text-2xl flex items-center justify-center shadow-xs select-all"
                             >
                               {char}
                             </span>
                           {/each}
                         </div>
                         {#if idx < formattedCodeParts.length - 1}
-                          <span class="text-2xl font-bold text-[#5E7694]">-</span>
+                          <span class="text-base sm:text-2xl font-bold text-[#5E7694]">-</span>
                         {/if}
                       {/each}
                     </div>
