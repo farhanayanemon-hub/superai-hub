@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
-  import RobotAvatar from '$lib/components/RobotAvatar.svelte';
+  import BrandIcon from '$lib/components/BrandIcon.svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import PaymentMethods from '$lib/components/PaymentMethods.svelte';
@@ -62,6 +62,18 @@
       a: 'Payments via bKash, Nagad, Rocket, Visa, and Mastercard are processed instantly with immediate account activation and 3-day grace period protection.'
     }
   ];
+
+  const integrationBadges = [
+    { id: 'whatsapp', name: 'WhatsApp Channel' },
+    { id: 'telegram', name: 'Telegram Bot' },
+    { id: 'gemini', name: 'Google Gemini' },
+    { id: 'openai', name: 'OpenAI GPT-4o' },
+    { id: 'claude', name: 'Anthropic Claude' },
+    { id: 'deepseek', name: 'DeepSeek AI' },
+    { id: 'grok', name: 'xAI Grok' },
+    { id: 'openrouter', name: 'OpenRouter Multi-Model' },
+    { id: 'replicate', name: 'Replicate Flux' }
+  ];
 </script>
 
 <svelte:head>
@@ -73,12 +85,12 @@
 </svelte:head>
 
 <div
-  class="min-h-screen bg-[#F3F8FF] text-[#102A56] flex flex-col font-sans selection:bg-[#1677FF] selection:text-white"
+  class="min-h-screen bg-white text-gray-900 flex flex-col font-sans selection:bg-[#4F46E5] selection:text-white"
 >
   <!-- Global Scroll Progress Bar -->
   <div class="fixed top-0 left-0 right-0 h-[3px] bg-transparent z-50 pointer-events-none">
     <div
-      class="h-full bg-gradient-to-r from-[#1677FF] via-[#38CFFF] to-[#1677FF] transition-all duration-75 ease-out shadow-[0_0_8px_rgba(56,207,255,0.7)]"
+      class="h-full bg-gradient-to-r from-[#4F46E5] via-[#6366F1] to-[#4F46E5] transition-all duration-75 ease-out shadow-[0_0_8px_rgba(79,70,229,0.5)]"
       style="width: {scrollProgress}%;"
     ></div>
   </div>
@@ -87,33 +99,31 @@
 
   <main class="flex-1">
     <!-- ======================================================== -->
-    <!-- 1. HERO SECTION -->
+    <!-- 1. HERO SECTION (Relevance AI Authority Aesthetic) -->
     <!-- ======================================================== -->
-    <section
-      class="relative pt-20 pb-16 sm:pt-28 sm:pb-24 overflow-hidden bg-gradient-to-b from-white via-[#F3F8FF]/60 to-[#F3F8FF] border-b border-[#E3ECF7]"
-    >
+    <section class="relative pt-20 pb-16 sm:pt-28 sm:pb-24 overflow-hidden bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center space-y-6 max-w-4xl mx-auto">
-          <!-- Main Title -->
+          <!-- Main Title (Solid Charcoal #111827 / text-gray-900, Zero Gradient Spans) -->
           <h1
-            class="text-3xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#102A56] leading-[1.15] sm:leading-[1.12] break-words"
+            class="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 leading-[1.15] max-w-4xl mx-auto break-words"
           >
-            1 Master <span class="blue-gradient-text font-serif italic">AI CEO</span> Controlling
+            1 Master AI CEO Controlling
             <br class="hidden sm:inline" />
             75+ Business & Freelancer Helpers.
           </h1>
 
           <!-- Subtitle -->
-          <p class="text-base sm:text-lg text-[#4B6382] max-w-2xl mx-auto leading-relaxed">
-            Every helper features its own custom options and interactive Studio chat — or skip individual chats altogether and command the <strong class="text-[#102A56]">Master AI CEO</strong> directly from Web, <strong class="text-[#102A56]">WhatsApp</strong>, or <strong class="text-[#102A56]">Telegram</strong> to orchestrate all 75+ helpers for you.
+          <p class="text-base sm:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed mt-5">
+            Every helper features its own custom options and interactive Studio chat — or skip individual chats altogether and command the <strong class="font-semibold text-gray-900">Master AI CEO</strong> directly from Web, <strong class="font-semibold text-gray-900">WhatsApp</strong>, or <strong class="font-semibold text-gray-900">Telegram</strong> to orchestrate all 75+ helpers for you.
           </p>
 
-          <!-- Primary CTAs -->
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          <!-- Centered Dual Button Group -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3">
             {#if $isAuthenticated}
               <a
                 href={$currentUser?.isSubscribed ? '/dashboard' : '/plans'}
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 cursor-pointer"
+                class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>
                   {$currentUser?.isSubscribed
@@ -125,63 +135,39 @@
             {:else}
               <a
                 href="/signup"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm blue-btn text-white flex items-center justify-center gap-2 transition-all cursor-pointer"
+                class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Unlock AI CEO + 75+ Helpers</span>
                 <Icon name="ArrowRight" size={16} />
               </a>
               <a
                 href="#helpers"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm btn-secondary flex items-center justify-center gap-2"
+                class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-semibold text-sm shadow-2xs transition-all flex items-center justify-center gap-2"
               >
                 <span>Explore All 75+ AI Helpers</span>
               </a>
             {/if}
           </div>
 
-          <!-- Trust Badges -->
-          <div class="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
-            <div
-              class="p-4 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/40 transition-all flex items-start gap-3"
-            >
-              <div
-                class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#071324] via-[#0E203B] to-[#040A14] border border-[#38CFFF]/40 flex items-center justify-center shrink-0 p-0.5 shadow-xs"
-              >
-                <RobotAvatar helperId="ceo" size="custom" class="w-full h-full" ariaHidden={true} />
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 text-[#102A56] font-bold text-xs sm:text-sm">
-                  <span>1 Master AI CEO Orchestrator</span>
+          <!-- Ambient Mesh Integration Showcase Pod -->
+          <div
+            class="bg-gradient-to-r from-purple-100/40 via-indigo-50/50 to-blue-100/40 border border-indigo-100/60 rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto shadow-xs mt-12 text-center"
+          >
+            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+              {#each integrationBadges as badge}
+                <div
+                  class="w-11 h-11 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center p-2 mx-auto hover:scale-105 transition-transform"
+                  title={badge.name}
+                >
+                  <BrandIcon name={badge.id} size={20} />
                 </div>
-                <p class="text-[11px] text-[#4B6382] mt-0.5 leading-relaxed">
-                  Command and control all 75+ specialized helpers from a single chat
-                </p>
-              </div>
+              {/each}
             </div>
 
-            <div
-              class="p-4 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/40 transition-all"
-            >
-              <div class="flex items-center gap-2 text-[#102A56] font-bold text-xs sm:text-sm">
-                <Icon name="MessageSquare" size={16} class="text-[#1677FF] shrink-0" />
-                <span>WhatsApp & Telegram Control</span>
-              </div>
-              <p class="text-[11px] text-[#4B6382] mt-1 leading-relaxed">
-                Instruct the AI CEO and all 75 helpers directly via WhatsApp & Telegram
-              </p>
-            </div>
-
-            <div
-              class="p-4 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/40 transition-all"
-            >
-              <div class="flex items-center gap-2 text-[#102A56] font-bold text-xs sm:text-sm">
-                <Icon name="Sparkles" size={16} class="text-[#1677FF] shrink-0" />
-                <span>Regular New Bots in 1 Plan</span>
-              </div>
-              <p class="text-[11px] text-[#4B6382] mt-1 leading-relaxed">
-                New AI helpers added regularly — unlocked automatically in one subscription
-              </p>
-            </div>
+            <!-- Micro-caption -->
+            <p class="text-xs sm:text-sm font-medium text-gray-500 mt-4 tracking-wide">
+              75+ AI Specialists & 2,000+ Workflows orchestrated via WhatsApp, Telegram & Web
+            </p>
           </div>
         </div>
       </div>
@@ -190,7 +176,7 @@
     <!-- ======================================================== -->
     <!-- 2. MASTER AI CEO + 75+ TRANSPARENT ANIMATED HELPERS SHOWCASE -->
     <!-- ======================================================== -->
-    <section id="helpers" class="scroll-mt-16 py-10 sm:py-16 relative overflow-hidden bg-[#F3F8FF]">
+    <section id="helpers" class="scroll-mt-16 py-12 sm:py-20 relative overflow-hidden bg-white border-t border-gray-100">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <RobotShowcase signupUrl="/signup" />
       </div>
@@ -199,52 +185,52 @@
     <!-- ======================================================== -->
     <!-- 3. WHATSAPP & TELEGRAM ENGINE ARCHITECTURE -->
     <!-- ======================================================== -->
-    <section id="features" class="py-16 sm:py-24 bg-white border-t border-[#E3ECF7] relative">
+    <section id="features" class="py-16 sm:py-24 bg-white border-t border-gray-100 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#102A56] tracking-tight">
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
             Control Your AI CEO & 75+ Helpers via WhatsApp & Telegram
           </h2>
-          <p class="text-sm sm:text-base text-[#4B6382]">
+          <p class="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
             Alongside the Web Console, you can command the Master AI CEO and all 75 AI Helpers directly from your personal WhatsApp and Telegram.
           </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="glass-card rounded-2xl p-6 space-y-4">
+          <div class="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-2xs hover:shadow-sm hover:border-gray-300 transition-all space-y-4">
             <div
-              class="w-12 h-12 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-mono font-bold text-lg"
+              class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 font-mono font-semibold text-sm"
             >
               01
             </div>
-            <h3 class="text-lg font-bold text-[#102A56]">Link WhatsApp or Telegram</h3>
-            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Link WhatsApp or Telegram</h3>
+            <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
               Connect your WhatsApp QR or Telegram account in under 10 seconds from the Channels tab in your dashboard.
             </p>
           </div>
 
-          <div class="glass-card rounded-2xl p-6 space-y-4">
+          <div class="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-2xs hover:shadow-sm hover:border-gray-300 transition-all space-y-4">
             <div
-              class="w-12 h-12 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-mono font-bold text-lg"
+              class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 font-mono font-semibold text-sm"
             >
               02
             </div>
-            <h3 class="text-lg font-bold text-[#102A56]">Instruct AI CEO or #01–#75</h3>
-            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Instruct AI CEO or #01–#75</h3>
+            <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
               Describe any task in plain language and the Master AI CEO will automatically route it to the right helper, or type <code
-                class="text-[#1677FF] font-mono font-bold">#01</code
-              > through <code class="text-[#1677FF] font-mono font-bold">#75</code> to target a specific helper.
+                class="text-[#4F46E5] font-mono font-medium bg-indigo-50/60 px-1.5 py-0.5 rounded border border-indigo-100">#01</code
+              > through <code class="text-[#4F46E5] font-mono font-medium bg-indigo-50/60 px-1.5 py-0.5 rounded border border-indigo-100">#75</code> to target a specific helper.
             </p>
           </div>
 
-          <div class="glass-card rounded-2xl p-6 space-y-4">
+          <div class="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-2xs hover:shadow-sm hover:border-gray-300 transition-all space-y-4">
             <div
-              class="w-12 h-12 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] font-mono font-bold text-lg"
+              class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 font-mono font-semibold text-sm"
             >
               03
             </div>
-            <h3 class="text-lg font-bold text-[#102A56]">Instant Executive Output</h3>
-            <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Instant Executive Output</h3>
+            <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
               Receive ready-to-use ad copies, proposals, humanized articles, graphics, and strategies directly in your chat within seconds.
             </p>
           </div>
@@ -253,26 +239,25 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 4. PRICING - 2 TIERS: BYOK vs ALL-INCLUSIVE MANAGED -->
+    <!-- 4. PRICING SECTION -->
     <!-- ======================================================== -->
-    <section id="pricing" class="py-24 relative bg-[#F3F8FF] border-y border-[#E3ECF7]">
+    <section id="pricing" class="py-20 sm:py-28 relative bg-white border-t border-gray-100">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12 space-y-4">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#102A56] tracking-tight">
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
             One Subscription. All 75+ Helpers + Future Bots Included.
           </h2>
-          <p class="text-sm sm:text-base text-[#4B6382]">
+          <p class="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
             Bring your own API keys (BYOK) or choose our 100% Managed Cloud — both plans unlock the Master AI CEO and all 75+ AI Helpers.
           </p>
-
         </div>
 
         <!-- 3-Tier Dynamic Pricing Grid -->
         <PricingCardsGrid context="landing" bind:selectedInterval={billingInterval} />
 
         <!-- Payment methods -->
-        <div class="mt-12 text-center text-xs text-[#4B6382] space-y-2">
-          <p>Instant Activation • 100% Secure Checkout • 3-Day Grace Period</p>
+        <div class="mt-12 text-center text-xs text-gray-500 space-y-2">
+          <p class="font-medium text-gray-500">Instant Activation • 100% Secure Checkout • 3-Day Grace Period</p>
           <PaymentMethods class="pt-2" />
         </div>
       </div>
@@ -281,13 +266,13 @@
     <!-- ======================================================== -->
     <!-- 5. FAQ SECTION -->
     <!-- ======================================================== -->
-    <section id="faq" class="py-24 bg-white relative">
+    <section id="faq" class="py-20 sm:py-28 bg-white border-t border-gray-100 relative">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 space-y-3">
-          <h2 class="text-2xl sm:text-4xl font-extrabold text-[#102A56]">
+          <h2 class="text-2xl sm:text-4xl font-bold text-gray-900 tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p class="text-xs sm:text-sm text-[#4B6382]">
+          <p class="text-xs sm:text-sm text-gray-500">
             Everything you need to know about the Master AI CEO, 75+ AI Helpers, and WhatsApp/Telegram control.
           </p>
         </div>
@@ -295,24 +280,24 @@
         <div class="space-y-3">
           {#each faqs as faq, i}
             <div
-              class="rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] hover:border-[#1677FF]/40 overflow-hidden transition-all"
+              class="rounded-2xl bg-white border border-gray-200/80 hover:border-gray-300 overflow-hidden shadow-2xs transition-all"
             >
               <button
                 onclick={() => (openFaq = openFaq === i ? null : i)}
-                class="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-bold text-[#102A56] hover:text-[#1677FF] transition-colors cursor-pointer"
+                class="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-semibold text-gray-900 hover:text-[#4F46E5] transition-colors cursor-pointer"
               >
                 <span>{faq.q}</span>
                 <Icon
                   name="ChevronRight"
                   size={16}
-                  class="text-[#1677FF] shrink-0 transform transition-transform {openFaq === i
-                    ? 'rotate-90'
+                  class="text-gray-400 shrink-0 transform transition-transform duration-200 {openFaq === i
+                    ? 'rotate-90 text-[#4F46E5]'
                     : ''}"
                 />
               </button>
               {#if openFaq === i}
                 <div
-                  class="px-6 pb-5 pt-2 text-xs sm:text-sm text-[#4B6382] leading-relaxed border-t border-[#E3ECF7] bg-white"
+                  class="px-6 pb-5 pt-2 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/30"
                 >
                   {faq.a}
                 </div>
@@ -331,15 +316,15 @@
     type="button"
     onclick={scrollToTop}
     aria-label="Scroll to top of page (Currently at {Math.round(scrollProgress)}%)"
-    class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md border border-[#CFE2FA] shadow-md hover:shadow-lg text-[#102A56] hover:text-[#1677FF] hover:border-[#1677FF]/60 flex items-center justify-center transition-all duration-300 group cursor-pointer {showScrollTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}"
+    class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md border border-gray-200 shadow-md hover:shadow-lg text-gray-700 hover:text-[#4F46E5] hover:border-[#4F46E5]/40 flex items-center justify-center transition-all duration-300 group cursor-pointer {showScrollTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}"
   >
-    <!-- Circular SVG Progress Ring around the button -->
+    <!-- Circular SVG Progress Ring -->
     <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-0.5" viewBox="0 0 44 44">
       <circle
         cx="22"
         cy="22"
         r="18"
-        stroke="#E3ECF7"
+        stroke="#F3F4F6"
         stroke-width="2.5"
         fill="transparent"
       />
@@ -347,7 +332,7 @@
         cx="22"
         cy="22"
         r="18"
-        stroke="#1677FF"
+        stroke="#4F46E5"
         stroke-width="2.5"
         stroke-linecap="round"
         fill="transparent"
@@ -360,7 +345,7 @@
     <!-- Upward Arrow Icon & Percentage Number -->
     <div class="relative flex flex-col items-center justify-center pointer-events-none -mt-0.5">
       <svg
-        class="w-4 h-4 text-[#1677FF] group-hover:-translate-y-1 transition-transform duration-200 stroke-[2.75]"
+        class="w-4 h-4 text-[#4F46E5] group-hover:-translate-y-1 transition-transform duration-200 stroke-[2.75]"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -370,7 +355,7 @@
         <path d="M12 19V5" />
         <path d="M5 12l7-7 7 7" />
       </svg>
-      <span class="text-[8.5px] font-mono font-extrabold leading-none text-[#5E7694] group-hover:text-[#1677FF] transition-colors">
+      <span class="text-[8.5px] font-mono font-bold leading-none text-gray-500 group-hover:text-[#4F46E5] transition-colors">
         {Math.round(scrollProgress)}%
       </span>
     </div>
