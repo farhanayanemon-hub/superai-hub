@@ -7,6 +7,8 @@
   import ApiVaultManager from '$lib/components/ApiVaultManager.svelte';
   import ApiKeyManager from '$lib/components/ApiKeyManager.svelte';
   import OwnedAgentsManager from '$lib/components/OwnedAgentsManager.svelte';
+  import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
+  import type { PlanTierId } from '$lib/config/plans';
   import { STORE_BOTS, STORE_CATEGORIES, type StoreBot } from '$lib/config/storeBots';
   import { initiateSubscriptionPayment, initiateBotPayment, verifyOpayTransaction } from '$lib/services/opay';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
@@ -117,12 +119,15 @@
   // OPay Payment state & handlers
   let isProcessingPayment = $state(false);
 
-  async function handlePayPlan(tier: PlanTier) {
+  async function handlePayPlan(tier: PlanTierId | PlanTier, interval?: 'monthly' | 'yearly') {
     isProcessingPayment = true;
     billingError = '';
     billingNotice = 'Connecting to OPayBD gateway...';
+    if (interval) {
+      dashboardBillingInterval = interval;
+    }
     try {
-      const res = await initiateSubscriptionPayment(tier, dashboardBillingInterval, $currentUser);
+      const res = await initiateSubscriptionPayment(tier as any, dashboardBillingInterval, $currentUser);
       if (res.success && res.paymentUrl) {
         window.location.href = res.paymentUrl;
         return;
@@ -1362,111 +1367,24 @@
           </div>
 
           <!-- ==================================================== -->
-          <!-- ALL AVAILABLE PLANS SHOWCASE & SWITCHER -->
+          <!-- ALL AVAILABLE PLANS SHOWCASE & SWITCHER (UNIFIED) -->
           <!-- ==================================================== -->
-          <div class="space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 class="text-lg font-bold text-[#102A56] flex items-center gap-2">
-                  <Icon name="Layers" size={20} class="text-[#1677FF]" />
-                  <span>Available Plans & Tiers</span>
-                </h3>
-                <p class="text-xs text-[#4B6382] mt-0.5">Switch between Bring-Your-Own-Key (Free) or fully managed AI with multi-API keys.</p>
-              </div>
-
-              <!-- Monthly / Yearly Toggle -->
-              <div class="flex items-center gap-3">
-                <span class="text-xs font-semibold {dashboardBillingInterval === 'monthly' ? 'text-[#102A56]' : 'text-[#4B6382]'}">Monthly</span>
-                <button
-                  onclick={() => dashboardBillingInterval = dashboardBillingInterval === 'monthly' ? 'yearly' : 'monthly'}
-                  aria-label="Toggle billing interval between monthly and yearly"
-                  class="relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer {dashboardBillingInterval === 'yearly' ? 'bg-[#1677FF]' : 'bg-[#C8D8EC]'}"
-                >
-                  <span class="absolute top-1 transition-all duration-300 w-4 h-4 rounded-full bg-white shadow-xs {dashboardBillingInterval === 'yearly' ? 'left-6' : 'left-1'}"></span>
-                </button>
-                <span class="text-xs font-semibold {dashboardBillingInterval === 'yearly' ? 'text-[#1677FF] font-bold' : 'text-[#4B6382]'}">Yearly</span>
-              </div>
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-bold text-[#102A56] flex items-center gap-2">
+                <Icon name="Layers" size={20} class="text-[#1677FF]" />
+                <span>Available Plans & Tiers</span>
+              </h3>
+              <p class="text-xs text-[#4B6382] mt-0.5">Switch between Bring-Your-Own-Key (BYOK Starter or Pro) or fully managed AI compute.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
-              <!-- Plan 1: BYOK Multi-Engine -->
-              <div class="p-6 rounded-3xl bg-white border {($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval ? 'border-[#1677FF] ring-2 ring-[#1677FF]/25' : 'border-[#E3ECF7]'} flex flex-col justify-between relative shadow-xs">
-                {#if ($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval}
-                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-[#1677FF] text-white font-bold text-[10px] uppercase tracking-wide shadow-2xs">
-                    Active Plan
-                  </div>
-                {/if}
-                <div class="space-y-3">
-                  <div>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#102A56] bg-[#F3F8FF] border border-[#E3ECF7]">{$plansStore.byok.badge}</span>
-                    <h4 class="text-lg font-bold text-[#102A56] mt-1.5">{$plansStore.byok.name}</h4>
-                    <p class="text-xs text-[#4B6382] mt-1">{$plansStore.byok.description}</p>
-                  </div>
-
-                  <div class="pt-2 border-t border-[#E3ECF7]">
-                    <p class="text-2xl font-black text-[#102A56]">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice} <span class="text-xs text-[#4B6382] font-normal">/ mo</span></p>
-                    <p class="text-[11px] text-[#4B6382]">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.byok.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
-                  </div>
-
-                  <ul class="space-y-2 text-xs text-[#102A56] pt-2 border-t border-[#E3ECF7]">
-                    {#each $plansStore.byok.features as feature}
-                      <li class="flex items-center gap-2"><Icon name="Check" size={14} class="text-[#1677FF] shrink-0" /> <span>{feature}</span></li>
-                    {/each}
-                  </ul>
-                </div>
-
-                <div class="pt-6">
-                  {#if ($subscription.tier === 'byok' || $subscription.tier === 'pro' || $subscription.tier === 'ultra') && $subscription.interval === dashboardBillingInterval}
-                    <button disabled class="w-full py-2.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#5E7694] font-bold text-xs cursor-default">Current Plan</button>
-                  {:else}
-                    <button onclick={() => handlePayPlan('byok')} disabled={isProcessingPayment} class="w-full py-2.5 rounded-xl btn-navy text-xs cursor-pointer disabled:opacity-50">
-                      {isProcessingPayment ? 'Connecting...' : 'Subscribe'}
-                    </button>
-                  {/if}
-                </div>
-              </div>
-
-              <!-- Plan 2: All-Inclusive Cloud -->
-              <div class="p-6 rounded-3xl bg-white border-2 {($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval ? 'border-[#1677FF] ring-2 ring-[#1677FF]/25' : 'border-[#1677FF]'} flex flex-col justify-between relative shadow-sm">
-                {#if ($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval}
-                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-[#1677FF] text-white font-bold text-[10px] uppercase tracking-wide shadow-2xs">
-                    Active Plan
-                  </div>
-                {:else if $plansStore.managed.highlightBadge}
-                  <div class="absolute -top-3 left-4 px-2.5 py-0.5 rounded-full bg-[#1677FF] text-white font-black text-[10px] uppercase tracking-wide shadow-2xs">
-                    {$plansStore.managed.highlightBadge}
-                  </div>
-                {/if}
-                <div class="space-y-3">
-                  <div>
-                    <span class="ui-badge-primary px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider">{$plansStore.managed.badge}</span>
-                    <h4 class="text-lg font-bold text-[#102A56] mt-1.5">{$plansStore.managed.name}</h4>
-                    <p class="text-xs text-[#4B6382] mt-1">{$plansStore.managed.description}</p>
-                  </div>
-
-                  <div class="pt-2 border-t border-[#E3ECF7]">
-                    <p class="text-2xl font-black text-[#102A56]">BDT {dashboardBillingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice} <span class="text-xs text-[#4B6382] font-normal">/ mo</span></p>
-                    <p class="text-[11px] text-[#4B6382]">{dashboardBillingInterval === 'yearly' ? 'Billed annually (BDT ' + $plansStore.managed.yearlyTotal.toLocaleString() + '/yr)' : 'Billed monthly'}</p>
-                  </div>
-
-                  <ul class="space-y-2 text-xs text-[#102A56] pt-2 border-t border-[#E3ECF7]">
-                    {#each $plansStore.managed.features as feature}
-                      <li class="flex items-center gap-2 font-semibold text-[#102A56]"><Icon name="Check" size={14} class="text-[#1677FF] shrink-0" /> <span>{feature}</span></li>
-                    {/each}
-                  </ul>
-                </div>
-
-                <div class="pt-6">
-                  {#if ($subscription.tier === 'managed' || $subscription.tier === 'complete') && $subscription.interval === dashboardBillingInterval}
-                    <button disabled class="w-full py-2.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#1677FF] font-bold text-xs cursor-default">Current Plan</button>
-                  {:else}
-                    <button onclick={() => handlePayPlan('managed')} disabled={isProcessingPayment} class="w-full py-2.5 rounded-xl blue-btn text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50">
-                      {isProcessingPayment ? 'Connecting...' : 'Subscribe'}
-                    </button>
-                  {/if}
-                </div>
-              </div>
-            </div>
+            <!-- Unified Dynamic Pricing Grid -->
+            <PricingCardsGrid
+              context="billing"
+              bind:selectedInterval={dashboardBillingInterval}
+              onSelectPlan={(tier, interval) => handlePayPlan(tier, interval)}
+              isProcessing={isProcessingPayment}
+            />
           </div>
         </div>
 

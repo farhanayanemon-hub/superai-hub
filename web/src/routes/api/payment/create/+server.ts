@@ -7,7 +7,7 @@ const OPAY_CREATE_URL = 'https://verify.opaybd.com/api/payment/create';
 
 interface CreatePaymentRequest {
   type: 'subscription' | 'store_bot';
-  plan?: 'byok' | 'managed' | 'pro' | 'ultra' | 'complete';
+  plan?: 'byok_starter' | 'byok_pro' | 'byok' | 'managed' | 'pro' | 'ultra' | 'complete' | string;
   interval?: 'monthly' | 'yearly';
   botId?: string;
   botName?: string;

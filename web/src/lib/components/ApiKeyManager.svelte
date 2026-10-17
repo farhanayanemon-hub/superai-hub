@@ -18,6 +18,8 @@
     removeOpenRouterSelectedModel,
     subscription,
     currentUser,
+    activeDashboardTab,
+    getEffectivePlanTier,
     type ApiVaultKey,
     type AIProvider,
     type RoutingStrategy
@@ -110,6 +112,24 @@
     $subscription?.tier === 'managed' || $currentUser?.tier === 'managed'
   );
 
+  // Effective Plan Tier derivation & BYOK Pro gating
+  const effectiveTier = $derived(
+    getEffectivePlanTier($subscription?.tier || $currentUser?.tier, $subscription?.status === 'active' || !!$currentUser?.isSubscribed)
+  );
+  const isByokPro = $derived(effectiveTier === 'byok_pro' || effectiveTier === 'managed');
+  const isByokStarter = $derived(effectiveTier === 'byok_starter' || effectiveTier === 'free');
+
+  // Upgrade Modal State
+  let isUpgradeModalOpen = $state(false);
+  let upgradeFeatureTitle = $state('BYOK Pro Feature');
+  let upgradeFeatureDesc = $state('Upgrade to BYOK Pro to unlock multi-key vaults, auto-failover, and custom model routing chains.');
+
+  function triggerProUpgrade(featureTitle: string, featureDesc: string) {
+    upgradeFeatureTitle = featureTitle;
+    upgradeFeatureDesc = featureDesc;
+    isUpgradeModalOpen = true;
+  }
+
   // Filter providers to only those allowed by platform admin
   const visibleProviders = $derived(
     ALL_PROVIDERS.filter((p) => $adminAllowedProviders[p.id] !== false)
@@ -174,6 +194,15 @@
   });
 
   function openAddKeyForm(providerId: AIProvider) {
+    const existing = getKeysForProvider(providerId);
+    if (isByokStarter && existing.length >= 1) {
+      const pMeta = ALL_PROVIDERS.find((p) => p.id === providerId);
+      triggerProUpgrade(
+        'Multiple Keys for ' + (pMeta?.name || providerId),
+        'BYOK Starter includes 1 active API key per provider. Upgrade to BYOK Pro to add unlimited backup keys with automatic round-robin load balancing and instant rate-limit failover.'
+      );
+      return;
+    }
     activeAddKeyProvider = providerId;
     inputKeyValues[providerId] = '';
     inputLabelValues[providerId] = '';
@@ -250,10 +279,28 @@
     setOpenRouterSelectedModels(current);
   }
 
+  function handleSelectStrategy(strategy: RoutingStrategy) {
+    if (strategy !== 'single_model' && isByokStarter) {
+      triggerProUpgrade(
+        strategy === 'auto_free_rotate' ? 'Auto Free Model Rotation' : 'Multi-Provider Key Rotation',
+        'Model rotation and failover strategies require BYOK Pro. Upgrade today to automatically rotate across models and prevent rate limits.'
+      );
+      return;
+    }
+    setRoutingStrategy(strategy);
+  }
+
   function toggleModelInChain(modelId: string) {
     if ($openrouterSelectedModels.includes(modelId)) {
       removeOpenRouterSelectedModel(modelId);
     } else {
+      if (isByokStarter && $openrouterSelectedModels.length >= 1) {
+        triggerProUpgrade(
+          'Multi-Model Failover Chains',
+          'BYOK Starter supports 1 active primary model. Upgrade to BYOK Pro to configure multi-model failover chains with automatic fallback when rate limits occur.'
+        );
+        return;
+      }
       addOpenRouterSelectedModel(modelId);
     }
   }
@@ -390,7 +437,7 @@
         <!-- Option 1: Auto Free Model Rotation -->
         <button
           type="button"
-          onclick={() => setRoutingStrategy('auto_free_rotate')}
+          onclick={() => handleSelectStrategy('auto_free_rotate')}
           class="p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between {$routingStrategy === 'auto_free_rotate' ? 'border-[#1677FF] bg-[#1677FF]/5 ring-2 ring-[#1677FF]/20 shadow-xs' : 'border-[#CFE2FA] bg-white hover:border-[#1677FF]/40'}"
         >
           <div class="space-y-1.5">
@@ -400,6 +447,12 @@
                 <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
                   100% Free
                 </span>
+                {#if isByokStarter}
+                  <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase bg-[#1677FF] text-white flex items-center gap-0.5">
+                    <Icon name="Lock" size={9} />
+                    <span>PRO</span>
+                  </span>
+                {/if}
               </div>
               <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center {$routingStrategy === 'auto_free_rotate' ? 'border-[#1677FF] bg-[#1677FF]' : 'border-[#CFE2FA]'}">
                 {#if $routingStrategy === 'auto_free_rotate'}
@@ -407,7 +460,9 @@
                 {/if}
               </span>
             </div>
-            <h4 class="text-xs font-bold text-[#102A56]">Auto Free Model Rotation</h4>
+            <h4 class="text-xs font-bold text-[#102A56] flex items-center gap-1">
+              <span>Auto Free Model Rotation</span>
+            </h4>
             <p class="text-[11px] text-[#5E7694] leading-relaxed">
               Automatically routes and load-balances across OpenRouter Free models (`:free`). If one hits a rate limit, it instantly falls back to another free model.
             </p>
@@ -417,7 +472,7 @@
         <!-- Option 2: Single Dedicated Model -->
         <button
           type="button"
-          onclick={() => setRoutingStrategy('single_model')}
+          onclick={() => handleSelectStrategy('single_model')}
           class="p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between {$routingStrategy === 'single_model' ? 'border-[#1677FF] bg-[#1677FF]/5 ring-2 ring-[#1677FF]/20 shadow-xs' : 'border-[#CFE2FA] bg-white hover:border-[#1677FF]/40'}"
         >
           <div class="space-y-1.5">
@@ -444,7 +499,7 @@
         <!-- Option 3: Multi-Provider Rotation -->
         <button
           type="button"
-          onclick={() => setRoutingStrategy('multi_provider_rotate')}
+          onclick={() => handleSelectStrategy('multi_provider_rotate')}
           class="p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between {$routingStrategy === 'multi_provider_rotate' ? 'border-[#1677FF] bg-[#1677FF]/5 ring-2 ring-[#1677FF]/20 shadow-xs' : 'border-[#CFE2FA] bg-white hover:border-[#1677FF]/40'}"
         >
           <div class="space-y-1.5">
@@ -458,6 +513,12 @@
                 <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
                   Multi-Key
                 </span>
+                {#if isByokStarter}
+                  <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase bg-[#1677FF] text-white flex items-center gap-0.5">
+                    <Icon name="Lock" size={9} />
+                    <span>PRO</span>
+                  </span>
+                {/if}
               </div>
               <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center {$routingStrategy === 'multi_provider_rotate' ? 'border-[#1677FF] bg-[#1677FF]' : 'border-[#CFE2FA]'}">
                 {#if $routingStrategy === 'multi_provider_rotate'}
@@ -465,7 +526,9 @@
                 {/if}
               </span>
             </div>
-            <h4 class="text-xs font-bold text-[#102A56]">Multi-Provider Rotation</h4>
+            <h4 class="text-xs font-bold text-[#102A56] flex items-center gap-1">
+              <span>Multi-Provider Rotation</span>
+            </h4>
             <p class="text-[11px] text-[#5E7694] leading-relaxed">
               Distribute operations across all your enabled active provider keys with automated round-robin and rate-limit failover.
             </p>
@@ -553,8 +616,11 @@
                     onclick={() => (isAddingKey ? closeAddKeyForm() : openAddKeyForm(p.id))}
                     class="text-[11px] text-[#1677FF] font-bold hover:underline cursor-pointer flex items-center gap-1"
                   >
-                    <Icon name={isAddingKey ? 'X' : 'Plus'} size={12} />
+                    <Icon name={isAddingKey ? 'X' : providerKeys.length > 0 && isByokStarter ? 'Lock' : 'Plus'} size={12} />
                     <span>{isAddingKey ? 'Cancel' : providerKeys.length > 0 ? '+ Add Another Key' : '+ Add Key'}</span>
+                    {#if !isAddingKey && providerKeys.length > 0 && isByokStarter}
+                      <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase bg-[#1677FF] text-white shadow-2xs">PRO</span>
+                    {/if}
                   </button>
                 </div>
 
@@ -832,9 +898,17 @@
                             <button
                               type="button"
                               onclick={() => toggleModelInChain(m.id)}
-                              class="w-full sm:w-auto px-3.5 py-2 sm:py-1 rounded-lg text-xs sm:text-[10px] font-bold transition-all cursor-pointer shrink-0 text-center justify-center flex items-center {isSelected ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs' : 'bg-[#F3F8FF] hover:bg-[#E4F0FF] text-[#1677FF] border border-[#CFE2FA]'}"
+                              class="w-full sm:w-auto px-3.5 py-2 sm:py-1 rounded-lg text-xs sm:text-[10px] font-bold transition-all cursor-pointer shrink-0 text-center justify-center flex items-center gap-1 {isSelected ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs' : 'bg-[#F3F8FF] hover:bg-[#E4F0FF] text-[#1677FF] border border-[#CFE2FA]'}"
                             >
-                              {isSelected ? `✓ In Chain (#${selectIndex + 1})` : '+ Add to Chain'}
+                              {#if isSelected}
+                                <span>✓ In Chain (#{selectIndex + 1})</span>
+                              {:else if isByokStarter && $openrouterSelectedModels.length >= 1}
+                                <Icon name="Lock" size={11} />
+                                <span>+ Add to Chain</span>
+                                <span class="px-1 py-0.2 rounded text-[7px] font-black uppercase bg-[#1677FF] text-white">PRO</span>
+                              {:else}
+                                <span>+ Add to Chain</span>
+                              {/if}
                             </button>
                           </div>
                         {/each}
@@ -846,6 +920,70 @@
             </div>
           </div>
         {/each}
+      </div>
+    </div>
+  {/if}
+
+  <!-- ====================================================================== -->
+  <!-- 3. BYOK PRO UPGRADE MODAL -->
+  <!-- ====================================================================== -->
+  {#if isUpgradeModalOpen}
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+      <div class="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 border border-[#CFE2FA] shadow-2xl space-y-5 text-left relative animate-in zoom-in-95 duration-200">
+        <!-- Close button -->
+        <button
+          type="button"
+          onclick={() => (isUpgradeModalOpen = false)}
+          class="absolute top-5 right-5 p-1 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+        >
+          <Icon name="X" size={18} />
+        </button>
+
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-[#1677FF]/10 text-[#1677FF] flex items-center justify-center shrink-0">
+            <Icon name="Sparkles" size={24} />
+          </div>
+          <div>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#1677FF] text-white">PRO UPGRADE</span>
+            <h3 class="text-base font-extrabold text-[#102A56] mt-0.5">{upgradeFeatureTitle}</h3>
+          </div>
+        </div>
+
+        <p class="text-xs text-[#4B6382] leading-relaxed">
+          {upgradeFeatureDesc}
+        </p>
+
+        <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] space-y-2 text-xs">
+          <div class="flex items-center justify-between text-[#102A56] font-bold">
+            <span>BYOK Pro Plan</span>
+            <span class="text-[#1677FF]">BDT 899 / month</span>
+          </div>
+          <ul class="space-y-1.5 text-[11px] text-[#4B6382]">
+            <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Unlimited API keys per provider with auto round-robin</li>
+            <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Multi-model failover chains (HTTP 429 auto-retry)</li>
+            <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Full access to all 75+ AI Helpers and AI CEO</li>
+          </ul>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button
+            type="button"
+            onclick={() => (isUpgradeModalOpen = false)}
+            class="flex-1 py-3 rounded-xl border border-[#CFE2FA] text-xs font-bold text-[#5E7694] hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onclick={() => {
+              isUpgradeModalOpen = false;
+              activeDashboardTab.set('billing');
+            }}
+            class="flex-1 py-3 rounded-xl blue-btn text-white text-xs font-extrabold transition-all cursor-pointer shadow-md text-center"
+          >
+            Upgrade to BYOK Pro
+          </button>
+        </div>
       </div>
     </div>
   {/if}

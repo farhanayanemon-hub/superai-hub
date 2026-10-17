@@ -6,11 +6,13 @@ import { getPlanPrice } from '$lib/config/plans';
 
 export const PLAN_PRICES: Record<PlanTier, Record<BillingInterval, number>> = {
   free: { monthly: 0, yearly: 0 },
-  byok: { monthly: 499, yearly: 4790 },
+  byok_starter: { monthly: 499, yearly: 4790 },
+  byok_pro: { monthly: 899, yearly: 8690 },
   managed: { monthly: 1499, yearly: 14390 },
-  pro: { monthly: 499, yearly: 4790 },
-  ultra: { monthly: 499, yearly: 4790 },
-  complete: { monthly: 1499, yearly: 14390 }
+  byok: { monthly: 499, yearly: 4790 },
+  complete: { monthly: 1499, yearly: 14390 },
+  pro: { monthly: 899, yearly: 8690 },
+  ultra: { monthly: 899, yearly: 8690 }
 };
 
 export interface OPayInitiateResult {

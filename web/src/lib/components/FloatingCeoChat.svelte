@@ -16,8 +16,10 @@
     incrementManagedUsage,
     ceoCustomPrompt,
     activeDashboardTab,
+    isHelperUnlocked,
     type ChatMessage
   } from '$lib/stores/userStore';
+  import { plansStore } from '$lib/stores/plansStore';
   import { decryptVaultKey } from '$lib/services/crypto';
   import { offlineStorage } from '$lib/services/offlineStorage';
   import { marked } from 'marked';
@@ -359,6 +361,12 @@
 
   // Selecting a helper inserts visual mention chip: [⚡ #01 Facebook Ad Copy]
   function selectHelper(helper: AITool) {
+    const isUnlocked = isHelperUnlocked(helper.id, $subscription?.tier, $plansStore);
+    if (!isUnlocked) {
+      isSlashOpen = false;
+      activeDashboardTab.set('billing');
+      return;
+    }
     const chip = `[⚡ ${helper.code} ${helper.name}] `;
     if (!textareaRef) {
       inputMessage = chip;
@@ -1077,6 +1085,7 @@
             </div>
 
             {#each filteredTools as tool, idx}
+              {@const isUnlocked = isHelperUnlocked(tool.id, $subscription?.tier, $plansStore)}
               <button
                 type="button"
                 onclick={() => selectHelper(tool)}
@@ -1086,16 +1095,26 @@
                   : 'hover:bg-[#F8FAFC] text-[#102A56]'}"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <span class="px-1.5 py-0.5 rounded-md bg-[#1677FF]/10 text-[#1677FF] font-mono font-bold text-[11px] shrink-0">
+                  <span class="px-1.5 py-0.5 rounded-md font-mono font-bold text-[11px] shrink-0 {isUnlocked ? 'bg-[#1677FF]/10 text-[#1677FF]' : 'bg-gray-100 text-gray-500'}">
                     {tool.code}
                   </span>
                   <div class="min-w-0">
-                    <p class="text-xs font-bold break-words">{tool.name}</p>
+                    <p class="text-xs font-bold break-words flex items-center gap-1.5">
+                      <span>{tool.name}</span>
+                      {#if !isUnlocked}
+                        <Icon name="Lock" size={11} class="text-amber-500 shrink-0" />
+                      {/if}
+                    </p>
                     <p class="text-[10px] text-[#5E7694] break-words">{tool.agentName} • {tool.categoryName}</p>
                   </div>
                 </div>
 
-                {#if tool.badge}
+                {#if !isUnlocked}
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 border border-amber-200 text-amber-700 shrink-0 flex items-center gap-1 shadow-2xs">
+                    <Icon name="Lock" size={9} />
+                    <span>PRO</span>
+                  </span>
+                {:else if tool.badge}
                   <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F3F8FF] border border-[#CFE2FA] text-[#1677FF] shrink-0">
                     {tool.badge}
                   </span>

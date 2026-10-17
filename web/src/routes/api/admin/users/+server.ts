@@ -63,7 +63,16 @@ export const POST: RequestHandler = async ({ request }) => {
     const cleanEmail = email.trim().toLowerCase();
 
     if (action === 'grant') {
-      const validTier = tier === 'managed' ? 'managed' : 'byok';
+      let validTier: 'byok_starter' | 'byok_pro' | 'managed' | 'byok' = 'byok_starter';
+      if (tier === 'managed' || tier === 'complete') {
+        validTier = 'managed';
+      } else if (tier === 'byok_pro' || tier === 'pro' || tier === 'ultra') {
+        validTier = 'byok_pro';
+      } else if (tier === 'byok') {
+        validTier = 'byok';
+      } else {
+        validTier = 'byok_starter';
+      }
       const validInterval = interval === 'yearly' ? 'yearly' : 'monthly';
       const botsList = Array.isArray(unlockedStoreBots) ? unlockedStoreBots.filter((b: any) => typeof b === 'string') : [];
 
@@ -92,7 +101,7 @@ export const POST: RequestHandler = async ({ request }) => {
         email: cleanEmail,
         name: typeof name === 'string' ? name.trim() : undefined,
         isSubscribed: false,
-        tier: 'byok',
+        tier: 'byok_starter',
         interval: 'monthly',
         unlockedStoreBots: [],
         note: 'Access revoked by Admin'

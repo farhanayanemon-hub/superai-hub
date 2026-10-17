@@ -6,6 +6,7 @@
   import Footer from '$lib/components/Footer.svelte';
   import PaymentMethods from '$lib/components/PaymentMethods.svelte';
   import RobotShowcase from '$lib/components/robots/RobotShowcase.svelte';
+  import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
   import { isAuthenticated, currentUser } from '$lib/stores/userStore';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
 
@@ -264,146 +265,10 @@
             Bring your own API keys (BYOK) or choose our 100% Managed Cloud — both plans unlock the Master AI CEO and all 75+ AI Helpers.
           </p>
 
-          <!-- Monthly / Yearly Toggle -->
-          <div class="flex items-center justify-center gap-3 pt-2 flex-wrap text-center">
-            <span
-              class="text-sm font-semibold {billingInterval === 'monthly'
-                ? 'text-[#102A56]'
-                : 'text-[#4B6382]'}">Monthly</span
-            >
-            <button
-              onclick={() =>
-                (billingInterval = billingInterval === 'monthly' ? 'yearly' : 'monthly')}
-              aria-label="Toggle billing interval between monthly and yearly"
-              class="relative w-14 h-8 rounded-full transition-all duration-300 {billingInterval ===
-              'yearly'
-                ? 'bg-[#1677FF]'
-                : 'bg-[#CBD9EC]'} cursor-pointer"
-            >
-              <span
-                class="absolute top-1.5 transition-all duration-300 w-5 h-5 rounded-full bg-white shadow-xs {billingInterval ===
-                'yearly'
-                  ? 'left-8'
-                  : 'left-1'}"
-              ></span>
-            </button>
-            <span
-              class="text-sm font-semibold {billingInterval === 'yearly'
-                ? 'text-[#1677FF] font-bold'
-                : 'text-[#4B6382]'}">Yearly</span
-            >
-            {#if billingInterval === 'yearly'}
-              <span
-                class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold"
-                >Save 20% • 2 months FREE</span
-              >
-            {/if}
-          </div>
         </div>
 
-        <!-- 2-Tier Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-          <!-- PLAN 1: BYOK MULTI-ENGINE -->
-          <div
-            class="rounded-3xl bg-white border border-[#E3ECF7] p-6 sm:p-8 flex flex-col justify-between hover:border-[#1677FF]/40 transition-all duration-300 shadow-xs"
-          >
-            <div>
-              <div class="mb-5">
-                <span
-                  class="px-3 py-1 rounded-full bg-[#F3F8FF] text-xs font-bold text-[#102A56] border border-[#E3ECF7]"
-                  >{$plansStore.byok.badge}</span
-                >
-                <h3 class="text-2xl font-extrabold text-[#102A56] mt-3">
-                  {$plansStore.byok.name}
-                </h3>
-                <div class="flex items-baseline gap-1 mt-2">
-                  <span class="text-3xl font-extrabold text-[#102A56]"
-                    >BDT {billingInterval === 'yearly'
-                      ? $plansStore.byok.yearlyMonthlyPrice
-                      : $plansStore.byok.monthlyPrice}</span
-                  >
-                  <span class="text-sm font-medium text-[#4B6382]">/mo</span>
-                </div>
-                {#if billingInterval === 'yearly'}
-                  <p class="text-xs text-[#4B6382] mt-1">
-                    Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)
-                  </p>
-                {/if}
-              </div>
-              <p class="text-xs text-[#4B6382] mb-6 leading-relaxed">
-                {$plansStore.byok.description}
-              </p>
-              <ul class="space-y-3 text-xs text-[#102A56]">
-                {#each $plansStore.byok.features as feature}
-                  <li class="flex items-center gap-2">
-                    <Icon name="Check" size={14} class="text-[#1677FF] shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                {/each}
-              </ul>
-            </div>
-            <a
-              href={$isAuthenticated ? '/plans?plan=byok' : '/signup?plan=byok'}
-              class="mt-8 w-full py-4 rounded-xl btn-secondary font-bold text-xs text-center transition-all block cursor-pointer"
-            >
-              Start with BYOK
-            </a>
-          </div>
-
-          <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
-          <div
-            class="rounded-3xl bg-white border-2 border-[#1677FF] p-6 sm:p-8 flex flex-col justify-between relative shadow-md md:scale-[1.01]"
-          >
-            {#if $plansStore.managed.highlightBadge}
-              <div
-                class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#1677FF] text-white text-[11px] font-black uppercase tracking-wider shadow-xs whitespace-nowrap"
-              >
-                {$plansStore.managed.highlightBadge}
-              </div>
-            {/if}
-            <div>
-              <div class="mb-5">
-                <span
-                  class="ui-badge-primary px-3 py-1 rounded-full text-xs"
-                  >{$plansStore.managed.badge}</span
-                >
-                <h3 class="text-2xl font-extrabold text-[#102A56] mt-3">
-                  {$plansStore.managed.name}
-                </h3>
-                <div class="flex items-baseline gap-1 mt-2">
-                  <span class="text-3xl font-extrabold text-[#102A56]"
-                    >BDT {billingInterval === 'yearly'
-                      ? $plansStore.managed.yearlyMonthlyPrice
-                      : $plansStore.managed.monthlyPrice}</span
-                  >
-                  <span class="text-sm font-medium text-[#4B6382]">/mo</span>
-                </div>
-                {#if billingInterval === 'yearly'}
-                  <p class="text-xs text-[#4B6382] mt-1">
-                    Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)
-                  </p>
-                {/if}
-              </div>
-              <p class="text-xs text-[#4B6382] mb-6 leading-relaxed">
-                {$plansStore.managed.description}
-              </p>
-              <ul class="space-y-3 text-xs text-[#102A56]">
-                {#each $plansStore.managed.features as feature}
-                  <li class="flex items-center gap-2 font-medium">
-                    <Icon name="Check" size={14} class="text-[#1677FF] shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                {/each}
-              </ul>
-            </div>
-            <a
-              href={$isAuthenticated ? '/plans?plan=managed' : '/signup?plan=managed'}
-              class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs text-center transition-all block cursor-pointer"
-            >
-              Start All-Inclusive
-            </a>
-          </div>
-        </div>
+        <!-- 3-Tier Dynamic Pricing Grid -->
+        <PricingCardsGrid context="landing" bind:selectedInterval={billingInterval} />
 
         <!-- Payment methods -->
         <div class="mt-12 text-center text-xs text-[#4B6382] space-y-2">

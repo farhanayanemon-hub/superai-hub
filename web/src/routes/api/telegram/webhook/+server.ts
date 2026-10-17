@@ -60,11 +60,13 @@ export const POST: RequestHandler = async ({ request }) => {
         if (linkRes.success && linkRes.user) {
           const user = linkRes.user;
           const tierLabel =
-            user.planTier === 'byok'
-              ? 'BYOK Multi-Engine'
-              : user.planTier === 'managed'
-                ? 'All-Inclusive Cloud'
-                : user.planTier.toUpperCase();
+            user.planTier === 'byok' || user.planTier === 'byok_starter'
+              ? 'BYOK Starter'
+              : user.planTier === 'byok_pro'
+                ? 'BYOK Pro'
+                : user.planTier === 'managed'
+                  ? 'All-Inclusive Cloud'
+                  : user.planTier.toUpperCase();
 
           const welcomeMsg =
             `<b>🎉 Welcome ${escapeHtml(user.userName)}!</b>\n\nYour <b>EzboAgents</b> account is now synced with Telegram!\n\n` +
@@ -160,11 +162,13 @@ export const POST: RequestHandler = async ({ request }) => {
       }
 
       const tierLabel =
-        linkedUser.planTier === 'byok'
-          ? 'BYOK Multi-Engine (Personal API)'
-          : linkedUser.planTier === 'managed'
-            ? 'All-Inclusive Cloud (Managed AI)'
-            : linkedUser.planTier.toUpperCase();
+        linkedUser.planTier === 'byok' || linkedUser.planTier === 'byok_starter'
+          ? 'BYOK Starter (Personal API)'
+          : linkedUser.planTier === 'byok_pro'
+            ? 'BYOK Pro (Multi-Engine API)'
+            : linkedUser.planTier === 'managed'
+              ? 'All-Inclusive Cloud (Managed AI)'
+              : linkedUser.planTier.toUpperCase();
 
       const activeHelper = matchHelperForMessage('', linkedUser.activeAgent);
       const activeLabel = activeHelper
@@ -360,7 +364,11 @@ export const POST: RequestHandler = async ({ request }) => {
     });
 
     let resolvedApiKey = config.geminiApiKey || process.env.PLATFORM_GEMINI_KEY || '';
-    if (linkedUser.planTier === 'byok' && linkedUser.byokKey) {
+    const isByokTier =
+      linkedUser.planTier === 'byok' ||
+      linkedUser.planTier === 'byok_starter' ||
+      linkedUser.planTier === 'byok_pro';
+    if (isByokTier && linkedUser.byokKey) {
       resolvedApiKey = linkedUser.byokKey;
     }
     if (!resolvedApiKey) {
@@ -373,7 +381,7 @@ export const POST: RequestHandler = async ({ request }) => {
       resolvedApiKey &&
       (config.geminiApiKey ||
         process.env.PLATFORM_GEMINI_KEY ||
-        (linkedUser.planTier === 'byok' && linkedUser.byokKey))
+        (isByokTier && linkedUser.byokKey))
     ) {
       try {
         const geminiRes = await fetch(

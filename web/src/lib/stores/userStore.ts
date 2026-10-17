@@ -2,12 +2,13 @@ import { writable, get } from 'svelte/store';
 import type { AITool } from '$lib/config/tools';
 import { getDecryptedKey, saveEncryptedKey, clearStoredKey, encryptVaultKey, decryptVaultKey } from '$lib/services/crypto';
 import { offlineStorage } from '$lib/services/offlineStorage';
+import { DEFAULT_PLANS, type PlansSettings } from '$lib/config/plans';
 
 export type WhatsAppStatus = 'disconnected' | 'connecting' | 'qr_ready' | 'connected';
 export type DashboardTab = 'chat' | 'agents' | 'store' | 'owned-agents' | 'channels' | 'billing' | 'settings' | 'api-keys' | 'tools' | 'whatsapp' | 'vault';
 export type AIProvider = 'gemini' | 'openai' | 'grok' | 'deepseek' | 'openrouter' | 'replicate';
 export type RoutingStrategy = 'auto_free_rotate' | 'single_model' | 'multi_provider_rotate';
-export type PlanTier = 'byok' | 'managed' | 'free' | 'pro' | 'ultra' | 'complete';
+export type PlanTier = 'byok_starter' | 'byok_pro' | 'managed' | 'byok' | 'complete' | 'pro' | 'ultra' | 'free';
 export type BillingInterval = 'monthly' | 'yearly';
 
 export interface ApiVaultKey {
@@ -76,12 +77,24 @@ function loadInitialUser(): UserProfile | null {
   try {
     const raw = localStorage.getItem('superai_user');
     if (!raw) return null;
-    const user = JSON.parse(raw);
-    // Migrate legacy plan -> 2-tier system
+    const user: UserProfile = JSON.parse(raw);
+    let modified = false;
+
+    // Migrate legacy plan -> 3-tier system with grandfathering
     if (user.tier === 'complete') {
       user.tier = 'managed';
-    } else if (user.tier === 'ultra' || user.tier === 'pro' || !user.tier) {
-      user.tier = 'byok';
+      modified = true;
+    } else if (user.tier === 'byok' || user.tier === 'pro' || user.tier === 'ultra' || !user.tier) {
+      user.tier = user.isSubscribed ? 'byok_pro' : 'byok_starter';
+      modified = true;
+    }
+
+    if (modified) {
+      try {
+        localStorage.setItem('superai_user', JSON.stringify(user));
+      } catch {
+        // ignore quota
+      }
     }
     return user;
   } catch (e) {
@@ -129,7 +142,7 @@ function loadInitialCeoCustomPrompt(): string {
 function loadInitialSubscription(): SubscriptionState {
   const initialUser = loadInitialUser();
   const defaultSub: SubscriptionState = {
-    tier: (initialUser?.tier as PlanTier) || 'byok',
+    tier: (initialUser?.tier as PlanTier) || 'byok_starter',
     interval: 'monthly',
     status: initialUser?.isSubscribed ? 'active' : 'expired',
     expiresAt: initialUser?.isSubscribed
@@ -144,17 +157,30 @@ function loadInitialSubscription(): SubscriptionState {
   try {
     const raw = localStorage.getItem('superai_subscription');
     if (!raw) return defaultSub;
-    const parsed = JSON.parse(raw);
-    // Migrate legacy tier -> 2-tier system
+    const parsed: SubscriptionState = JSON.parse(raw);
+    const isActive = !!(initialUser?.isSubscribed || parsed.status === 'active' || parsed.isVip);
+    let modified = false;
+
+    // Migrate legacy tier -> 3-tier system with grandfathering
     if (parsed.tier === 'complete') {
       parsed.tier = 'managed';
-    } else if (parsed.tier === 'ultra' || parsed.tier === 'pro' || !parsed.tier) {
-      parsed.tier = 'byok';
+      modified = true;
+    } else if (parsed.tier === 'byok' || parsed.tier === 'ultra' || parsed.tier === 'pro' || !parsed.tier) {
+      parsed.tier = isActive ? 'byok_pro' : 'byok_starter';
+      modified = true;
     }
     if (!parsed.unlockedStoreBots) parsed.unlockedStoreBots = [];
     if (initialUser && !initialUser.isSubscribed) {
       parsed.status = 'expired';
       parsed.isVip = false;
+    }
+
+    if (modified) {
+      try {
+        localStorage.setItem('superai_subscription', JSON.stringify(parsed));
+      } catch {
+        // ignore quota
+      }
     }
     return parsed;
   } catch (e) {
@@ -607,7 +633,7 @@ export interface ServerUserGrant {
   email: string;
   name?: string;
   isSubscribed: boolean;
-  tier: 'byok' | 'managed';
+  tier: 'byok_starter' | 'byok_pro' | 'managed' | 'byok' | 'complete' | 'pro' | 'ultra' | 'free';
   interval: 'monthly' | 'yearly';
   unlockedStoreBots: string[];
   expiresAt: string;
@@ -620,6 +646,13 @@ export function applyAdminGrantLocally(grant: ServerUserGrant): void {
   if (typeof window === 'undefined' || !grant || !grant.email) return;
   const cleanEmail = grant.email.trim().toLowerCase();
 
+  let effectiveTier: PlanTier = grant.tier;
+  if (effectiveTier === 'byok' || effectiveTier === 'pro' || effectiveTier === 'ultra') {
+    effectiveTier = grant.isSubscribed ? 'byok_pro' : 'byok_starter';
+  } else if (effectiveTier === 'complete') {
+    effectiveTier = 'managed';
+  }
+
   // 1. Update in local registered users DB if exists
   const db = getStoredUsersDb();
   if (db[cleanEmail]) {
@@ -627,7 +660,7 @@ export function applyAdminGrantLocally(grant: ServerUserGrant): void {
       ...db[cleanEmail].user,
       name: grant.name || db[cleanEmail].user.name,
       isSubscribed: grant.isSubscribed,
-      tier: grant.tier,
+      tier: effectiveTier,
       plan: grant.interval
     };
     localStorage.setItem('superai_registered_users', JSON.stringify(db));
@@ -640,7 +673,7 @@ export function applyAdminGrantLocally(grant: ServerUserGrant): void {
       ...curr,
       name: grant.name || curr.name,
       isSubscribed: grant.isSubscribed,
-      tier: grant.tier,
+      tier: effectiveTier,
       plan: grant.interval
     };
     saveUserSession(updatedUser);
@@ -651,7 +684,7 @@ export function applyAdminGrantLocally(grant: ServerUserGrant): void {
       const days = grant.interval === 'yearly' ? 365 : 30;
       const updatedSub: SubscriptionState = {
         ...sub,
-        tier: grant.tier,
+        tier: effectiveTier,
         interval: grant.interval,
         status: grant.isSubscribed ? 'active' : 'expired',
         expiresAt: grant.expiresAt || (grant.isSubscribed ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString() : new Date(0).toISOString()),
@@ -659,7 +692,7 @@ export function applyAdminGrantLocally(grant: ServerUserGrant): void {
         plan: grant.interval,
         isVip: grant.isSubscribed,
         unlockedStoreBots: Array.from(new Set(grant.unlockedStoreBots || [])),
-        managedUsage: grant.tier === 'managed' ? (sub.managedUsage || {
+        managedUsage: effectiveTier === 'managed' ? (sub.managedUsage || {
           usedThisMonth: 0,
           monthlyLimit: 5000,
           resetsAt: monthlyUsedReset.toISOString()
@@ -760,13 +793,13 @@ export async function signupWithEmail(name: string, email: string, pass: string)
       provider: 'email',
       isSubscribed: false,
       plan: 'monthly',
-      tier: 'byok',
+      tier: 'byok_starter',
       createdAt: new Date().toISOString()
     };
     saveUserToDb(cleanEmail, { user, passHash: pass });
     saveUserSession(user);
     const unpaidSub: SubscriptionState = {
-      tier: 'byok',
+      tier: 'byok_starter',
       interval: 'monthly',
       status: 'expired',
       expiresAt: new Date(0).toISOString(),
@@ -895,13 +928,13 @@ export async function loginOrCreateWithGoogle(payload: GoogleAuthPayload): Promi
       provider: 'google',
       isSubscribed: false,
       plan: 'monthly',
-      tier: 'byok',
+      tier: 'byok_starter',
       createdAt: new Date().toISOString()
     };
     saveUserToDb(cleanEmail, { user: newUser, passHash: payload.password || '' });
     saveUserSession(newUser);
     const unpaidSub: SubscriptionState = {
-      tier: 'byok',
+      tier: 'byok_starter',
       interval: 'monthly',
       status: 'expired',
       expiresAt: new Date(0).toISOString(),
@@ -1001,4 +1034,51 @@ export function clearChatHistory() {
       console.warn('[userStore] Failed to clear offlineStorage messages:', err);
     });
   }
+}
+
+/**
+ * Resolves canonical plan tier with grandfathering and subscription checks.
+ * Grandfathers legacy 'byok', 'pro', 'ultra' to 'byok_pro'.
+ * Maps 'managed', 'complete' to 'managed'.
+ * If isSubscribed === false, returns 'free'.
+ */
+export function getEffectivePlanTier(
+  tier?: string | null,
+  isSubscribed?: boolean
+): 'byok_starter' | 'byok_pro' | 'managed' | 'free' {
+  if (isSubscribed === false) return 'free';
+  if (!tier) return 'free';
+  const clean = String(tier).trim().toLowerCase();
+  if (clean === 'free' || !clean) return 'free';
+  if (clean === 'managed' || clean === 'complete') return 'managed';
+  if (clean === 'byok_starter') return 'byok_starter';
+  if (clean === 'byok_pro') return 'byok_pro';
+  if (clean === 'byok' || clean === 'pro' || clean === 'ultra') {
+    // Grandfather existing subscribers
+    return 'byok_pro';
+  }
+  return 'byok_starter';
+}
+
+/**
+ * Checks if a specific tool/helper is unlocked for a given tier according to plan feature toggles.
+ */
+export function isHelperUnlocked(
+  toolId: string,
+  tier: string,
+  plans?: PlansSettings | null
+): boolean {
+  const effective = getEffectivePlanTier(tier);
+  if (effective === 'free') return false;
+  if (!plans) plans = DEFAULT_PLANS;
+  const plan =
+    plans[effective] ||
+    plans[tier as keyof PlansSettings] ||
+    DEFAULT_PLANS[effective] ||
+    DEFAULT_PLANS.byok_starter;
+  const toggles = plan?.featureToggles;
+  if (!toggles) return true;
+  if (toggles.allHelpersEnabled !== false) return true;
+  if (!toggles.enabledHelpers || toggles.enabledHelpers.length === 0) return false;
+  return toggles.enabledHelpers.includes(toolId);
 }

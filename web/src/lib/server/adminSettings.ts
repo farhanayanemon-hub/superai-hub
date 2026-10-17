@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_PLANS, type PlansSettings } from '$lib/config/plans';
+import { DEFAULT_PLANS, type PlansSettings, type PlanConfig, type PlanTierId } from '$lib/config/plans';
 
 export interface AdminModelToggles {
   'gemini-2.0-flash': boolean;
@@ -13,11 +13,13 @@ export interface AdminModelToggles {
   'flux-schnell': boolean;
 }
 
+export type UserGrantTier = 'byok_starter' | 'byok_pro' | 'managed' | 'byok';
+
 export interface UserAccessGrant {
   email: string;
   name?: string;
   isSubscribed: boolean;
-  tier: 'byok' | 'managed';
+  tier: UserGrantTier;
   interval: 'monthly' | 'yearly';
   unlockedStoreBots: string[];
   expiresAt: string;
@@ -124,6 +126,86 @@ function loadConfigFromStorage(): AdminConfig {
     if (fs.existsSync(CACHE_FILE_PATH)) {
       const raw = fs.readFileSync(CACHE_FILE_PATH, 'utf-8');
       const saved = JSON.parse(raw);
+
+      // Deep migrate saved plans
+      let mergedPlans: PlansSettings = { ...DEFAULT_PLANS };
+      if (saved.plans) {
+        const savedStarter = saved.plans.byok_starter || saved.plans.byok || {};
+        const savedPro = saved.plans.byok_pro || {};
+        const savedManaged = saved.plans.managed || {};
+
+        const byok_starter: PlanConfig = {
+          ...DEFAULT_PLANS.byok_starter,
+          ...savedStarter,
+          id: 'byok_starter',
+          featureToggles: {
+            ...DEFAULT_PLANS.byok_starter.featureToggles,
+            ...(savedStarter.featureToggles || {})
+          }
+        };
+
+        const byok_pro: PlanConfig = {
+          ...DEFAULT_PLANS.byok_pro,
+          ...savedPro,
+          id: 'byok_pro',
+          featureToggles: {
+            ...DEFAULT_PLANS.byok_pro.featureToggles,
+            ...(savedPro.featureToggles || {})
+          }
+        };
+
+        const managed: PlanConfig = {
+          ...DEFAULT_PLANS.managed,
+          ...savedManaged,
+          id: 'managed',
+          featureToggles: {
+            ...DEFAULT_PLANS.managed.featureToggles,
+            ...(savedManaged.featureToggles || {})
+          }
+        };
+
+        mergedPlans = {
+          byok_starter,
+          byok_pro,
+          managed,
+          byok: byok_starter
+        };
+      }
+
+      // Grandfather existing subscribers in userGrants
+      const rawGrants = saved.userGrants || {};
+      const migratedGrants: Record<string, UserAccessGrant> = {};
+      for (const [email, g] of Object.entries(rawGrants)) {
+        const grant = g as UserAccessGrant;
+        let tier: UserGrantTier = grant.tier;
+        if (grant.isSubscribed && (tier === 'byok' || (tier as string) === 'pro' || (tier as string) === 'ultra')) {
+          tier = 'byok_pro';
+        } else if (!grant.isSubscribed && tier === 'byok') {
+          tier = 'byok_starter';
+        }
+        migratedGrants[email] = {
+          ...grant,
+          tier
+        };
+      }
+
+      // Grandfather existing subscribers in registeredUsers
+      const rawUsers = saved.registeredUsers || {};
+      const migratedUsers: Record<string, RegisteredUserSummary> = {};
+      for (const [email, u] of Object.entries(rawUsers)) {
+        const regUser = u as RegisteredUserSummary;
+        let tier = regUser.tier;
+        if (regUser.isSubscribed && (tier === 'byok' || tier === 'pro' || tier === 'ultra')) {
+          tier = 'byok_pro';
+        } else if (!regUser.isSubscribed && tier === 'byok') {
+          tier = 'byok_starter';
+        }
+        migratedUsers[email] = {
+          ...regUser,
+          tier
+        };
+      }
+
       return {
         adminPassphrase: saved.adminPassphrase || envConfig.adminPassphrase,
         opayApiKey: saved.opayApiKey || envConfig.opayApiKey,
@@ -152,9 +234,9 @@ function loadConfigFromStorage(): AdminConfig {
         smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure,
         telegramBotToken: saved.telegramBotToken ?? envConfig.telegramBotToken,
         telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername,
-        plans: saved.plans || DEFAULT_PLANS,
-        userGrants: saved.userGrants || {},
-        registeredUsers: saved.registeredUsers || {}
+        plans: mergedPlans,
+        userGrants: migratedGrants,
+        registeredUsers: migratedUsers
       };
     }
   } catch (err) {
@@ -173,6 +255,52 @@ export function getAdminConfig(): AdminConfig {
 
 export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
   const current = getAdminConfig();
+  let updatedPlans: PlansSettings = current.plans || DEFAULT_PLANS;
+
+  if (patch.plans) {
+    const base = current.plans || DEFAULT_PLANS;
+    const starterPatch = patch.plans.byok_starter || patch.plans.byok || {};
+    const proPatch = patch.plans.byok_pro || {};
+    const managedPatch = patch.plans.managed || {};
+
+    const byok_starter: PlanConfig = {
+      ...base.byok_starter,
+      ...starterPatch,
+      id: 'byok_starter',
+      featureToggles: {
+        ...base.byok_starter.featureToggles,
+        ...(starterPatch.featureToggles || {})
+      }
+    };
+
+    const byok_pro: PlanConfig = {
+      ...base.byok_pro,
+      ...proPatch,
+      id: 'byok_pro',
+      featureToggles: {
+        ...base.byok_pro.featureToggles,
+        ...(proPatch.featureToggles || {})
+      }
+    };
+
+    const managed: PlanConfig = {
+      ...base.managed,
+      ...managedPatch,
+      id: 'managed',
+      featureToggles: {
+        ...base.managed.featureToggles,
+        ...(managedPatch.featureToggles || {})
+      }
+    };
+
+    updatedPlans = {
+      byok_starter,
+      byok_pro,
+      managed,
+      byok: byok_starter
+    };
+  }
+
   const updated: AdminConfig = {
     ...current,
     ...patch,
@@ -185,10 +313,7 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       ...(current.providersAllowed || {}),
       ...(patch.providersAllowed || {})
     },
-    plans: patch.plans ? {
-      byok: { ...(current.plans?.byok || DEFAULT_PLANS.byok), ...patch.plans.byok },
-      managed: { ...(current.plans?.managed || DEFAULT_PLANS.managed), ...patch.plans.managed }
-    } : (current.plans || DEFAULT_PLANS),
+    plans: updatedPlans,
     userGrants: patch.userGrants ?? current.userGrants ?? {},
     registeredUsers: patch.registeredUsers ?? current.registeredUsers ?? {}
   };
@@ -208,7 +333,7 @@ export function upsertUserGrant(input: {
   email: string;
   name?: string;
   isSubscribed: boolean;
-  tier: 'byok' | 'managed';
+  tier: UserGrantTier;
   interval: 'monthly' | 'yearly';
   unlockedStoreBots: string[];
   note?: string;
@@ -222,11 +347,17 @@ export function upsertUserGrant(input: {
     ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
     : new Date(0).toISOString();
 
+  // Grandfathering logic:
+  let resolvedTier: UserGrantTier = input.tier || 'byok_starter';
+  if (resolvedTier === 'byok') {
+    resolvedTier = input.isSubscribed ? 'byok_pro' : 'byok_starter';
+  }
+
   const grant: UserAccessGrant = {
     email: cleanEmail,
     name: input.name?.trim() || existing?.name || config.registeredUsers?.[cleanEmail]?.name || cleanEmail.split('@')[0],
     isSubscribed: input.isSubscribed,
-    tier: input.tier || 'byok',
+    tier: resolvedTier,
     interval: input.interval || 'monthly',
     unlockedStoreBots: Array.from(new Set(input.unlockedStoreBots || [])),
     expiresAt,
@@ -300,13 +431,19 @@ export function recordRegisteredUser(user: {
   const grant = config.userGrants?.[cleanEmail];
   const now = new Date().toISOString();
 
+  let userTier = grant ? grant.tier : (user.tier || existing?.tier || 'byok_starter');
+  if (userTier === 'byok') {
+    const isSub = grant ? grant.isSubscribed : (user.isSubscribed ?? existing?.isSubscribed ?? false);
+    userTier = isSub ? 'byok_pro' : 'byok_starter';
+  }
+
   const summary: RegisteredUserSummary = {
     id: user.id || existing?.id || `usr-${Date.now().toString(36)}`,
     name: user.name?.trim() || existing?.name || grant?.name || cleanEmail.split('@')[0],
     email: cleanEmail,
     provider: user.provider || existing?.provider || 'email',
     isSubscribed: grant ? grant.isSubscribed : (user.isSubscribed ?? existing?.isSubscribed ?? false),
-    tier: grant ? grant.tier : (user.tier || existing?.tier || 'byok'),
+    tier: userTier,
     unlockedStoreBots: grant ? grant.unlockedStoreBots : (user.unlockedStoreBots || existing?.unlockedStoreBots || []),
     createdAt: user.createdAt || existing?.createdAt || now,
     lastSeenAt: now

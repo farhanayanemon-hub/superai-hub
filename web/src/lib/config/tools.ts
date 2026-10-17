@@ -3757,3 +3757,5 @@ export const TOOLS: AITool[] = RAW_TOOLS.map((tool) => ({
   shortDesc: tool.shortDesc ?? tool.description
 }));
 
+export const ALL_TOOLS: AITool[] = TOOLS;
+

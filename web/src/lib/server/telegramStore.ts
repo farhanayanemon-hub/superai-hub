@@ -1,11 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+export type TelegramPlanTier =
+  | 'byok_starter'
+  | 'byok_pro'
+  | 'byok'
+  | 'managed'
+  | 'pro'
+  | 'ultra'
+  | 'complete'
+  | 'free';
+
 export interface TelegramLinkedUser {
   userId: string;
   userName: string;
   userEmail: string;
-  planTier: 'byok' | 'managed' | 'pro' | 'ultra' | 'complete' | 'free';
+  planTier: TelegramPlanTier;
   isSubscribed: boolean;
   chatId: string;
   telegramUsername?: string;
@@ -22,7 +32,7 @@ interface PendingSync {
   userId: string;
   userName: string;
   userEmail: string;
-  planTier: 'byok' | 'managed' | 'pro' | 'ultra' | 'complete' | 'free';
+  planTier: TelegramPlanTier;
   isSubscribed: boolean;
   byokKey?: string;
   unlockedBots?: string[];
@@ -76,7 +86,7 @@ export function generateSyncCode(user: {
   userId: string;
   userName: string;
   userEmail: string;
-  planTier: 'byok' | 'managed' | 'pro' | 'ultra' | 'complete' | 'free';
+  planTier: TelegramPlanTier;
   isSubscribed: boolean;
   byokKey?: string;
   unlockedBots?: string[];

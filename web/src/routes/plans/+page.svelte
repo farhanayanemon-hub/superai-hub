@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import PaymentMethods from '$lib/components/PaymentMethods.svelte';
+  import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
   import {
     currentUser,
     isAuthenticated,
@@ -186,23 +187,6 @@
         Choose how you want to deploy: bring your own API keys for zero token markups, or enjoy our fully managed high-speed cloud cluster.
       </p>
 
-      <!-- Monthly / Yearly Toggle -->
-      <div class="flex items-center justify-center gap-3 pt-4 flex-wrap text-center">
-        <span class="text-xs sm:text-sm font-semibold {billingInterval === 'monthly' ? 'text-[#102A56]' : 'text-[#4B6382]'}">Monthly</span>
-        <button
-          onclick={() => billingInterval = billingInterval === 'monthly' ? 'yearly' : 'monthly'}
-          aria-label="Toggle billing interval"
-          class="relative w-14 h-8 rounded-full transition-all duration-300 {billingInterval === 'yearly' ? 'bg-[#1677FF]' : 'bg-[#CBD9EC]'} cursor-pointer"
-        >
-          <span class="absolute top-1.5 transition-all duration-300 w-5 h-5 rounded-full bg-white shadow-xs {billingInterval === 'yearly' ? 'left-8' : 'left-1'}"></span>
-        </button>
-        <span class="text-xs sm:text-sm font-semibold {billingInterval === 'yearly' ? 'text-[#1677FF] font-bold' : 'text-[#4B6382]'}">Yearly</span>
-        {#if billingInterval === 'yearly'}
-          <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold shadow-2xs">
-            Save 20% • 2 months FREE
-          </span>
-        {/if}
-      </div>
     </div>
 
     <!-- Error / Processing Status Alerts -->
@@ -220,118 +204,14 @@
       </div>
     {/if}
 
-    <!-- 2 Plans Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
-      <!-- PLAN 1: BYOK MULTI-ENGINE -->
-      <div class="rounded-3xl bg-white/80 backdrop-blur-md border border-[#CFE2FA] p-6 sm:p-8 flex flex-col justify-between hover:border-[#1677FF]/60 hover:shadow-[0_16px_40px_rgba(22,119,255,0.12)] transition-all duration-300 group">
-        <div>
-          <div class="mb-5">
-            <span class="px-3 py-1 rounded-full bg-[#F3F8FF] text-xs font-bold text-[#102A56] border border-[#CFE2FA] inline-block transition-transform group-hover:scale-105 shadow-2xs">
-              {$plansStore.byok.badge}
-            </span>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-[#102A56] mt-3 tracking-tight group-hover:text-[#1677FF] transition-colors">
-              {$plansStore.byok.name}
-            </h2>
-            <div class="flex items-baseline gap-1 mt-2">
-              <span class="text-3xl sm:text-4xl font-extrabold animated-price-title">
-                BDT {billingInterval === 'yearly' ? $plansStore.byok.yearlyMonthlyPrice : $plansStore.byok.monthlyPrice}
-              </span>
-              <span class="text-sm font-semibold text-[#4B6382]">/mo</span>
-            </div>
-            {#if billingInterval === 'yearly'}
-              <p class="text-xs text-[#4B6382] mt-1 font-medium">Billed annually (BDT {$plansStore.byok.yearlyTotal.toLocaleString()}/yr)</p>
-            {/if}
-          </div>
-
-          <p class="text-xs text-[#4B6382] mb-6 leading-relaxed">
-            {$plansStore.byok.description}
-          </p>
-
-          <ul class="space-y-3 text-xs text-[#102A56]">
-            {#each $plansStore.byok.features as feature}
-              <li class="flex items-center gap-2.5 group/item transition-transform duration-200 hover:translate-x-1.5">
-                <span class="w-5 h-5 rounded-full bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] shrink-0 group-hover/item:border-[#1677FF] group-hover/item:bg-[#1677FF]/10 transition-colors shadow-2xs">
-                  <Icon name="Check" size={12} class="text-[#1677FF]" />
-                </span>
-                <span class="text-[#102A56] group-hover/item:text-[#1677FF] transition-colors leading-snug">{feature}</span>
-              </li>
-            {/each}
-          </ul>
-        </div>
-
-        <button
-          onclick={() => handleSubscribe('byok')}
-          disabled={isProcessing}
-          class="mt-8 w-full py-4 rounded-xl btn-navy text-xs uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
-        >
-          {#if isProcessing && activeTierProcessing === 'byok'}
-            <Icon name="Loader2" size={14} class="animate-spin" />
-            <span>Connecting...</span>
-          {:else}
-            <Icon name="CreditCard" size={14} />
-            <span>Subscribe with OPay</span>
-          {/if}
-        </button>
-      </div>
-
-      <!-- PLAN 2: ALL-INCLUSIVE MANAGED (Featured) -->
-      <div class="rounded-3xl bg-white/90 backdrop-blur-md border-2 border-[#1677FF] p-6 sm:p-8 flex flex-col justify-between relative shadow-[0_10px_35px_rgba(22,119,255,0.15)] hover:shadow-[0_20px_50px_rgba(22,119,255,0.25)] md:scale-[1.01] transition-all duration-300 group">
-        {#if $plansStore.managed.highlightBadge}
-          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#1677FF] via-[#38CFFF] to-[#1677FF] text-white text-[11px] font-black uppercase tracking-wider shadow-[0_0_18px_rgba(22,119,255,0.6)] whitespace-nowrap animated-highlight-badge">
-            {$plansStore.managed.highlightBadge}
-          </div>
-        {/if}
-
-        <div>
-          <div class="mb-5">
-            <span class="ui-badge-primary px-3 py-1 rounded-full text-xs font-bold inline-block transition-transform group-hover:scale-105">
-              {$plansStore.managed.badge}
-            </span>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-[#102A56] mt-3 tracking-tight group-hover:text-[#1677FF] transition-colors">
-              {$plansStore.managed.name}
-            </h2>
-            <div class="flex items-baseline gap-1 mt-2">
-              <span class="text-3xl sm:text-4xl font-extrabold animated-price-title">
-                BDT {billingInterval === 'yearly' ? $plansStore.managed.yearlyMonthlyPrice : $plansStore.managed.monthlyPrice}
-              </span>
-              <span class="text-sm font-semibold text-[#4B6382]">/mo</span>
-            </div>
-            {#if billingInterval === 'yearly'}
-              <p class="text-xs text-[#4B6382] mt-1 font-medium">Billed annually (BDT {$plansStore.managed.yearlyTotal.toLocaleString()}/yr)</p>
-            {/if}
-          </div>
-
-          <p class="text-xs text-[#4B6382] mb-6 leading-relaxed">
-            {$plansStore.managed.description}
-          </p>
-
-          <ul class="space-y-3 text-xs text-[#102A56]">
-            {#each $plansStore.managed.features as feature}
-              <li class="flex items-center gap-2.5 group/item transition-transform duration-200 hover:translate-x-1.5">
-                <span class="w-5 h-5 rounded-full bg-[#1677FF]/10 border border-[#1677FF]/30 flex items-center justify-center text-[#1677FF] shrink-0 group-hover/item:bg-[#1677FF] group-hover/item:text-white transition-colors shadow-2xs">
-                  <Icon name="Check" size={12} class="currentColor" />
-                </span>
-                <span class="font-semibold text-[#102A56] group-hover/item:text-[#1677FF] transition-colors leading-snug">{feature}</span>
-              </li>
-            {/each}
-          </ul>
-        </div>
-
-        <button
-          onclick={() => handleSubscribe('managed')}
-          disabled={isProcessing}
-          class="mt-8 w-full py-4 rounded-xl blue-btn text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98]"
-        >
-          {#if isProcessing && activeTierProcessing === 'managed'}
-            <Icon name="Loader2" size={14} class="animate-spin" />
-            <span>Connecting...</span>
-          {:else}
-            <Icon name="Zap" size={14} />
-            <span>Subscribe All-Inclusive</span>
-          {/if}
-        </button>
-      </div>
-    </div>
+    <!-- 3-Tier Dynamic Pricing Grid -->
+    <PricingCardsGrid
+      context="plans"
+      bind:selectedInterval={billingInterval}
+      onSelectPlan={(tier) => handleSubscribe(tier)}
+      isProcessing={isProcessing}
+      activeTierProcessing={activeTierProcessing}
+    />
 
     <!-- Security & Trust Footer -->
     <div class="mt-12 text-center text-xs text-[#4B6382] space-y-3">
@@ -443,18 +323,5 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: textShimmer 6s ease-in-out infinite;
-  }
-
-  .animated-price-title {
-    background: linear-gradient(135deg, #102A56 0%, #1677FF 45%, #38CFFF 100%);
-    background-size: 200% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: textShimmer 5s ease-in-out infinite;
-  }
-
-  .animated-highlight-badge {
-    animation: badgePulse 3s ease-in-out infinite;
   }
 </style>
