@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
+  import BrandIcon from '$lib/components/BrandIcon.svelte';
   import {
     TOOL_CONNECTOR_CATEGORIES,
     TOOL_CONNECTORS,
@@ -266,8 +267,8 @@
           <div class="space-y-3">
             <!-- Header Row: Icon + Status Pill -->
             <div class="flex items-start justify-between gap-3">
-              <div class="w-11 h-11 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] group-hover:scale-105 group-hover:bg-[#1677FF] group-hover:text-white transition-all shadow-2xs shrink-0">
-                <Icon name={tool.icon} size={20} />
+              <div class="w-11 h-11 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] group-hover:scale-105 transition-all shadow-2xs shrink-0">
+                <BrandIcon name={tool.name} modelId={tool.id} icon={tool.icon} size={24} />
               </div>
 
               <!-- Live Status Pill (Connected vs Configure) -->
@@ -339,7 +340,7 @@
       <div class="px-6 py-5 border-b border-[#E3ECF7] bg-[#F8FAFC] flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] shrink-0">
-            <Icon name={activeModalTool.icon} size={20} />
+            <BrandIcon name={activeModalTool.name} modelId={activeModalTool.id} icon={activeModalTool.icon} size={22} />
           </div>
           <div>
             <h3 id="modal-tool-title" class="text-base font-bold text-[#102A56]">

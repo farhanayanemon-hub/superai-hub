@@ -2,48 +2,58 @@
   let {
     name = '',
     modelId = '',
+    icon = '',
     size = 20,
     class: className = ''
   } = $props<{
     name?: string;
     modelId?: string;
+    icon?: string;
     size?: number;
     class?: string;
   }>();
 
-  // Deduce brand from name or modelId prefix (e.g. "meta-llama/...", "google/...", "deepseek/...")
+  // Deduce brand from name, modelId, or icon string
   const resolvedBrand = $derived.by(() => {
-    const raw = (name || '').toLowerCase().trim();
-    if (raw) {
-      if (raw.includes('whatsapp')) return 'whatsapp';
-      if (raw.includes('telegram')) return 'telegram';
-      if (raw.includes('gemini') || raw.includes('google')) return 'gemini';
-      if (raw.includes('openrouter')) return 'openrouter';
-      if (raw.includes('openai') || raw.includes('gpt') || raw.includes('chatgpt')) return 'openai';
-      if (raw.includes('claude') || raw.includes('anthropic')) return 'anthropic';
-      if (raw.includes('deepseek')) return 'deepseek';
-      if (raw.includes('grok') || raw.includes('xai') || raw.includes('x-ai')) return 'grok';
-      if (raw.includes('llama') || raw.includes('meta')) return 'meta';
-      if (raw.includes('mistral') || raw.includes('mixtral')) return 'mistral';
-      if (raw.includes('cohere')) return 'cohere';
-      if (raw.includes('replicate') || raw.includes('flux')) return 'replicate';
-      if (raw.includes('qwen') || raw.includes('alibaba')) return 'qwen';
-      return raw;
-    }
+    const raw = ((name || '') + ' ' + (modelId || '') + ' ' + (icon || '')).toLowerCase().trim();
 
-    const m = (modelId || '').toLowerCase().trim();
-    if (m.includes('whatsapp')) return 'whatsapp';
-    if (m.includes('telegram')) return 'telegram';
-    if (m.startsWith('google/') || m.includes('gemini')) return 'gemini';
-    if (m.startsWith('meta-llama/') || m.includes('llama') || m.startsWith('meta/')) return 'meta';
-    if (m.startsWith('openai/') || m.includes('gpt-')) return 'openai';
-    if (m.startsWith('anthropic/') || m.includes('claude')) return 'anthropic';
-    if (m.startsWith('deepseek/') || m.includes('deepseek')) return 'deepseek';
-    if (m.startsWith('x-ai/') || m.includes('grok')) return 'grok';
-    if (m.startsWith('mistralai/') || m.includes('mistral') || m.includes('mixtral')) return 'mistral';
-    if (m.startsWith('cohere/')) return 'cohere';
-    if (m.startsWith('qwen/')) return 'qwen';
-    if (m.includes('flux') || m.startsWith('black-forest-labs/') || m.includes('replicate')) return 'replicate';
+    if (raw.includes('sheet')) return 'sheets';
+    if (raw.includes('docs') || raw.includes('google doc')) return 'docs';
+    if (raw.includes('drive')) return 'drive';
+    if (raw.includes('gmail') || raw.includes('email') || raw.includes('newsletter') || raw.includes('mail')) return 'gmail';
+    if (raw.includes('calendar')) return 'calendar';
+    if (raw.includes('slides') || raw.includes('presentation')) return 'slides';
+    if (raw.includes('youtube')) return 'youtube';
+    if (raw.includes('whatsapp')) return 'whatsapp';
+    if (raw.includes('telegram')) return 'telegram';
+    if (raw.includes('instagram')) return 'instagram';
+    if (raw.includes('facebook') || (raw.includes('meta') && !raw.includes('meta-llama') && !raw.includes('llama'))) return 'facebook';
+    if (raw.includes('tiktok')) return 'tiktok';
+    if (raw.includes('linkedin')) return 'linkedin';
+    if (raw.includes('slack')) return 'slack';
+    if (raw.includes('discord')) return 'discord';
+    if (raw.includes('shopify')) return 'shopify';
+    if (raw.includes('stripe')) return 'stripe';
+    if (raw.includes('hubspot')) return 'hubspot';
+    if (raw.includes('notion')) return 'notion';
+    if (raw.includes('mailchimp')) return 'mailchimp';
+    if (raw.includes('github')) return 'github';
+    if (raw.includes('midjourney')) return 'midjourney';
+
+    if (raw.includes('gemini') || raw.startsWith('google/') || raw.includes('google')) return 'gemini';
+    if (raw.includes('openrouter')) return 'openrouter';
+    if (raw.includes('openai') || raw.includes('gpt') || raw.includes('chatgpt')) return 'openai';
+    if (raw.includes('claude') || raw.includes('anthropic')) return 'anthropic';
+    if (raw.includes('deepseek')) return 'deepseek';
+    if (raw.includes('grok') || raw.includes('xai') || raw.includes('x-ai')) return 'grok';
+    if (raw.includes('llama') || raw.includes('meta')) return 'meta';
+    if (raw.includes('mistral') || raw.includes('mixtral')) return 'mistral';
+    if (raw.includes('cohere')) return 'cohere';
+    if (raw.includes('replicate') || raw.includes('flux')) return 'replicate';
+    if (raw.includes('qwen') || raw.includes('alibaba')) return 'qwen';
+
+    if (raw.includes('trigger') || raw.includes('zap') || raw.includes('webhook') || raw.includes('button')) return 'trigger';
+    if (raw.includes('agent') || raw.includes('bot') || raw.includes('reasoning') || raw.includes('specialist') || raw.includes('ceo')) return 'agent';
 
     return 'generic';
   });
@@ -52,7 +62,163 @@
   const uid = Math.random().toString(36).substring(2, 8);
 </script>
 
-{#if resolvedBrand === 'gemini'}
+{#if resolvedBrand === 'sheets'}
+  <!-- Official Google Sheets Authentic Brand Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google Sheets">
+    <rect width="24" height="24" rx="5" fill="#0F9D58"/>
+    <path fill="#FFFFFF" d="M7 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zm1.5 2v3h7V8h-7zm0 4.5v3.5h3.2v-3.5H8.5zm4.8 0v3.5h2.2v-3.5h-2.2z"/>
+  </svg>
+
+{:else if resolvedBrand === 'docs'}
+  <!-- Official Google Docs Authentic Brand Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google Docs">
+    <rect width="24" height="24" rx="5" fill="#4285F4"/>
+    <path fill="#FFFFFF" d="M8 7h8v1.8H8zm0 3.6h8v1.8H8zm0 3.6h5v1.8H8z"/>
+  </svg>
+
+{:else if resolvedBrand === 'drive'}
+  <!-- Official Google Drive Authentic Polygon Icon -->
+  <svg viewBox="0 0 87.3 78" width={size} height={size} class={className} aria-label="Google Drive">
+    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+    <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
+    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.2z" fill="#ea4335"/>
+    <path d="M43.65 25h27.5l-13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2-1.55 0-3.1.4-4.45 1.2z" fill="#00832d"/>
+    <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.45 1.2h51.05c1.55 0 3.1-.4 4.45-1.2z" fill="#2684fc"/>
+    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.15 28H87.3c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+  </svg>
+
+{:else if resolvedBrand === 'gmail'}
+  <!-- Official Gmail Brand Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Gmail">
+    <rect width="24" height="24" rx="5" fill="#FFFFFF" stroke="#E2E8F0"/>
+    <path fill="#4285F4" d="M4 6.5C4 5.7 4.7 5 5.5 5h1.2l5.3 4.2L17.3 5h1.2c.8 0 1.5.7 1.5 1.5v11c0 .8-.7 1.5-1.5 1.5H16V9.8l-4 3.1-4-3.1V19H5.5C4.7 19 4 18.3 4 17.5v-11z"/>
+    <path fill="#EA4335" d="M18.5 5L12 10.2 5.5 5h13z"/>
+  </svg>
+
+{:else if resolvedBrand === 'youtube'}
+  <!-- Official YouTube Brand Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="YouTube">
+    <path fill="#FF0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+  </svg>
+
+{:else if resolvedBrand === 'instagram'}
+  <!-- Official Instagram Gradient Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Instagram">
+    <defs>
+      <linearGradient id="ig-grad-{uid}" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#FFD600"/>
+        <stop offset="25%" stop-color="#FF7A00"/>
+        <stop offset="50%" stop-color="#FF0069"/>
+        <stop offset="75%" stop-color="#D300C5"/>
+        <stop offset="100%" stop-color="#7638FA"/>
+      </linearGradient>
+    </defs>
+    <rect width="24" height="24" rx="6" fill="url(#ig-grad-{uid})"/>
+    <path fill="#FFFFFF" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zm5.2-8.4a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0zm2.8 2.6c-.1-1.3-.4-2.5-1.3-3.4-.9-.9-2.1-1.2-3.4-1.3C13.9 4.6 10.1 4.6 8.7 4.7c-1.3.1-2.5.4-3.4 1.3-.9.9-1.2 2.1-1.3 3.4-.1 1.4-.1 5.2 0 6.6.1 1.3.4 2.5 1.3 3.4.9.9 2.1 1.2 3.4 1.3 1.4.1 5.2.1 6.6 0 1.3-.1 2.5-.4 3.4-1.3.9-.9 1.2-2.1 1.3-3.4.1-1.4.1-5.2 0-6.6zM18.8 17c-.3.7-.8 1.2-1.5 1.5-1.1.4-3.6.3-5.3.3s-4.2.1-5.3-.3c-.7-.3-1.2-.8-1.5-1.5-.4-1.1-.3-3.6-.3-5.3s-.1-4.2.3-5.3c.3-.7.8-1.2 1.5-1.5 1.1-.4 3.6-.3 5.3-.3s4.2-.1 5.3.3c.7.3 1.2.8 1.5 1.5.4 1.1.3 3.6.3 5.3s.1 4.2-.3 5.3z"/>
+  </svg>
+
+{:else if resolvedBrand === 'facebook'}
+  <!-- Official Facebook Circle Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Facebook">
+    <circle cx="12" cy="12" r="12" fill="#1877F2"/>
+    <path fill="#FFFFFF" d="M14.5 12h-2v7h-3v-7h-1.5V9.5H9.5V8.2c0-1.6.7-2.6 2.6-2.6h1.9v2.4h-1.2c-.8 0-.9.4-.9.9v1.1h2.2L14.5 12z"/>
+  </svg>
+
+{:else if resolvedBrand === 'tiktok'}
+  <!-- Official TikTok Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="TikTok">
+    <rect width="24" height="24" rx="5" fill="#000000"/>
+    <path fill="#25F4EE" d="M16.5 7.5a4.5 4.5 0 0 1-3.5-3.5h-2.5v11a2.5 2.5 0 1 1-2.5-2.5c.3 0 .7.1 1 .2V10a5 5 0 1 0 4 4.9V8.8a6.9 6.9 0 0 0 3.5 1.1v-2.4z"/>
+    <path fill="#FE2C55" d="M17 7a4.5 4.5 0 0 1-3.5-3.5h-2v11a2.5 2.5 0 1 1-2.5-2.5c.3 0 .7.1 1 .2V9.8a5 5 0 1 0 4 4.9V8.3a6.9 6.9 0 0 0 3.5 1.1V7z"/>
+    <path fill="#FFFFFF" d="M16.7 7.2a4.5 4.5 0 0 1-3.5-3.5h-2.2v11a2.5 2.5 0 1 1-2.5-2.5c.3 0 .7.1 1 .2V10a5 5 0 1 0 4 4.9V8.5a6.9 6.9 0 0 0 3.5 1.1v-2.4z"/>
+  </svg>
+
+{:else if resolvedBrand === 'linkedin'}
+  <!-- Official LinkedIn Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="LinkedIn">
+    <rect width="24" height="24" rx="4.5" fill="#0A66C2"/>
+    <path fill="#FFFFFF" d="M7.3 9h2.3v7.5H7.3V9zm1.2-3.8c.8 0 1.4.6 1.4 1.4 0 .8-.6 1.4-1.4 1.4-.8 0-1.4-.6-1.4-1.4 0-.8.6-1.4 1.4-1.4zM11.2 9h2.2v1h.1c.3-.6 1.1-1.2 2.2-1.2 2.4 0 2.8 1.6 2.8 3.6V16.5h-2.3v-3.5c0-.8 0-1.9-1.2-1.9s-1.4.9-1.4 1.8v3.6h-2.3V9z"/>
+  </svg>
+
+{:else if resolvedBrand === 'slack'}
+  <!-- Official Slack Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Slack">
+    <path fill="#E01E5A" d="M6 10.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm1.5-1.5a1.5 1.5 0 0 1 1.5 1.5v3.5a1.5 1.5 0 1 1-3 0V10.5a1.5 1.5 0 0 1 1.5-1.5z"/>
+    <path fill="#36C5F0" d="M13.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm-1.5 1.5a1.5 1.5 0 0 1 1.5-1.5h3.5a1.5 1.5 0 0 1 0 3H13.5a1.5 1.5 0 0 1-1.5-1.5z"/>
+    <path fill="#2EB67D" d="M18 13.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm-1.5 1.5a1.5 1.5 0 0 1-1.5-1.5V10a1.5 1.5 0 1 1 3 0v3.5a1.5 1.5 0 0 1-1.5 1.5z"/>
+    <path fill="#ECB22E" d="M10.5 18a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm1.5-1.5a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1 0-3h3.5a1.5 1.5 0 0 1 1.5 1.5z"/>
+  </svg>
+
+{:else if resolvedBrand === 'shopify'}
+  <!-- Official Shopify Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Shopify">
+    <path fill="#95BF47" d="M19.7 5.7c-.1-.3-.3-.4-.5-.4l-2.6-.3-1.7-1.7c-.2-.2-.5-.3-.7-.2l-1.3.4c-.4-.9-1-1.7-1.9-2.2C10 .6 8.7.6 7.6 1.3c-1.5 1-2.3 2.8-2.3 4.7 0 .3 0 .7.1 1L2 8.3c-.3.1-.5.4-.5.7l1.8 13.1c.1.5.5.9 1 .9h15.4c.5 0 .9-.4 1-.9l1.8-15.5c.1-.4 0-.7-.2-.9zM9 3.5c.7-.5 1.6-.5 2.2 0 .5.4.8 1 1 1.8L8.6 6.5C8.8 5.2 9.2 4.2 9 3.5zm2.8 11.2c-.4.2-1.3.4-1.9.4-1.6 0-2.4-.8-2.4-1.8 0-1.6 1.8-2.2 3.5-2.5v-.5c0-.8-.5-1.2-1.4-1.2-.7 0-1.4.3-1.9.6l-.4-.8c.7-.4 1.6-.7 2.6-.7 1.6 0 2.4.9 2.4 2.2v3.7c0 .5.1 1 .2 1.3h-1.2l-.2-.7zm0-2.8c-1.1.2-2.1.6-2.1 1.4 0 .6.4 1 1.2 1 .4 0 .8-.1 1-.3v-2.1z"/>
+  </svg>
+
+{:else if resolvedBrand === 'stripe'}
+  <!-- Official Stripe Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Stripe">
+    <rect width="24" height="24" rx="4.5" fill="#635BFF"/>
+    <path fill="#FFFFFF" d="M13.8 9.8c0-.7-.6-1.1-1.6-1.1-1.4 0-3 .5-4.2 1.2l-.6-2.3c1.4-.7 3.3-1.1 5.1-1.1 3.5 0 5.6 1.7 5.6 4.7 0 4.6-6.2 3.9-6.2 5.8 0 .8.7 1.2 1.8 1.2 1.7 0 3.6-.7 4.7-1.5l.6 2.3c-1.4.9-3.4 1.4-5.5 1.4-3.6 0-5.9-1.8-5.9-4.8 0-4.8 6.2-4.1 6.2-5.8z"/>
+  </svg>
+
+{:else if resolvedBrand === 'hubspot'}
+  <!-- Official HubSpot Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="HubSpot">
+    <circle cx="12" cy="12" r="12" fill="#FF7A59"/>
+    <path fill="#FFFFFF" d="M16.5 10.5V8.8a1.8 1.8 0 1 0-1.8 1.8v1.4a4.4 4.4 0 0 0-2.3 1.1l-4-3.1a1.8 1.8 0 1 0-1.1 1.4l3.9 3a4.5 4.5 0 0 0-.2 1.4 4.5 4.5 0 1 0 4.5-4.5c-.3 0-.7 0-1 .1v-1.4a4.4 4.4 0 0 0 2-.9zm-6.2 6.8a2.3 2.3 0 1 1 2.3-2.3 2.3 2.3 0 0 1-2.3 2.3z"/>
+  </svg>
+
+{:else if resolvedBrand === 'notion'}
+  <!-- Official Notion Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Notion">
+    <rect width="24" height="24" rx="4.5" fill="#000000"/>
+    <path fill="#FFFFFF" d="M5.5 5.5v13h2.6l6.3-8.8v7.8h2.6v-13h-2.6l-6.3 8.8V5.5H5.5z"/>
+  </svg>
+
+{:else if resolvedBrand === 'discord'}
+  <!-- Official Discord Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Discord">
+    <rect width="24" height="24" rx="5" fill="#5865F2"/>
+    <path fill="#FFFFFF" d="M18.2 6.8a14.8 14.8 0 0 0-3.7-1.1.2.2 0 0 0-.2.1c-.2.3-.3.7-.5 1-1.3-.2-2.7-.2-4 0-.2-.3-.3-.7-.5-1a.2.2 0 0 0-.2-.1 14.8 14.8 0 0 0-3.7 1.1.2.2 0 0 0-.1.1C3.2 10.5 2.6 14 3.7 17.5a.2.2 0 0 0 .1.1 14.9 14.9 0 0 0 4.5 2.3.2.2 0 0 0 .2-.1c.3-.5.7-1 1-1.5a.2.2 0 0 0-.1-.2 9.8 9.8 0 0 1-1.4-.7.2.2 0 0 1 0-.3c.1-.1.2-.1.3-.2 2.9 1.3 6 1.3 8.8 0 .1.1.2.1.3.2a.2.2 0 0 1 0 .3c-.4.3-.9.5-1.4.7a.2.2 0 0 0-.1.2c.3.5.7 1 1 1.5a.2.2 0 0 0 .2.1 14.9 14.9 0 0 0 4.5-2.3.2.2 0 0 0 .1-.1c1.2-3.8.5-7.3-1.6-10.6a.2.2 0 0 0-.1-.1zM9.5 14.6c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7c.9 0 1.6.8 1.5 1.7 0 1-.7 1.7-1.5 1.7zm5 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7c.9 0 1.6.8 1.5 1.7 0 1-.7 1.7-1.5 1.7z"/>
+  </svg>
+
+{:else if resolvedBrand === 'github'}
+  <!-- Official GitHub Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="GitHub">
+    <circle cx="12" cy="12" r="12" fill="#181717"/>
+    <path fill="#FFFFFF" fill-rule="evenodd" d="M12 4.4a7.6 7.6 0 0 0-2.4 14.8c.4.1.5-.2.5-.4v-1.4c-2.1.5-2.6-.9-2.6-.9-.3-.9-.8-1.1-.8-1.1-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.2 1.8.8 2.2.6.1-.5.3-.8.5-1-1.7-.2-3.5-.9-3.5-3.8 0-.8.3-1.5.8-2-.1-.2-.4-1 .1-2 0 0 .6-.2 2.1.8a7.3 7.3 0 0 1 3.8 0c1.5-1 2.1-.8 2.1-.8.5 1 .2 1.8.1 2 .5.6.8 1.2.8 2 0 3-1.8 3.6-3.5 3.8.3.3.6.8.6 1.7V19c0 .2.2.5.5.4A7.6 7.6 0 0 0 12 4.4z"/>
+  </svg>
+
+{:else if resolvedBrand === 'mailchimp'}
+  <!-- Official Mailchimp Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Mailchimp">
+    <rect width="24" height="24" rx="5" fill="#FFE01B"/>
+    <path fill="#241C15" d="M12 4.5c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5 7.5-3.4 7.5-7.5-3.4-7.5-7.5-7.5zm-2.8 5.8a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm5.6 0a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm-2.8 6.5c-2 0-3.3-1.1-3.6-2h7.2c-.3.9-1.6 2-3.6 2z"/>
+  </svg>
+
+{:else if resolvedBrand === 'midjourney'}
+  <!-- Official Midjourney Ship Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Midjourney">
+    <rect width="24" height="24" rx="5" fill="#0D0F1A"/>
+    <path fill="#FFFFFF" d="M12 4.5l1.6 4.7 4.9.4-3.7 3.3 1.1 4.8L12 15.2l-3.9 2.5 1.1-4.8-3.7-3.3 4.9-.4L12 4.5z"/>
+  </svg>
+
+{:else if resolvedBrand === 'trigger'}
+  <!-- Workflow Trigger Zap Badge -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Trigger">
+    <rect width="24" height="24" rx="5" fill="#F59E0B"/>
+    <path fill="#FFFFFF" d="M13 3L4 14h7v7l9-11h-7V3z"/>
+  </svg>
+
+{:else if resolvedBrand === 'agent'}
+  <!-- Autonomous AI Agent Specialist Badge -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="AI Specialist">
+    <rect width="24" height="24" rx="5" fill="#1677FF"/>
+    <path fill="#FFFFFF" d="M12 2a2 2 0 0 1 2 2c0 .7-.4 1.4-1 1.7V7h3a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-7a3 3 0 0 1 3-3h3V5.7c-.6-.3-1-1-1-1.7a2 2 0 0 1 2-2zm-3 9a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm6 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-6 5h6v1H9v-1z"/>
+  </svg>
+
+{:else if resolvedBrand === 'gemini'}
   <!-- Official Google Gemini Brand Sparkle with Authentic Corporate Gradient -->
   <svg
     viewBox="0 0 24 24"
@@ -77,7 +243,7 @@
   </svg>
 
 {:else if resolvedBrand === 'openrouter'}
-  <!-- Official OpenRouter Brand Gateway (logos:openrouter-icon) -->
+  <!-- Official OpenRouter Brand Gateway -->
   <svg
     viewBox="0 0 256 181"
     fill="none"
@@ -93,7 +259,7 @@
   </svg>
 
 {:else if resolvedBrand === 'openai'}
-  <!-- Official OpenAI Rosette Spiral (logos:openai-icon) -->
+  <!-- Official OpenAI Rosette Spiral -->
   <svg
     viewBox="0 0 256 260"
     fill="none"
@@ -109,7 +275,7 @@
   </svg>
 
 {:else if resolvedBrand === 'anthropic'}
-  <!-- Official Anthropic Claude Starburst (logos:claude-icon) -->
+  <!-- Official Anthropic Claude Starburst -->
   <svg
     viewBox="0 0 256 257"
     fill="none"
@@ -125,7 +291,7 @@
   </svg>
 
 {:else if resolvedBrand === 'deepseek'}
-  <!-- Official DeepSeek Whale (logos:deepseek-icon) -->
+  <!-- Official DeepSeek Whale -->
   <svg
     viewBox="0 0 256 189"
     fill="none"
@@ -141,7 +307,7 @@
   </svg>
 
 {:else if resolvedBrand === 'grok'}
-  <!-- Official xAI Grok Mathematical Slash-X (logos:x) -->
+  <!-- Official xAI Grok Mathematical Slash-X -->
   <svg
     viewBox="0 0 251 256"
     fill="currentColor"
@@ -156,14 +322,14 @@
   </svg>
 
 {:else if resolvedBrand === 'meta'}
-  <!-- Official Meta Infinity Loop with Exact Corporate Gradients (logos:meta-icon) -->
+  <!-- Official Meta Infinity Loop -->
   <svg
     viewBox="0 0 256 171"
     fill="none"
     width={size}
     height={size}
     class={className}
-    aria-label="Meta Llama"
+    aria-label="Meta"
   >
     <defs>
       <linearGradient id="meta-grad-1-{uid}" x1="13.878%" x2="89.144%" y1="55.934%" y2="58.694%">
@@ -192,7 +358,7 @@
   </svg>
 
 {:else if resolvedBrand === 'mistral'}
-  <!-- Official Mistral AI Pixel Steps with Corporate Spectrum (logos:mistral-ai-icon) -->
+  <!-- Official Mistral AI Pixel Steps -->
   <svg
     viewBox="0 0 256 233"
     fill="none"
@@ -220,7 +386,7 @@
   </svg>
 
 {:else if resolvedBrand === 'cohere'}
-  <!-- Official Cohere Multi-Colored Organic Mark (thesvg-color:cohere) -->
+  <!-- Official Cohere Multi-Colored Organic Mark -->
   <svg
     viewBox="0 0 75 75"
     fill="none"
@@ -246,7 +412,7 @@
   </svg>
 
 {:else if resolvedBrand === 'qwen'}
-  <!-- Official Qwen Brand Interlocking Prism (simple-icons:qwen) -->
+  <!-- Official Qwen Brand Interlocking Prism -->
   <svg
     viewBox="0 0 24 24"
     fill="currentColor"
@@ -261,7 +427,7 @@
   </svg>
 
 {:else if resolvedBrand === 'replicate'}
-  <!-- Official Replicate Terminal Stepped Blocks (simple-icons:replicate) -->
+  <!-- Official Replicate Terminal Stepped Blocks -->
   <svg
     viewBox="0 0 24 24"
     fill="currentColor"
