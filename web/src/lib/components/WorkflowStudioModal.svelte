@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Action } from 'svelte/action';
   import Icon from '$lib/components/Icon.svelte';
   import BrandIcon from '$lib/components/BrandIcon.svelte';
   import { TOOL_CONNECTORS, type ToolConnector } from '$lib/config/toolConnectors';
@@ -35,6 +36,18 @@
   let paletteSearch = $state('');
   let selectedNode = $state<WorkflowNode | null>(null);
   let saveFeedbackMessage = $state('');
+
+  let canvasContainer = $state<HTMLDivElement | null>(null);
+  let activeConnectingSource = $state<string | null>(null);
+  let liveCablePointer = $state<{ x: number; y: number } | null>(null);
+  let isDraggingWire = $state(false);
+  let hasMovedWire = $state(false);
+  let wireDragStart = $state<{ x: number; y: number } | null>(null);
+  let wasAlreadyActive = $state(false);
+  let hoveredCable = $state<string | null>(null);
+  let hoveredInPortNodeId = $state<string | null>(null);
+  let nodeHeights = $state<Record<string, number>>({});
+  let portOffsets = $state<Record<string, { inX: number; inY: number; outX: number; outY: number }>>({});
 
   const DEFAULT_NODES: WorkflowNode[] = [
     {
@@ -92,6 +105,13 @@
     return cur ? cables.filter((c) => c.from === cur.id) : [];
   });
 
+  const selectedIncomingCables = $derived.by(() => {
+    const cur = selectedNode;
+    return cur ? cables.filter((c) => c.to === cur.id) : [];
+  });
+
+  let movedWireTimer: any = null;
+
   // Load custom saved workflows for this agent when opened
   $effect(() => {
     if (isOpen && typeof window !== 'undefined' && window.localStorage) {
@@ -111,17 +131,99 @@
       } catch (err) {
         console.warn('Failed to parse custom workflows:', err);
       }
+    } else if (!isOpen) {
+      cancelConnecting();
+      isDraggingNode = null;
+      hoveredCable = null;
+      hoveredInPortNodeId = null;
     }
   });
 
-  function computeBezierCurve(n1: WorkflowNode, n2: WorkflowNode): string {
-    const x1 = n1.x + 230;
-    const y1 = n1.y + 44;
-    const x2 = n2.x;
-    const y2 = n2.y + 44;
-    const dx = Math.max(60, Math.abs(x2 - x1) * 0.5);
-    return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+  function getCanvasCoordinates(e: { clientX: number; clientY: number }): { x: number; y: number } {
+    if (!canvasContainer) {
+      return { x: e.clientX / zoom - panX, y: e.clientY / zoom - panY };
+    }
+    const rect = canvasContainer.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / zoom - panX,
+      y: (e.clientY - rect.top) / zoom - panY
+    };
   }
+
+  function getOutPortPos(node: WorkflowNode): { x: number; y: number } {
+    const offset = portOffsets[node.id];
+    const h = nodeHeights[node.id] || (node.prompt ? 134 : 94);
+    const x = offset && offset.outX > 0 ? node.x + offset.outX : node.x + 209;
+    const y = nodeHeights[node.id] ? node.y + nodeHeights[node.id] - 22 : (offset && offset.outY > 0 ? node.y + offset.outY : node.y + h - 22);
+    return { x, y };
+  }
+
+  function getInPortPos(node: WorkflowNode): { x: number; y: number } {
+    const offset = portOffsets[node.id];
+    const h = nodeHeights[node.id] || (node.prompt ? 134 : 94);
+    const x = offset && offset.inX > 0 ? node.x + offset.inX : node.x + 21;
+    const y = nodeHeights[node.id] ? node.y + nodeHeights[node.id] - 22 : (offset && offset.inY > 0 ? node.y + offset.inY : node.y + h - 22);
+    return { x, y };
+  }
+
+  function computeBezierCurveFromPoints(p1: { x: number; y: number }, p2: { x: number; y: number }): string {
+    const dx = Math.max(50, Math.abs(p2.x - p1.x) * 0.5);
+    return `M ${p1.x} ${p1.y} C ${p1.x + dx} ${p1.y}, ${p2.x - dx} ${p2.y}, ${p2.x} ${p2.y}`;
+  }
+
+  function computeBezierCurve(n1: WorkflowNode, n2: WorkflowNode): string {
+    const p1 = getOutPortPos(n1);
+    const p2 = getInPortPos(n2);
+    return computeBezierCurveFromPoints(p1, p2);
+  }
+
+  const registerPort: Action<HTMLElement, { id: string; type: 'in' | 'out' }> = (node, initialParams) => {
+    let params = initialParams;
+    let ro: ResizeObserver | null = null;
+
+    function measure() {
+      const card = node.closest('.workflow-node-card') as HTMLElement | null;
+      if (card) {
+        const cardRect = card.getBoundingClientRect();
+        const dotRect = node.getBoundingClientRect();
+        if (cardRect.width > 0 && zoom > 0) {
+          const relX = (dotRect.left + dotRect.width / 2 - cardRect.left) / zoom;
+          const relY = (dotRect.top + dotRect.height / 2 - cardRect.top) / zoom;
+          if (!portOffsets[params.id]) {
+            portOffsets[params.id] = { inX: 21, inY: 112, outX: 209, outY: 112 };
+          }
+          if (params.type === 'in') {
+            portOffsets[params.id].inX = Math.round(relX);
+            portOffsets[params.id].inY = Math.round(relY);
+          } else {
+            portOffsets[params.id].outX = Math.round(relX);
+            portOffsets[params.id].outY = Math.round(relY);
+          }
+        }
+      }
+    }
+
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => {
+        measure();
+        const card = node.closest('.workflow-node-card');
+        if (card && typeof ResizeObserver !== 'undefined') {
+          ro = new ResizeObserver(() => measure());
+          ro.observe(card);
+        }
+      });
+    }
+
+    return {
+      update(newParams) {
+        params = newParams;
+        measure();
+      },
+      destroy() {
+        if (ro) ro.disconnect();
+      }
+    };
+  };
 
   function handleZoomIn() {
     zoom = Math.min(2, +(zoom + 0.15).toFixed(2));
@@ -139,12 +241,19 @@
 
   function startDrag(nodeId: string, event: PointerEvent) {
     if (event.button !== 0 && event.pointerType === 'mouse') return;
+    if (activeConnectingSource) {
+      if (activeConnectingSource !== nodeId) {
+        return;
+      }
+      cancelConnecting();
+    }
     isDraggingNode = nodeId;
     const targetNode = nodes.find((n) => n.id === nodeId);
     if (!targetNode) return;
+    const canvasPos = getCanvasCoordinates(event);
     dragOffset = {
-      x: event.clientX / zoom - targetNode.x,
-      y: event.clientY / zoom - targetNode.y
+      x: canvasPos.x - targetNode.x,
+      y: canvasPos.y - targetNode.y
     };
     try {
       (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
@@ -152,12 +261,41 @@
   }
 
   function onPointerMove(event: PointerEvent) {
-    if (!isDraggingNode) return;
-    const targetNode = nodes.find((n) => n.id === isDraggingNode);
-    if (!targetNode) return;
-    targetNode.x = Math.max(20, Math.round(event.clientX / zoom - dragOffset.x));
-    targetNode.y = Math.max(20, Math.round(event.clientY / zoom - dragOffset.y));
-    nodes = [...nodes];
+    if (isDraggingNode) {
+      const targetNode = nodes.find((n) => n.id === isDraggingNode);
+      if (targetNode) {
+        const canvasPos = getCanvasCoordinates(event);
+        targetNode.x = Math.max(10, Math.round(canvasPos.x - dragOffset.x));
+        targetNode.y = Math.max(10, Math.round(canvasPos.y - dragOffset.y));
+        nodes = [...nodes];
+      }
+    }
+    if (isDraggingWire && activeConnectingSource) {
+      const mouseCanvasPos = getCanvasCoordinates(event);
+      const el = typeof document !== 'undefined' ? document.elementFromPoint(event.clientX, event.clientY) : null;
+      const targetInNodeId = el?.closest('[data-port-in]')?.getAttribute('data-port-in')
+        || el?.closest('[data-node-id]')?.getAttribute('data-node-id');
+
+      if (targetInNodeId && targetInNodeId !== activeConnectingSource) {
+        hoveredInPortNodeId = targetInNodeId;
+        const targetNode = nodes.find((n) => n.id === targetInNodeId);
+        if (targetNode) {
+          liveCablePointer = getInPortPos(targetNode);
+        } else {
+          liveCablePointer = mouseCanvasPos;
+        }
+      } else {
+        hoveredInPortNodeId = null;
+        liveCablePointer = mouseCanvasPos;
+      }
+
+      if (wireDragStart) {
+        const dist = Math.hypot(event.clientX - wireDragStart.x, event.clientY - wireDragStart.y);
+        if (dist > 5) {
+          hasMovedWire = true;
+        }
+      }
+    }
   }
 
   function stopDrag(event: PointerEvent) {
@@ -167,10 +305,119 @@
       } catch {}
       isDraggingNode = null;
     }
+    if (isDraggingWire) {
+      if (hasMovedWire && activeConnectingSource) {
+        const el = typeof document !== 'undefined' ? document.elementFromPoint(event.clientX, event.clientY) : null;
+        const targetInNodeId = el?.closest('[data-port-in]')?.getAttribute('data-port-in')
+          || el?.closest('[data-node-id]')?.getAttribute('data-node-id');
+        if (targetInNodeId && targetInNodeId !== activeConnectingSource) {
+          connectNodes(activeConnectingSource, targetInNodeId);
+        }
+        cancelConnecting(true);
+      } else {
+        // Tapped without dragging: keep beacon active for 1-click tap connection
+        isDraggingWire = false;
+        liveCablePointer = null;
+      }
+    }
+  }
+
+  function startConnecting(nodeId: string, event: PointerEvent) {
+    if (event.button !== 0 && event.pointerType === 'mouse') return;
+    event.stopPropagation();
+    wasAlreadyActive = activeConnectingSource === nodeId;
+    activeConnectingSource = nodeId;
+    wireDragStart = { x: event.clientX, y: event.clientY };
+    hasMovedWire = false;
+    isDraggingWire = true;
+    liveCablePointer = getCanvasCoordinates(event);
+  }
+
+  function cancelConnecting(keepMovedFlag = false) {
+    activeConnectingSource = null;
+    liveCablePointer = null;
+    isDraggingWire = false;
+    if (keepMovedFlag) {
+      if (movedWireTimer) clearTimeout(movedWireTimer);
+      movedWireTimer = setTimeout(() => {
+        hasMovedWire = false;
+      }, 100);
+    } else {
+      if (movedWireTimer) clearTimeout(movedWireTimer);
+      hasMovedWire = false;
+    }
+    wireDragStart = null;
+    hoveredInPortNodeId = null;
+    wasAlreadyActive = false;
+  }
+
+  function handleOutPortClick(nodeId: string, event: MouseEvent) {
+    event.stopPropagation();
+    if (event.detail > 0 && hasMovedWire) {
+      hasMovedWire = false;
+      return;
+    }
+    if (wasAlreadyActive || (event.detail === 0 && activeConnectingSource === nodeId)) {
+      cancelConnecting();
+    } else {
+      activeConnectingSource = nodeId;
+    }
+  }
+
+  function handleInPortClick(nodeId: string, event: MouseEvent) {
+    event.stopPropagation();
+    if (activeConnectingSource) {
+      if (activeConnectingSource !== nodeId) {
+        connectNodes(activeConnectingSource, nodeId);
+      }
+      cancelConnecting();
+    }
+  }
+
+  function handleInPortPointerUp(nodeId: string, event: PointerEvent) {
+    if (activeConnectingSource && activeConnectingSource !== nodeId) {
+      event.stopPropagation();
+      connectNodes(activeConnectingSource, nodeId);
+      cancelConnecting(true);
+    }
+  }
+
+  function handleNodeCardClick(node: WorkflowNode, event: MouseEvent) {
+    if (activeConnectingSource && activeConnectingSource !== node.id) {
+      connectNodes(activeConnectingSource, node.id);
+      cancelConnecting();
+      return;
+    }
+    selectedNode = node;
+  }
+
+  function onCanvasClick(e: MouseEvent) {
+    if (hoveredCable) {
+      hoveredCable = null;
+    }
+    if (activeConnectingSource) {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-port-in], [data-port-out], [data-node-id]')) {
+        cancelConnecting();
+      }
+    }
+  }
+
+  function handleWindowKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      if (activeConnectingSource) {
+        cancelConnecting();
+        e.stopPropagation();
+      } else if (selectedNode) {
+        selectedNode = null;
+      } else if (isPaletteOpen) {
+        isPaletteOpen = false;
+      }
+    }
   }
 
   function addNodeFromPalette(tool: ToolConnector) {
-    const newId = `node-${Date.now()}`;
+    const newId = `node-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const lastNode = nodes[nodes.length - 1];
     const newNode: WorkflowNode = {
       id: newId,
@@ -178,8 +425,8 @@
       title: tool.name,
       subtitle: tool.category,
       icon: tool.icon || 'Plug',
-      x: (lastNode ? lastNode.x : 300) + 260,
-      y: (lastNode ? lastNode.y : 180) + (Math.random() > 0.5 ? 50 : -50),
+      x: Math.max(20, (lastNode ? lastNode.x : 300) + 260),
+      y: Math.max(20, (lastNode ? lastNode.y : 180) + (Math.random() > 0.5 ? 50 : -50)),
       prompt: `Execute ${tool.name} action.`,
       config: { toolId: tool.id }
     };
@@ -192,7 +439,7 @@
   }
 
   function addCustomAgentNode() {
-    const newId = `node-agent-${Date.now()}`;
+    const newId = `node-agent-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const lastNode = nodes[nodes.length - 1];
     const newNode: WorkflowNode = {
       id: newId,
@@ -200,8 +447,8 @@
       title: 'Custom AI Agent',
       subtitle: 'Autonomous Sub-Specialist',
       icon: 'Bot',
-      x: (lastNode ? lastNode.x : 300) + 260,
-      y: (lastNode ? lastNode.y : 180),
+      x: Math.max(20, (lastNode ? lastNode.x : 300) + 260),
+      y: Math.max(20, (lastNode ? lastNode.y : 180)),
       prompt: 'Perform specialized sub-task autonomously.',
       config: { model: 'google/gemini-2.0-flash-exp:free' }
     };
@@ -214,7 +461,7 @@
   }
 
   function addTriggerNode(triggerType: string = 'Manual / WhatsApp') {
-    const newId = `node-trigger-${Date.now()}`;
+    const newId = `node-trigger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const newNode: WorkflowNode = {
       id: newId,
       type: 'trigger',
@@ -237,13 +484,27 @@
     if (selectedNode?.id === id) {
       selectedNode = null;
     }
+    if (isDraggingNode === id) {
+      isDraggingNode = null;
+    }
+    if (activeConnectingSource === id) {
+      cancelConnecting();
+    }
+    if (hoveredInPortNodeId === id) {
+      hoveredInPortNodeId = null;
+    }
+    if (hoveredCable && !cables.some((c) => `${c.from}->${c.to}` === hoveredCable)) {
+      hoveredCable = null;
+    }
+    delete portOffsets[id];
+    delete nodeHeights[id];
   }
 
   // Node Duplication: 1-click clone with offset
   function duplicateNode(id: string) {
     const orig = nodes.find((n) => n.id === id);
     if (!orig) return;
-    const newId = `node-${Date.now()}`;
+    const newId = `node-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const copy: WorkflowNode = {
       ...orig,
       id: newId,
@@ -306,6 +567,10 @@
       { from: nodes[1].id, to: nodes[3].id }
     ];
     selectedNode = null;
+    isDraggingNode = null;
+    hoveredCable = null;
+    hoveredInPortNodeId = null;
+    cancelConnecting();
   }
 
   function connectNodes(fromId: string, toId: string) {
@@ -318,6 +583,9 @@
 
   function disconnectCable(fromId: string, toId: string) {
     cables = cables.filter((c) => !(c.from === fromId && c.to === toId));
+    if (hoveredCable === `${fromId}->${toId}`) {
+      hoveredCable = null;
+    }
   }
 
   function changeSelectedTool(toolId: string) {
@@ -360,6 +628,13 @@
     }, 1200);
   }
 </script>
+
+<svelte:window
+  onpointermove={(e) => { if (isOpen && (isDraggingNode || isDraggingWire)) onPointerMove(e); }}
+  onpointerup={(e) => { if (isOpen) stopDrag(e); }}
+  onpointercancel={(e) => { if (isOpen) stopDrag(e); }}
+  onkeydown={(e) => { if (isOpen) handleWindowKeyDown(e); }}
+/>
 
 {#if isOpen}
   <div
@@ -464,14 +739,15 @@
 
     <!-- Main Studio Workspace with Interactive Canvas -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
-      class="flex-1 relative overflow-hidden bg-[#F8FAFC]"
-      onpointermove={onPointerMove}
-      onpointerup={stopDrag}
+      bind:this={canvasContainer}
+      class="flex-1 relative overflow-hidden bg-[#F8FAFC] touch-none"
+      onclick={onCanvasClick}
     >
       <!-- SVG Bézier Cables Layer -->
       <svg
-        class="absolute inset-0 w-full h-full pointer-events-none"
+        class="absolute inset-0 w-full h-full pointer-events-none z-0"
         style="transform: scale({zoom}) translate({panX}px, {panY}px); transform-origin: top left;"
       >
         <defs>
@@ -481,35 +757,150 @@
           </linearGradient>
         </defs>
 
-        {#each cables as cable}
+        {#each cables as cable (cable.from + '->' + cable.to)}
           {@const n1 = nodes.find((n) => n.id === cable.from)}
           {@const n2 = nodes.find((n) => n.id === cable.to)}
           {#if n1 && n2}
+            {@const p1 = getOutPortPos(n1)}
+            {@const p2 = getInPortPos(n2)}
+            {@const curve = computeBezierCurveFromPoints(p1, p2)}
+            {@const midX = (p1.x + p2.x) / 2}
+            {@const midY = (p1.y + p2.y) / 2}
+            {@const cableKey = `${cable.from}->${cable.to}`}
+            {@const isHovered = hoveredCable === cableKey}
+
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <g
+              class="group pointer-events-auto"
+              onpointerenter={() => (hoveredCable = cableKey)}
+              onpointerleave={() => {
+                if (hoveredCable === cableKey) hoveredCable = null;
+              }}
+            >
+              <!-- Wide invisible hover/hit-area path (24px) -->
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <path
+                d={curve}
+                fill="none"
+                stroke="transparent"
+                stroke-width="24"
+                class="cursor-pointer"
+                onclick={(e) => {
+                  e.stopPropagation();
+                  hoveredCable = isHovered ? null : cableKey;
+                }}
+              />
+
+              <!-- Hover Glow Underlay -->
+              {#if isHovered}
+                <path
+                  d={curve}
+                  fill="none"
+                  stroke="#38CFFF"
+                  stroke-width="8"
+                  stroke-opacity="0.35"
+                  class="blur-xs"
+                />
+              {/if}
+
+              <!-- Visible Connection Cable -->
+              <path
+                d={curve}
+                fill="none"
+                stroke="url(#cableGradient)"
+                stroke-width={isHovered ? 4 : 3}
+                stroke-linecap="round"
+                class="{isDraggingNode ? '!transition-none' : 'transition-[stroke-width,stroke] duration-150'} drop-shadow-xs"
+              />
+
+              <!-- Midpoint Disconnect Badge (✕) -->
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <g
+                role="button"
+                tabindex="0"
+                transform="translate({midX}, {midY})"
+                onclick={(e) => {
+                  e.stopPropagation();
+                  disconnectCable(cable.from, cable.to);
+                }}
+                onkeydown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    disconnectCable(cable.from, cable.to);
+                  }
+                }}
+                class="cursor-pointer {isDraggingNode ? '!transition-none' : 'transition-[opacity,transform] duration-150'} {isHovered ? 'opacity-100 scale-110' : 'opacity-0 group-hover:opacity-100 group-hover:scale-100 focus-visible:opacity-100 focus-visible:scale-110'} outline-none focus-visible:outline-2 focus-visible:outline-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 rounded-full group/badge"
+                aria-label="Disconnect connection between {n1.title} and {n2.title}"
+              >
+                <!-- Badge Background Circle -->
+                <circle
+                  r="11"
+                  class="fill-white stroke-slate-300 hover:stroke-rose-500 hover:fill-rose-50 group-focus-visible/badge:stroke-rose-500 group-focus-visible/badge:stroke-2 group-focus-visible/badge:fill-rose-50 drop-shadow-md transition-colors"
+                  stroke-width="1.5"
+                />
+                <!-- Disconnect ✕ Icon -->
+                <line x1="-3.5" y1="-3.5" x2="3.5" y2="3.5" stroke="#E11D48" stroke-width="2" stroke-linecap="round" />
+                <line x1="3.5" y1="-3.5" x2="-3.5" y2="3.5" stroke="#E11D48" stroke-width="2" stroke-linecap="round" />
+              </g>
+            </g>
+          {/if}
+        {/each}
+
+        <!-- Live glowing dragging wire -->
+        {#if isDraggingWire && activeConnectingSource && liveCablePointer}
+          {@const srcNode = nodes.find((n) => n.id === activeConnectingSource)}
+          {#if srcNode}
+            {@const p1 = getOutPortPos(srcNode)}
+            {@const liveCurve = computeBezierCurveFromPoints(p1, liveCablePointer)}
+            <!-- Glow Underlay -->
             <path
-              d={computeBezierCurve(n1, n2)}
+              d={liveCurve}
+              fill="none"
+              stroke="#38CFFF"
+              stroke-width="8"
+              stroke-opacity="0.4"
+              class="blur-xs"
+            />
+            <!-- Core Cable with animated pulse -->
+            <path
+              d={liveCurve}
               fill="none"
               stroke="url(#cableGradient)"
               stroke-width="3"
+              stroke-dasharray="8 4"
               stroke-linecap="round"
-              class="drop-shadow-xs"
+              class="animate-pulse drop-shadow-sm"
             />
+            <!-- Pinging Target Cursor Marker -->
+            <g transform="translate({liveCablePointer.x}, {liveCablePointer.y})">
+              <circle r="8" fill="#38CFFF" class="animate-ping opacity-60" />
+              <circle r="5" fill="#1677FF" stroke="#FFFFFF" stroke-width="2" class="drop-shadow-sm" />
+            </g>
           {/if}
-        {/each}
+        {/if}
       </svg>
 
       <!-- Draggable Nodes Canvas -->
       <div
-        class="absolute inset-0 w-full h-full"
+        class="absolute inset-0 w-full h-full z-10 pointer-events-none"
         style="transform: scale({zoom}) translate({panX}px, {panY}px); transform-origin: top left;"
       >
         {#each nodes as node (node.id)}
           <div
             role="button"
             tabindex="0"
+            data-node-id={node.id}
+            bind:clientHeight={nodeHeights[node.id]}
             onpointerdown={(e) => startDrag(node.id, e)}
-            onclick={() => (selectedNode = node)}
-            onkeydown={(e) => e.key === 'Enter' && (selectedNode = node)}
-            class="absolute w-[230px] rounded-2xl bg-white border shadow-md p-4 cursor-grab active:cursor-grabbing hover:border-[#1677FF] transition-all select-none {selectedNode?.id === node.id ? 'border-2 border-[#1677FF] ring-4 ring-[#1677FF]/15 shadow-xl' : 'border-[#CBD5E1]'}"
+            onclick={(e) => handleNodeCardClick(node, e)}
+            onkeydown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleNodeCardClick(node, e as any);
+              }
+            }}
+            class="workflow-node-card pointer-events-auto touch-none absolute w-[230px] rounded-2xl bg-white border p-4 select-none {isDraggingNode ? '!transition-none cursor-grabbing' : 'transition-[border-color,box-shadow,ring] duration-150 cursor-grab'} {isDraggingNode === node.id ? 'z-30 shadow-2xl ring-2 ring-[#1677FF]/40 border-[#1677FF]' : selectedNode?.id === node.id ? 'z-20 border-2 border-[#1677FF] ring-4 ring-[#1677FF]/15 shadow-xl' : 'z-10 border-[#CBD5E1] shadow-md hover:border-[#1677FF]'}"
             style="left: {node.x}px; top: {node.y}px;"
           >
             <!-- Node Header with Authentic Brand Icon -->
@@ -528,8 +919,9 @@
               <div class="flex items-center gap-0.5 shrink-0">
                 <button
                   type="button"
+                  onpointerdown={(e) => e.stopPropagation()}
                   onclick={(e) => { e.stopPropagation(); duplicateNode(node.id); }}
-                  class="p-1 rounded-lg text-gray-400 hover:text-[#1677FF] hover:bg-[#F3F8FF] transition-colors cursor-pointer"
+                  class="p-1 rounded-lg text-gray-400 hover:text-[#1677FF] hover:bg-[#F3F8FF] transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1677FF]"
                   title="Duplicate Node"
                   aria-label="Duplicate Node"
                 >
@@ -537,8 +929,9 @@
                 </button>
                 <button
                   type="button"
+                  onpointerdown={(e) => e.stopPropagation()}
                   onclick={(e) => { e.stopPropagation(); deleteNode(node.id); }}
-                  class="p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                  class="p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   title="Delete Node"
                   aria-label="Delete Node"
                 >
@@ -553,19 +946,60 @@
               </p>
             {/if}
 
-            <!-- Ports (In / Out) -->
+            <!-- Ports (In / Out) in Card Footer -->
             <div class="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 text-[10px] text-gray-400">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#1677FF] border-2 border-white shadow-2xs"></span>
-                <span class="font-medium text-gray-500">In</span>
-              </div>
+              <!-- In Port -->
+              <button
+                type="button"
+                data-port-in={node.id}
+                onpointerdown={(e) => e.stopPropagation()}
+                onpointerup={(e) => handleInPortPointerUp(node.id, e)}
+                onclick={(e) => handleInPortClick(node.id, e)}
+                class="flex items-center gap-1.5 p-1 -m-1 rounded-lg transition-transform hover:scale-105 cursor-pointer group/in outline-none focus-visible:ring-2 focus-visible:ring-[#1677FF]"
+                title="Input Port (drop cable here or click to connect)"
+              >
+                <span
+                  use:registerPort={{ id: node.id, type: 'in' }}
+                  class="relative flex h-3 w-3 items-center justify-center"
+                >
+                  {#if activeConnectingSource && activeConnectingSource !== node.id}
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1677FF] opacity-60"></span>
+                    <span class="absolute -inset-1 rounded-full ring-2 ring-[#1677FF] animate-pulse"></span>
+                  {/if}
+                  <span
+                    class="w-2.5 h-2.5 rounded-full bg-[#1677FF] border-2 border-white shadow-2xs group-hover/in:ring-2 group-hover/in:ring-[#1677FF]/50 transition-all {hoveredInPortNodeId === node.id ? 'ring-2 ring-emerald-400 scale-125' : ''}"
+                  ></span>
+                </span>
+                <span class="font-medium text-gray-500 group-hover/in:text-[#1677FF] transition-colors">In</span>
+              </button>
+
               <span class="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded {node.type === 'trigger' ? 'bg-amber-50 text-amber-700' : node.type === 'ai_agent' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}">
                 {node.type}
               </span>
-              <div class="flex items-center gap-1.5">
-                <span class="font-medium text-gray-500">Out</span>
-                <span class="w-2.5 h-2.5 rounded-full bg-[#38CFFF] border-2 border-white shadow-2xs"></span>
-              </div>
+
+              <!-- Out Port -->
+              <button
+                type="button"
+                data-port-out={node.id}
+                onpointerdown={(e) => startConnecting(node.id, e)}
+                onclick={(e) => handleOutPortClick(node.id, e)}
+                class="flex items-center gap-1.5 p-1 -m-1 rounded-lg transition-transform hover:scale-105 cursor-crosshair group/out outline-none focus-visible:ring-2 focus-visible:ring-[#38CFFF]"
+                title="Output Port (drag or tap to connect)"
+              >
+                <span class="font-medium text-gray-500 group-hover/out:text-[#38CFFF] transition-colors">Out</span>
+                <span
+                  use:registerPort={{ id: node.id, type: 'out' }}
+                  class="relative flex h-3 w-3 items-center justify-center"
+                >
+                  {#if activeConnectingSource === node.id}
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38CFFF] opacity-75"></span>
+                    <span class="absolute -inset-1.5 rounded-full ring-2 ring-[#38CFFF] ring-offset-1 animate-pulse"></span>
+                  {/if}
+                  <span
+                    class="w-2.5 h-2.5 rounded-full {activeConnectingSource === node.id ? 'bg-[#1677FF] ring-2 ring-[#38CFFF]' : 'bg-[#38CFFF]'} border-2 border-white shadow-2xs group-hover/out:ring-2 group-hover/out:ring-[#38CFFF]/50 transition-all"
+                  ></span>
+                </span>
+              </button>
             </div>
           </div>
         {/each}
@@ -765,6 +1199,31 @@
                       <div class="flex items-center gap-1.5 min-w-0">
                         <span class="w-1.5 h-1.5 rounded-full bg-[#1677FF]"></span>
                         <span class="font-bold text-[#102A56] truncate">{target?.title || cable.to}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onclick={() => disconnectCable(cable.from, cable.to)}
+                        class="text-gray-400 hover:text-rose-600 p-0.5 cursor-pointer"
+                        title="Disconnect"
+                      >
+                        <Icon name="X" size={12} />
+                      </button>
+                    </div>
+                  {/each}
+                {/if}
+              </div>
+
+              <div class="space-y-1 pt-1.5 border-t border-gray-200">
+                <span class="text-[10px] text-gray-500 font-semibold">Receives Input From:</span>
+                {#if selectedIncomingCables.length === 0}
+                  <p class="text-[10px] text-gray-400 italic">No incoming connections.</p>
+                {:else}
+                  {#each selectedIncomingCables as cable}
+                    {@const source = nodes.find((n) => n.id === cable.from)}
+                    <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-white border border-gray-200 text-[11px]">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#38CFFF]"></span>
+                        <span class="font-bold text-[#102A56] truncate">{source?.title || cable.from}</span>
                       </div>
                       <button
                         type="button"
