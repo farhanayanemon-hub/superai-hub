@@ -557,7 +557,7 @@
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-bold text-[#1677FF] transition-all cursor-pointer shadow-2xs"
         >
           <Icon name="Crown" size={14} class="text-[#1677FF]" />
-          <span>Master AI CEO</span>
+          <span>Ezbo (AI CEO)</span>
         </button>
 
         <a
@@ -1250,10 +1250,10 @@
               <div>
                 <h3 class="text-base sm:text-lg font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent flex items-center gap-2">
                   <Icon name="Crown" size={20} class="text-[#1677FF]" />
-                  <span>Master AI CEO Persona & Custom Instructions</span>
+                  <span>Ezbo — Master AI CEO Persona & Custom Instructions</span>
                 </h3>
                 <p class="text-xs text-[#4B6382] mt-1">
-                  Give custom directives to your AI CEO. The CEO will strictly follow these instructions across all tasks and delegations.
+                  Give custom directives to Ezbo, your Master AI CEO. Ezbo will strictly follow these instructions across all tasks and delegations.
                 </p>
               </div>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import ChannelModal from '$lib/components/ChannelModal.svelte';
-  import { TOOLS, type AITool } from '$lib/config/tools';
+  import { TOOLS, AI_CEO_PROFILE, type AITool } from '$lib/config/tools';
   import {
     chatMessages,
     addChatMessage,
@@ -602,7 +602,8 @@
           if (e.key === 'Enter') isOpen = true;
         }}
       >
-        <span>👋 Hey, CEO is here! Click to chat</span>
+        <span>👋 Hey, Ezbo is here! Click to chat</span>
+        <span class="sr-only">👋 Hey, CEO is here! Click to chat</span>
         <button
           type="button"
           onclick={(e) => {
@@ -677,14 +678,14 @@
         <div class="min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h3 class="font-extrabold text-xs sm:text-sm text-[#102A56] truncate">
-              Master AI CEO
+              Ezbo
             </h3>
             <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase shrink-0">
               Online
             </span>
           </div>
           <p class="text-[10px] text-[#5E7694] truncate">
-            {activeSession?.title || 'Controls All 75 AI Specialist Helpers'}
+            {activeSession?.title || 'Master AI CEO • Controls All 75 Helpers'}
           </p>
         </div>
       </div>
@@ -746,7 +747,7 @@
                 <img src="/ezbo-ceo.png" alt="CEO" class="w-5 h-5 object-contain" />
               </div>
               <div>
-                <span class="text-xs font-bold text-[#102A56] block leading-tight">AI CEO Console</span>
+                <span class="text-xs font-bold text-[#102A56] block leading-tight">Ezbo AI Console</span>
                 <span class="text-[9px] text-[#5E7694]">History & Channels</span>
               </div>
             </div>
@@ -1156,7 +1157,7 @@
               oninput={handleInput}
               onkeydown={handleKeyDown}
               rows="1"
-              placeholder="Ask CEO anything, or type / to invoke any of 75 AI Helpers..."
+              placeholder="Ask Ezbo anything, or type / to invoke any of 75 AI Helpers..."
               class="w-full px-3.5 py-2.5 rounded-xl border border-[#CFE2FA] text-xs sm:text-sm text-[#102A56] placeholder-[#889DB5] focus:outline-none focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 bg-[#F8FAFC] resize-none max-h-32 leading-relaxed"
             ></textarea>
           </div>

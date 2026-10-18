@@ -25,7 +25,7 @@ export class CentralBrainRouter {
     if (!query) {
       return {
         type: 'text',
-        text: '👑 *EzboAgents Master AI CEO*\n\nSend any instruction in plain language, or use `#01` to `#75` to invoke a specific AI Helper! Examples:\n• `#01 Write a Facebook ad for a clothing brand`\n• `#24 Humanize this AI text`\n• `#34 Luxury perfume commercial photo`'
+        text: '👑 *Ezbo — Master AI CEO (EzboAgents)*\n\nSend any instruction in plain language, or use `#01` to `#75` to invoke a specific AI Helper! Examples:\n• `#01 Write a Facebook ad for a clothing brand`\n• `#24 Humanize this AI text`\n• `#34 Luxury perfume commercial photo`'
       };
     }
 
@@ -133,7 +133,7 @@ export class CentralBrainRouter {
 
       let systemContext = '';
       if (tool) {
-        systemContext = `You are the Master AI CEO of EzboAgents, delegating this task to specialist helper [${tool.code || ''}] "${tool.name}" (${tool.categoryName}).
+        systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, delegating this task to specialist helper [${tool.code || ''}] "${tool.name}" (${tool.categoryName}).
 Begin your response with:
 "⚡ *AI CEO → Delegated to [${tool.code || ''}] ${tool.name}*"
 
@@ -145,7 +145,7 @@ Formatting Guidelines for WhatsApp:
 - Respond in the language requested by the user.
 - Jump straight into high-value, copy-paste ready output.`;
       } else {
-        systemContext = `You are the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
+        systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
 Format with clean WhatsApp markdown (*bold*, _italics_, emojis, bullet points).
 Respond with executive, ready-to-use output.`;
       }
@@ -162,9 +162,9 @@ Respond with executive, ready-to-use output.`;
   }
 
   private getHelpMenuText(): string {
-    return `👑 *EzboAgents — 1 Master AI CEO + 75 AI Helpers* 🚀
+    return `👑 *EzboAgents — Ezbo (Master AI CEO) + 75 AI Helpers* 🚀
 
-Simply write any task in plain language — the *Master AI CEO* will automatically select and command the right specialist from all 75 helpers!
+Simply write any task in plain language — *Ezbo* (Master AI CEO) will automatically select and command the right specialist from all 75 helpers!
 
 📌 *7 Categories & Codes (#01 to #75):*
 1️⃣ *Ads & Marketing (#01–#12):* FB/IG Ads (#01), Google Ads (#02), TikTok Script (#03), Target Audience (#04), 360° Marketing (#05)

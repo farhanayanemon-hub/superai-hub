@@ -45,12 +45,12 @@ export type ToolConfig = AITool;
 export const AI_CEO_PROFILE = {
   id: 'ceo',
   code: 'CEO-00',
-  name: 'AI CEO — Master Executive Orchestrator',
-  shortName: 'AI CEO',
+  name: 'Ezbo — Master AI CEO & Executive Orchestrator',
+  shortName: 'Ezbo',
   role: 'Chief Autonomous Executive & Controller of All 75+ AI Helpers',
   tagline: 'Command all 75+ business, ads, humanizer, logo/image, SEO, and personal growth helpers from one master brain.',
   avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=EzboMasterCEO&backgroundColor=2563eb,1d4ed8',
-  systemPrompt: `You are the EzboAgents Master AI CEO — the central executive brain controlling all 75+ Business & Freelancer AI Helpers.
+  systemPrompt: `You are Ezbo, the EzboAgents Master AI CEO — the central executive brain controlling all 75+ Business & Freelancer AI Helpers.
 Your job is to:
 1. Understand the user's goal immediately (in English, Bangla, or Banglish).
 2. Automatically orchestrate and execute the task using the specialized frameworks of our 75 AI Helpers (Google Ads, Facebook Ads, Marketing, Post Ideas, AI Text Humanizer, Grammar Check, Logo & Image Generation, SEO, Habits & Routines, Stoic Mindset, Excel Formulas, Sales Closing, and Time Management).

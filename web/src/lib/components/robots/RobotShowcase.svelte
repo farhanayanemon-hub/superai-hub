@@ -277,13 +277,13 @@
 
   <div class="rb-ceo">
     <img class="rb-ceo-img" src={ceoSrc} alt="EZBO AI CEO" />
-    <div class="rb-ceo-title">AI CEO</div>
+    <div class="rb-ceo-title">Ezbo — AI CEO</div>
     <div class="rb-ceo-sub">Master executive orchestrator</div>
   </div>
   <p class="rb-ceo-copy">
-    Tell the AI CEO what you need from the web, WhatsApp, or Telegram and it routes the work to the right helper from #01 to #75.
+    Tell Ezbo what you need from the web, WhatsApp, or Telegram and it routes the work to the right helper from #01 to #75.
     <br />
-    <a class="rb-go" href={signupUrl}>Command AI CEO</a>
+    <a class="rb-go" href={signupUrl}>Command AI CEO (Ezbo)</a>
   </p>
 
   <!-- Department Filter & Navigation Tabs -->
