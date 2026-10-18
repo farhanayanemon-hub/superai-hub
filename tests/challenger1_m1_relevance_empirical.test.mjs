@@ -218,10 +218,9 @@ describe('Milestone 1 Challenger Empirical Suite: BrandIcon & Navbar Relevance A
       );
     });
 
-    it('2.3 should preserve all 4 primary landing page section anchor routes', () => {
+    it('2.3 should preserve primary landing page section anchor routes', () => {
       const expectedSections = [
         { href: '/#helpers', label: 'Helpers' },
-        { href: '/#features', label: 'WhatsApp & Telegram' },
         { href: '/#pricing', label: 'Pricing' },
         { href: '/#faq', label: 'FAQ' }
       ];
@@ -236,6 +235,11 @@ describe('Milestone 1 Challenger Empirical Suite: BrandIcon & Navbar Relevance A
           `Navbar missing label ${section.label}`
         );
       }
+
+      assert.ok(
+        !navbarSource.includes('href="/#features"'),
+        'Navbar should not include WhatsApp & Telegram link'
+      );
     });
 
     it('2.4 should render Relevance AI styled dual CTA buttons for unauthenticated visitors', () => {

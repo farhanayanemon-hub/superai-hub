@@ -16,7 +16,6 @@
     <!-- Desktop Navigation Links -->
     <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
       <a href="/#helpers" class="hover:text-gray-900 transition-colors">Helpers</a>
-      <a href="/#features" class="hover:text-gray-900 transition-colors">WhatsApp & Telegram</a>
       <a href="/#pricing" class="hover:text-gray-900 transition-colors">Pricing</a>
       <a href="/#faq" class="hover:text-gray-900 transition-colors">FAQ</a>
     </nav>
@@ -77,13 +76,6 @@
           onclick={() => (mobileMenuOpen = false)}
           class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
         >Helpers</a>
-        <a
-          href="/#features"
-          onclick={() => (mobileMenuOpen = false)}
-          class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-        >
-          WhatsApp & Telegram
-        </a>
         <a
           href="/#pricing"
           onclick={() => (mobileMenuOpen = false)}
