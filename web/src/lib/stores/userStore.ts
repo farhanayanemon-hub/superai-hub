@@ -1,4 +1,4 @@
-import { writable, get } from 'svelte/store';
+import { writable, get, derived } from 'svelte/store';
 import type { AITool } from '$lib/config/tools';
 import { getDecryptedKey, saveEncryptedKey, clearStoredKey, encryptVaultKey, decryptVaultKey } from '$lib/services/crypto';
 import { offlineStorage } from '$lib/services/offlineStorage';
@@ -247,6 +247,35 @@ export const adminAllowedProviders = writable<Record<string, boolean>>({
   deepseek: true,
   replicate: true
 });
+
+/**
+ * Universal helper to determine whether a given user and subscription constitute an active Pro Plan.
+ * Accurately covers all historical and canonical tier variants ('byok_pro', 'pro', 'managed', 'ultra', 'complete', and active grandfathered 'byok').
+ */
+export function isUserProTier(sub?: SubscriptionState | null, user?: UserProfile | null): boolean {
+  const subTier = sub?.tier;
+  const userTier = user?.tier;
+  const isSubActive = sub?.status === 'active' || !!user?.isSubscribed;
+
+  if (!isSubActive) return false;
+
+  const proTiers = ['byok_pro', 'pro', 'managed', 'complete', 'ultra'];
+  if (subTier && proTiers.includes(subTier)) return true;
+  if (userTier && proTiers.includes(userTier)) return true;
+
+  // Grandfathered 'byok' subscribers are treated as Pro
+  if (subTier === 'byok' || userTier === 'byok') return true;
+
+  // If active subscriber and not explicitly starter or free
+  if (isSubActive && subTier !== 'byok_starter' && subTier !== 'free' && userTier !== 'byok_starter' && userTier !== 'free') {
+    return true;
+  }
+
+  return false;
+}
+
+export const isProPlan = derived([subscription, currentUser], ([$sub, $user]) => isUserProTier($sub, $user));
+
 
 if (typeof window !== 'undefined') {
   fetch('/api/admin/settings')

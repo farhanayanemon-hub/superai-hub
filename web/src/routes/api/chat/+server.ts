@@ -89,11 +89,21 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Starter tier plan guard: intercept restricted requests politely
-    const effectivePlanTier = body.planTier || body.userPlan || body.tier || 'byok_starter';
-    const isStarter =
-      effectivePlanTier === 'byok_starter' ||
-      effectivePlanTier === 'free' ||
-      !effectivePlanTier;
+    const rawPlanTier = body.planTier || body.userPlan || body.tier || 'byok_starter';
+    const isProTier =
+      rawPlanTier === 'byok_pro' ||
+      rawPlanTier === 'pro' ||
+      rawPlanTier === 'managed' ||
+      rawPlanTier === 'complete' ||
+      rawPlanTier === 'ultra' ||
+      rawPlanTier === 'byok';
+
+    const isStarter = !isProTier && (
+      rawPlanTier === 'byok_starter' ||
+      rawPlanTier === 'free' ||
+      !rawPlanTier
+    );
+    const effectivePlanTier = isProTier ? 'byok_pro' : rawPlanTier;
 
     if (isStarter && isRestrictedStarterIntent(message)) {
       const guardResponse = getStarterGuardResponse();
@@ -108,6 +118,32 @@ export const POST: RequestHandler = async ({ request }) => {
         reply: guardResponse,
         guarded: true,
         isPlanGuarded: true,
+        provider: 'system'
+      });
+    }
+
+    if (isProTier && isRestrictedStarterIntent(message)) {
+      const proWorkflowResponse = `✅ **Executive Workflow Customization Authority Active (Pro Plan)**
+সম্মানিত প্রো গ্রাহক, আপনার অ্যাকাউন্টে **Visual Workflow Studio** এবং **Custom Agent Builder** সম্পূর্ণ আনলক করা আছে!
+
+🛠️ আপনি নিচের যেকোনো উপায়ে এখনই ওয়ার্কফ্লো কাস্টমাইজ করতে পারেন:
+1. সরাসরি ফুল-স্ক্রিন ভিজ্যুয়াল স্টুডিও ওপেন করুন:
+👉 **[Open Visual Workflow Studio](#open-workflow-studio)**
+2. অথবা ড্যাশবোর্ডের যেকোনো AI Helper ওপেন করে উপরের **'Customize Workflow'** বাটনে ক্লিক করুন।
+3. স্টুডিওতে আপনি **'+ Add Node'** দিয়ে ১০০+ টুলস কানেক্ট করতে পারেন, নোডগুলোর ইনস্ট্রাকশন এডিট করতে পারেন, এবং **'Save Custom Agent'** দিয়ে আপনার কাস্টম অটোমেশন সংরক্ষণ করতে পারেন।`;
+
+      return json({
+        success: true,
+        input: message,
+        delegatedHelper: null,
+        result: {
+          type: 'text',
+          text: proWorkflowResponse
+        },
+        reply: proWorkflowResponse,
+        guarded: false,
+        isPlanGuarded: false,
+        isProWorkflowIntent: true,
         provider: 'system'
       });
     }

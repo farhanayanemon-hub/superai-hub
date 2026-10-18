@@ -8,6 +8,7 @@
   import ApiKeyManager from '$lib/components/ApiKeyManager.svelte';
   import ToolConnectorsTab from '$lib/components/ToolConnectorsTab.svelte';
   import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
+  import WorkflowStudioModal from '$lib/components/WorkflowStudioModal.svelte';
   import type { PlanTierId } from '$lib/config/plans';
   import { initiateSubscriptionPayment, verifyOpayTransaction } from '$lib/services/opay';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
@@ -38,6 +39,7 @@
     apiVault,
     ceoCustomPrompt,
     setCeoCustomPrompt,
+    isProPlan,
     type DashboardTab,
     type PlanTier
   } from '$lib/stores/userStore';
@@ -47,6 +49,15 @@
   let isChannelModalOpen = $state(false);
   let isCeoChatOpen = $state(false);
   let hasCheckedServerAccess = $state(false);
+
+  // Pro Workflow Studio State
+  let isDashboardStudioOpen = $state(false);
+  let studioAgentName = $state('Master Specialist Agent');
+
+  function openWorkflowStudio(agentName: string = 'Master Specialist Agent') {
+    studioAgentName = agentName;
+    isDashboardStudioOpen = true;
+  }
 
   // Settings Tab AI CEO Persona & Custom Instructions State
   let customInstructions = $state($ceoCustomPrompt || '');
@@ -245,6 +256,22 @@
         checkTelegramStatus();
       }
     }, 5000);
+
+    // Workflow Studio Event & Hash Handler
+    const handleStudioTrigger = (e: any) => {
+      openWorkflowStudio(e?.detail?.agentName || 'Master Specialist Agent');
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ezbo:open-workflow-studio', handleStudioTrigger);
+      if (window.location.hash === '#open-workflow-studio') {
+        openWorkflowStudio();
+      }
+      window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#open-workflow-studio') {
+          openWorkflowStudio();
+        }
+      });
+    }
   });
 
   $effect(() => {
@@ -260,6 +287,9 @@
   onDestroy(() => {
     whatsappApi.closeStream();
     if (telegramPollTimer) clearInterval(telegramPollTimer);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('ezbo:open-workflow-studio', openWorkflowStudio as any);
+    }
   });
 
   async function testAndSaveApiKey() {
@@ -509,6 +539,18 @@
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-2 sm:gap-3">
+        {#if $isProPlan}
+          <button
+            type="button"
+            onclick={() => openWorkflowStudio()}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#1677FF] to-[#38CFFF] hover:brightness-105 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+          >
+            <Icon name="Sliders" size={14} />
+            <span>Workflow Studio</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] bg-white/25 font-black uppercase">PRO</span>
+          </button>
+        {/if}
+
         <button
           type="button"
           onclick={() => switchTab('chat')}
@@ -561,6 +603,16 @@
                   class="w-full sm:w-60 bg-[#0B1F42]/70 border border-[#38CFFF]/30 focus:border-[#38CFFF] focus:bg-[#0B1F42] rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/60 outline-none transition-all"
                 />
               </div>
+              {#if $isProPlan}
+                <button
+                  type="button"
+                  onclick={() => openWorkflowStudio()}
+                  class="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 border border-white/30 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Icon name="Sliders" size={14} />
+                  <span>Customize Workflows</span>
+                </button>
+              {/if}
               <button
                 type="button"
                 onclick={() => switchTab('chat')}
@@ -1375,5 +1427,11 @@
   <ChannelModal
     bind:isOpen={isChannelModalOpen}
     onClose={() => { isChannelModalOpen = false; }}
+  />
+
+  <!-- Interactive Workflow Studio Modal for Pro Subscribers -->
+  <WorkflowStudioModal
+    bind:isOpen={isDashboardStudioOpen}
+    agentName={studioAgentName}
   />
 </div>

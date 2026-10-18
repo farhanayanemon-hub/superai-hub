@@ -15,6 +15,7 @@
     openrouterSelectedModels,
     routingStrategy,
     incrementManagedUsage,
+    isProPlan,
     type ChatMessage
   } from '$lib/stores/userStore';
   import { decryptVaultKey } from '$lib/services/crypto';
@@ -94,7 +95,7 @@
         message: text,
         helperId: selectedHelperId === 'ceo' ? undefined : selectedHelperId,
         mode: selectedHelperId === 'ceo' ? 'ceo' : 'helper',
-        planTier: $subscription?.tier || $currentUser?.tier || 'byok_starter',
+        planTier: $isProPlan ? 'byok_pro' : ($subscription?.tier || $currentUser?.tier || 'byok_starter'),
         history: $chatMessages.slice(-6).map((m) => ({
           role: m.role,
           content: m.content

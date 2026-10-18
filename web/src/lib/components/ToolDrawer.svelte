@@ -13,7 +13,8 @@
     getRoundRobinVaultKeys,
     openrouterSelectedModels,
     routingStrategy,
-    incrementManagedUsage
+    incrementManagedUsage,
+    isProPlan
   } from '$lib/stores/userStore';
   import { decryptVaultKey } from '$lib/services/crypto';
   import { executeToolWithGemini } from '$lib/services/gemini';
@@ -23,7 +24,7 @@
 
   let isStudioOpen = $state(false);
   let showUpgradeModal = $state(false);
-  let isPro = $derived($subscription?.tier === 'byok_pro' || $subscription?.tier === 'managed');
+  let isPro = $derived($isProPlan);
 
   interface StudioTurn {
     id: string;
@@ -132,6 +133,7 @@
         message: userPrompt,
         helperId: $activeTool.id,
         mode: 'helper',
+        planTier: $isProPlan ? 'byok_pro' : ($subscription?.tier || $currentUser?.tier || 'byok_starter'),
         language: outputLanguage,
         tone: outputTone,
         history: studioChatHistory.map((t) => ({ role: t.role, content: t.content }))
@@ -423,9 +425,6 @@
       </div>
     {/if}
 
-    <WorkflowStudioModal bind:isOpen={isStudioOpen} agentName={$activeTool?.name || 'Specialist Agent'} />
-
-
     <!-- Drawer Body -->
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 bg-white">
       <!-- Tailored Helper Parameters Card -->
@@ -670,4 +669,7 @@
       {/if}
     </div>
   </div>
+
+  <!-- Full-Screen Interactive Workflow Studio Modal (Outside transformed panel) -->
+  <WorkflowStudioModal bind:isOpen={isStudioOpen} agentName={$activeTool?.name || 'Specialist Agent'} />
 {/if}
