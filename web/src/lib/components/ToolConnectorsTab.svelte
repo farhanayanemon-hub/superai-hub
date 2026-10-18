@@ -1,347 +1,449 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
   import {
+    TOOL_CONNECTOR_CATEGORIES,
     TOOL_CONNECTORS,
-    TOOL_CATEGORIES,
-    filterConnectorsBySearch,
-    filterConnectorsByCategory,
-    type ToolConnector
+    getConnectedTools,
+    saveToolCredentials,
+    disconnectTool,
+    type ToolConnector,
+    type ConnectedToolState
   } from '$lib/config/toolConnectors';
-  import { onMount } from 'svelte';
 
   let searchQuery = $state('');
   let selectedCategory = $state('all');
-  let selectedConnector = $state<ToolConnector | null>(null);
-  let isConfigModalOpen = $state(false);
-  let configValues = $state<Record<string, string>>({});
-  let saveFeedback = $state('');
-  let connectedToolsMap = $state<Record<string, boolean>>({});
+  let connectedMap = $state<Record<string, ConnectedToolState>>({});
+  let activeModalTool = $state<ToolConnector | null>(null);
+  let modalCredentials = $state<Record<string, string>>({});
+  let saveFeedbackMessage = $state('');
 
-  const STORAGE_KEY = 'ezbo_connected_tools';
+  function refreshConnectedState(): void {
+    connectedMap = getConnectedTools();
+  }
 
   onMount(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        connectedToolsMap = JSON.parse(raw);
+    refreshConnectedState();
+
+    const handleUpdate = () => {
+      refreshConnectedState();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ezbo:tools-updated', handleUpdate);
+      window.addEventListener('storage', handleUpdate);
+      return () => {
+        window.removeEventListener('ezbo:tools-updated', handleUpdate);
+        window.removeEventListener('storage', handleUpdate);
+      };
+    }
+  });
+
+  const totalConnectedCount = $derived(
+    Object.values(connectedMap).filter((item) => item?.status === 'connected').length
+  );
+
+  const filteredTools = $derived.by(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return TOOL_CONNECTORS.filter((tool) => {
+      // Category filter
+      if (selectedCategory === 'connected') {
+        if (connectedMap[tool.id]?.status !== 'connected') return false;
+      } else if (selectedCategory !== 'all') {
+        if (tool.categoryId !== selectedCategory && tool.category !== selectedCategory) {
+          return false;
+        }
       }
-    } catch {
-      // fallback
-    }
+
+      // Search query filter
+      if (!q) return true;
+      return (
+        tool.name.toLowerCase().includes(q) ||
+        tool.description.toLowerCase().includes(q) ||
+        tool.category.toLowerCase().includes(q)
+      );
+    });
   });
 
-  function saveConnectedState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(connectedToolsMap));
-    } catch {
-      // ignore
+  function openConfigureModal(tool: ToolConnector): void {
+    activeModalTool = tool;
+    saveFeedbackMessage = '';
+    const existing = connectedMap[tool.id]?.credentials || {};
+    const initialCreds: Record<string, string> = {};
+    for (const field of tool.fields) {
+      initialCreds[field.key] = existing[field.key] || '';
     }
+    modalCredentials = initialCreds;
   }
 
-  const filteredConnectors = $derived(() => {
-    let result = TOOL_CONNECTORS;
-    if (selectedCategory !== 'all') {
-      result = filterConnectorsByCategory(selectedCategory, result);
-    }
-    if (searchQuery.trim()) {
-      result = filterConnectorsBySearch(searchQuery, result);
-    }
-    return result;
-  });
-
-  function openConfigureModal(connector: ToolConnector) {
-    selectedConnector = connector;
-    configValues = {};
-    saveFeedback = '';
-    isConfigModalOpen = true;
+  function closeModal(): void {
+    activeModalTool = null;
+    modalCredentials = {};
+    saveFeedbackMessage = '';
   }
 
-  function handleSaveCredentials() {
-    if (!selectedConnector) return;
-    connectedToolsMap[selectedConnector.id] = true;
-    saveConnectedState();
-    saveFeedback = `Successfully connected ${selectedConnector.name}!`;
+  function handleSaveCredentials(): void {
+    if (!activeModalTool) return;
+    saveToolCredentials(activeModalTool.id, { ...modalCredentials });
+    refreshConnectedState();
+    saveFeedbackMessage = 'Credentials saved successfully!';
     setTimeout(() => {
-      saveFeedback = '';
-      isConfigModalOpen = false;
+      if (saveFeedbackMessage) saveFeedbackMessage = '';
+      closeModal();
     }, 1200);
   }
 
-  function handleDisconnect(id: string) {
-    delete connectedToolsMap[id];
-    saveConnectedState();
+  function handleDisconnect(): void {
+    if (!activeModalTool) return;
+    disconnectTool(activeModalTool.id);
+    refreshConnectedState();
+    modalCredentials = {};
+    saveFeedbackMessage = 'Tool disconnected.';
+    setTimeout(() => {
+      if (saveFeedbackMessage) saveFeedbackMessage = '';
+      closeModal();
+    }, 1000);
+  }
+
+  function formatAuthType(type: string): string {
+    switch (type) {
+      case 'api_key':
+        return 'API Key';
+      case 'oauth2':
+        return 'OAuth 2.0';
+      case 'webhook':
+        return 'Webhook';
+      case 'token':
+        return 'Bearer Token';
+      default:
+        return type.toUpperCase();
+    }
   }
 </script>
 
-<div class="space-y-6">
-  <!-- Header Banner -->
-  <div class="rounded-3xl p-6 sm:p-8 bg-white border border-[#E2E8F0] shadow-2xs space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="space-y-6 pb-12">
+  <!-- Top Hero Header matching Relevance AI / clean SaaS design -->
+  <div class="p-6 sm:p-8 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:border-[#1677FF]/40 transition-all space-y-4">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-5">
       <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#F0F5FF] text-[#1677FF] border border-[#CFE2FA] mb-2">
-          <Icon name="Plug" size={14} />
-          <span>100+ Enterprise Connectors • Open for All Plans</span>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1677FF]/10 text-[#1677FF] text-[11px] font-bold uppercase tracking-wider mb-2">
+          <Icon name="Sparkles" size={13} />
+          <span>Universal Integration Hub • 100+ Connectors</span>
         </div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-[#102A56] tracking-tight">
-          Tools &amp; Integrations Hub
+          Tools &amp; Enterprise Integrations
         </h2>
-        <p class="text-xs sm:text-sm text-[#4B6382] max-w-2xl mt-1 leading-relaxed">
-          Connect your Google Workspace, WhatsApp, Shopify, HubSpot, and 100+ business tools. All 75 AI Specialist Agents seamlessly execute actions through your connected accounts.
+        <p class="text-xs sm:text-sm text-[#4B6382] mt-1 max-w-3xl leading-relaxed">
+          Connect your workspace platforms, messaging bots, payment gateways, and CRM suites.
+          Both Starter and Pro plans have complete access to all 100+ connectors to empower autonomous agent execution.
         </p>
       </div>
 
+      <!-- Quick Metrics Counters -->
       <div class="flex items-center gap-3 shrink-0">
-        <div class="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-center">
-          <span class="block text-xl font-extrabold text-[#1677FF]">{Object.keys(connectedToolsMap).length}</span>
-          <span class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Connected</span>
+        <div class="px-4 py-2.5 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs text-center min-w-[100px]">
+          <p class="text-[10px] uppercase font-bold text-[#5E7694] tracking-wider">Available</p>
+          <p class="text-lg font-black text-[#102A56]">{TOOL_CONNECTORS.length}+</p>
         </div>
-        <div class="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-center">
-          <span class="block text-xl font-extrabold text-[#102A56]">{TOOL_CONNECTORS.length}</span>
-          <span class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Total Tools</span>
+        <div class="px-4 py-2.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 shadow-2xs text-center min-w-[100px]">
+          <p class="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Connected</p>
+          <p class="text-lg font-black text-emerald-600">{totalConnectedCount}</p>
         </div>
       </div>
     </div>
 
-    <!-- Search bar & Category filter chips -->
-    <div class="pt-2 space-y-3">
-      <div class="relative">
+    <!-- Search Input & Active Filter Stats -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+      <div class="relative flex-1 max-w-xl">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E7694]">
+          <Icon name="Search" size={16} />
+        </div>
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Search 100+ tools by name, action (e.g. Gmail, Shopify, ROAS, bKash)..."
-          class="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#CBD5E1] bg-white text-xs sm:text-sm text-[#102A56] placeholder-[#94A3B8] focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 outline-none transition-all"
+          placeholder="Search 100+ connectors by name, category, or service..."
+          class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white border border-[#CFE2FA] focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 text-xs sm:text-sm text-[#102A56] placeholder-[#7B92AE] outline-none transition-all shadow-2xs"
+          aria-label="Search tool connectors"
         />
-        <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none">
-          <Icon name="Search" size={16} />
-        </div>
         {#if searchQuery}
           <button
             type="button"
             onclick={() => (searchQuery = '')}
-            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#102A56] cursor-pointer"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#7B92AE] hover:text-[#102A56] cursor-pointer"
+            aria-label="Clear search"
           >
             <Icon name="X" size={14} />
           </button>
         {/if}
       </div>
 
-      <!-- Category Filter Pills -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-        <button
-          type="button"
-          onclick={() => (selectedCategory = 'all')}
-          class="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer {selectedCategory === 'all'
-            ? 'bg-[#102A56] text-white shadow-2xs'
-            : 'bg-[#F1F5F9] text-[#64748B] hover:text-[#102A56] hover:bg-[#E2E8F0]'}"
-        >
-          All Categories ({TOOL_CONNECTORS.length})
-        </button>
-
-        {#each TOOL_CATEGORIES as cat}
-          {@const count = filterConnectorsByCategory(cat).length}
-          <button
-            type="button"
-            onclick={() => (selectedCategory = cat)}
-            class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer {selectedCategory === cat
-              ? 'bg-[#1677FF] text-white shadow-xs'
-              : 'bg-[#F1F5F9] text-[#64748B] hover:text-[#102A56] hover:bg-[#E2E8F0]'}"
-          >
-            <span>{cat}</span>
-            <span class="ml-1 opacity-75 text-[10px]">({count})</span>
-          </button>
-        {/each}
+      <div class="text-xs font-semibold text-[#5E7694] flex items-center gap-1.5 self-center sm:self-auto">
+        <span>Showing</span>
+        <strong class="text-[#102A56]">{filteredTools.length}</strong>
+        <span>of {TOOL_CONNECTORS.length} tools</span>
       </div>
     </div>
   </div>
 
-  <!-- Connectors Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {#each filteredConnectors() as connector (connector.id)}
-      {@const isConnected = !!connectedToolsMap[connector.id]}
-      <div
-        class="rounded-2xl p-5 bg-white border transition-all duration-200 flex flex-col justify-between {isConnected
-          ? 'border-emerald-300 shadow-xs'
-          : 'border-[#E2E8F0] hover:border-[#1677FF]/40 hover:shadow-xs'}"
+  <!-- Category Filter Chips (All + Connected + 10 Categories) -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar shrink-0">
+    <!-- All Chip -->
+    <button
+      type="button"
+      onclick={() => (selectedCategory = 'all')}
+      class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 {selectedCategory === 'all'
+        ? 'bg-[#1677FF] text-white shadow-xs font-bold'
+        : 'bg-white/80 hover:bg-[#F3F8FF] border border-[#CFE2FA]/70 text-[#4B6382] hover:text-[#102A56]'}"
+    >
+      <Icon name="Grid" size={14} class={selectedCategory === 'all' ? 'text-white' : 'text-[#1677FF]'} />
+      <span>All Tools</span>
+      <span class="text-[10px] px-1.5 py-0.2 rounded-full {selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}">
+        {TOOL_CONNECTORS.length}
+      </span>
+    </button>
+
+    <!-- Connected Filter Chip -->
+    <button
+      type="button"
+      onclick={() => (selectedCategory = 'connected')}
+      class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 {selectedCategory === 'connected'
+        ? 'bg-emerald-600 text-white shadow-xs font-bold'
+        : 'bg-white/80 hover:bg-emerald-50/50 border border-[#CFE2FA]/70 text-[#4B6382] hover:text-emerald-700'}"
+    >
+      <span class="w-2 h-2 rounded-full {selectedCategory === 'connected' ? 'bg-white' : 'bg-emerald-500'}"></span>
+      <span>Connected</span>
+      <span class="text-[10px] px-1.5 py-0.2 rounded-full {selectedCategory === 'connected' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 font-bold'}">
+        {totalConnectedCount}
+      </span>
+    </button>
+
+    <!-- 10 Categories -->
+    {#each TOOL_CONNECTOR_CATEGORIES as cat}
+      <button
+        type="button"
+        onclick={() => (selectedCategory = cat.id)}
+        class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 {selectedCategory === cat.id
+          ? 'bg-[#1677FF] text-white shadow-xs font-bold'
+          : 'bg-white/80 hover:bg-[#F3F8FF] border border-[#CFE2FA]/70 text-[#4B6382] hover:text-[#102A56]'}"
       >
-        <div class="space-y-3">
-          <!-- Top Row: Icon + Badge + Connection Status -->
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <div
-                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {isConnected
-                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                  : 'bg-[#F0F5FF] text-[#1677FF] border border-[#CFE2FA]'}"
-              >
-                <Icon name={connector.icon || 'Plug'} size={18} />
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-[#102A56] leading-tight flex items-center gap-1.5">
-                  <span>{connector.name}</span>
-                  {#if connector.badge}
-                    <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-amber-50 text-amber-700 border border-amber-200">
-                      {connector.badge}
-                    </span>
-                  {/if}
-                </h3>
-                <span class="text-[10px] font-semibold text-[#64748B]">{connector.category}</span>
-              </div>
-            </div>
-
-            <!-- Status Pill -->
-            {#if isConnected}
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Connected</span>
-              </span>
-            {:else}
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
-                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                <span>Configure</span>
-              </span>
-            {/if}
-          </div>
-
-          <p class="text-xs text-[#4B6382] leading-relaxed line-clamp-2">
-            {connector.description}
-          </p>
-
-          <!-- Actions Tags -->
-          <div class="flex flex-wrap gap-1 pt-1">
-            {#each connector.actions.slice(0, 3) as action}
-              <span class="px-2 py-0.5 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] font-medium text-[#475569]">
-                {action}
-              </span>
-            {/each}
-            {#if connector.actions.length > 3}
-              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold text-[#64748B]">
-                +{connector.actions.length - 3}
-              </span>
-            {/if}
-          </div>
-        </div>
-
-        <!-- Action Button -->
-        <div class="pt-4 mt-3 border-t border-[#F1F5F9] flex items-center justify-between gap-2">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
-            {connector.authType.replace('_', ' ')}
-          </span>
-
-          <div class="flex items-center gap-1.5">
-            {#if isConnected}
-              <button
-                type="button"
-                onclick={() => handleDisconnect(connector.id)}
-                class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 cursor-pointer transition-colors"
-              >
-                Disconnect
-              </button>
-            {/if}
-
-            <button
-              type="button"
-              onclick={() => openConfigureModal(connector)}
-              class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {isConnected
-                ? 'bg-white hover:bg-gray-50 text-[#102A56] border border-[#CBD5E1]'
-                : 'bg-[#1677FF] hover:bg-[#1162DB] text-white shadow-2xs'}"
-            >
-              <span>{isConnected ? 'Edit Settings' : 'Configure'}</span>
-              <Icon name="ArrowRight" size={12} />
-            </button>
-          </div>
-        </div>
-      </div>
+        <Icon name={cat.icon} size={14} class={selectedCategory === cat.id ? 'text-white' : 'text-[#5E7694]'} />
+        <span>{cat.name}</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full {selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}">
+          {cat.count}
+        </span>
+      </button>
     {/each}
   </div>
 
-  <!-- Configure Credentials Modal -->
-  {#if isConfigModalOpen && selectedConnector}
-    <div
-      role="button"
-      tabindex="0"
-      onclick={() => (isConfigModalOpen = false)}
-      onkeydown={(e) => { if (e.key === 'Escape') isConfigModalOpen = false; }}
-      class="fixed inset-0 bg-[#102A56]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        tabindex="0"
-        onclick={(e) => e.stopPropagation()}
-        onkeydown={(e) => { if (e.key === 'Escape') isConfigModalOpen = false; }}
-        class="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#CFE2FA] space-y-6 animate-in zoom-in-95 duration-200"
-      >
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-[#F0F5FF] text-[#1677FF] border border-[#CFE2FA] flex items-center justify-center">
-              <Icon name={selectedConnector.icon || 'Plug'} size={22} />
-            </div>
-            <div>
-              <h3 class="text-base font-extrabold text-[#102A56]">Connect {selectedConnector.name}</h3>
-              <p class="text-xs text-[#64748B]">{selectedConnector.category}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onclick={() => (isConfigModalOpen = false)}
-            class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center cursor-pointer"
-          >
-            <Icon name="X" size={14} />
-          </button>
-        </div>
-
-        <p class="text-xs text-[#4B6382] leading-relaxed">
-          {selectedConnector.description}
-        </p>
-
-        <!-- Dynamic Form Fields -->
-        {#if selectedConnector.fields && selectedConnector.fields.length > 0}
-          <div class="space-y-3">
-            {#each selectedConnector.fields as field}
-              <div>
-                <label for="field-{field.key}" class="block text-xs font-bold text-[#102A56] mb-1">
-                  {field.label} {#if field.required}<span class="text-rose-500">*</span>{/if}
-                </label>
-                <input
-                  id="field-{field.key}"
-                  type={field.type}
-                  bind:value={configValues[field.key]}
-                  placeholder={field.placeholder || `Enter ${field.label}`}
-                  class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#102A56] focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 outline-none"
-                />
-              </div>
-            {/each}
-          </div>
-        {:else}
-          <div class="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2 text-center">
-            <Icon name="CheckCircle" size={24} class="text-emerald-500 mx-auto" />
-            <p class="text-xs font-bold text-[#102A56]">OAuth 1-Click Connection</p>
-            <p class="text-[11px] text-[#64748B]">Click connect below to authorize your account via official gateway.</p>
-          </div>
-        {/if}
-
-        {#if saveFeedback}
-          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 text-center animate-in fade-in">
-            {saveFeedback}
-          </div>
-        {/if}
-
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onclick={() => (isConfigModalOpen = false)}
-            class="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onclick={handleSaveCredentials}
-            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#1677FF] hover:bg-[#1162DB] text-white shadow-sm cursor-pointer"
-          >
-            Save &amp; Connect
-          </button>
-        </div>
+  <!-- Connectors Grid -->
+  {#if filteredTools.length === 0}
+    <div class="text-center py-20 bg-white/70 backdrop-blur-xl border border-[#CFE2FA]/70 rounded-3xl p-8 space-y-4 shadow-xs">
+      <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
+        <Icon name="Search" size={28} />
       </div>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-[#102A56]">No Connectors Found</h3>
+        <p class="text-xs text-[#4B6382] max-w-md mx-auto">
+          We couldn't find any tool matching your search or filter. Try a different keyword or reset the category.
+        </p>
+      </div>
+      <button
+        type="button"
+        onclick={() => { searchQuery = ''; selectedCategory = 'all'; }}
+        class="px-5 py-2.5 rounded-xl bg-[#1677FF] text-white text-xs font-bold hover:bg-[#1260CC] transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
+      >
+        <Icon name="RefreshCw" size={13} />
+        <span>Reset Filters</span>
+      </button>
+    </div>
+  {:else}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5">
+      {#each filteredTools as tool (tool.id)}
+        {@const isConnected = connectedMap[tool.id]?.status === 'connected'}
+        <div
+          class="bg-white/80 hover:bg-white backdrop-blur-xl border {isConnected ? 'border-emerald-300/80 shadow-xs' : 'border-[#CFE2FA]/70'} hover:border-[#1677FF]/50 rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
+        >
+          <div class="space-y-3">
+            <!-- Header Row: Icon + Status Pill -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="w-11 h-11 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] group-hover:scale-105 group-hover:bg-[#1677FF] group-hover:text-white transition-all shadow-2xs shrink-0">
+                <Icon name={tool.icon} size={20} />
+              </div>
+
+              <!-- Live Status Pill (Connected vs Configure) -->
+              {#if isConnected}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Connected</span>
+                </span>
+              {:else}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-50 text-gray-600 border border-gray-200/80">
+                  <Icon name="Plus" size={11} class="text-gray-400" />
+                  <span>Configure</span>
+                </span>
+              {/if}
+            </div>
+
+            <!-- Content Area -->
+            <div>
+              <p class="text-[10px] font-bold text-[#1677FF] uppercase tracking-wider mb-0.5">
+                {tool.category}
+              </p>
+              <h3 class="text-sm font-bold text-[#102A56] group-hover:text-[#1677FF] transition-colors leading-snug">
+                {tool.name}
+              </h3>
+              <p class="text-xs text-[#4B6382] mt-1.5 leading-relaxed line-clamp-2">
+                {tool.description}
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer Actions & Auth Type Indicator -->
+          <div class="mt-4 pt-3 border-t border-[#F0F5FF] flex items-center justify-between gap-2">
+            <span class="text-[10px] font-semibold text-[#5E7694] bg-[#F3F8FF] px-2 py-0.5 rounded-md border border-[#E3ECF7]">
+              {formatAuthType(tool.authType)}
+            </span>
+
+            <button
+              type="button"
+              onclick={() => openConfigureModal(tool)}
+              class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {isConnected
+                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                : 'bg-[#1677FF] text-white hover:bg-[#1260CC] shadow-2xs'}"
+            >
+              <Icon name={isConnected ? 'Settings' : 'Plus'} size={13} />
+              <span>{isConnected ? 'Settings' : 'Connect'}</span>
+            </button>
+          </div>
+        </div>
+      {/each}
     </div>
   {/if}
 </div>
+
+<!-- ========================================================================= -->
+<!-- CREDENTIAL CONFIGURATION MODAL / DRAWER -->
+<!-- ========================================================================= -->
+{#if activeModalTool}
+  {@const modalConnected = connectedMap[activeModalTool.id]?.status === 'connected'}
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#102A56]/50 backdrop-blur-sm animate-fade-in"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-tool-title"
+  >
+    <div
+      class="bg-white rounded-3xl border border-[#CFE2FA] shadow-2xl max-w-lg w-full overflow-hidden animate-scale-up"
+    >
+      <!-- Modal Header -->
+      <div class="px-6 py-5 border-b border-[#E3ECF7] bg-[#F8FAFC] flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] shrink-0">
+            <Icon name={activeModalTool.icon} size={20} />
+          </div>
+          <div>
+            <h3 id="modal-tool-title" class="text-base font-bold text-[#102A56]">
+              {activeModalTool.name}
+            </h3>
+            <p class="text-[11px] text-[#5E7694]">
+              {activeModalTool.category} • {formatAuthType(activeModalTool.authType)}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick={closeModal}
+          class="w-9 h-9 rounded-xl text-[#5E7694] hover:text-[#102A56] hover:bg-gray-100 flex items-center justify-center transition-colors cursor-pointer"
+          aria-label="Close configuration modal"
+        >
+          <Icon name="X" size={17} />
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+        <!-- Live Status Pill -->
+        <div class="flex items-center justify-between p-3 rounded-2xl {modalConnected ? 'bg-emerald-50 border border-emerald-200' : 'bg-[#F3F8FF] border border-[#CFE2FA]'}">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full {modalConnected ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}"></span>
+            <span class="text-xs font-bold {modalConnected ? 'text-emerald-800' : 'text-[#102A56]'}">
+              Status: {modalConnected ? 'Connected & Active' : 'Unconfigured'}
+            </span>
+          </div>
+          {#if modalConnected && connectedMap[activeModalTool.id]?.connectedAt}
+            <span class="text-[10px] text-emerald-700">
+              Synced {new Date(connectedMap[activeModalTool.id].connectedAt!).toLocaleDateString()}
+            </span>
+          {/if}
+        </div>
+
+        <p class="text-xs text-[#4B6382] leading-relaxed">
+          {activeModalTool.description} Provide the required API credentials below to allow your agents to run actions with this tool.
+        </p>
+
+        <!-- Dynamic Credential Fields -->
+        <form onsubmit={(e) => { e.preventDefault(); handleSaveCredentials(); }} class="space-y-3.5 pt-1">
+          {#each activeModalTool.fields as field}
+            <div class="space-y-1">
+              <label for={`field-${field.key}`} class="block text-xs font-bold text-[#102A56]">
+                {field.label}
+                {#if field.required}
+                  <span class="text-rose-500">*</span>
+                {/if}
+              </label>
+              <input
+                id={`field-${field.key}`}
+                type={field.type === 'password' ? 'password' : 'text'}
+                bind:value={modalCredentials[field.key]}
+                placeholder={field.placeholder || ''}
+                required={field.required}
+                class="w-full px-3.5 py-2.5 rounded-xl border border-[#CFE2FA] focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 text-xs text-[#102A56] placeholder-[#8EA3BD] outline-none transition-all"
+              />
+            </div>
+          {/each}
+
+          <!-- Feedback Notice -->
+          {#if saveFeedbackMessage}
+            <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
+              <Icon name="CheckCircle2" size={15} class="text-emerald-600" />
+              <span>{saveFeedbackMessage}</span>
+            </div>
+          {/if}
+
+          <!-- Modal Footer Buttons -->
+          <div class="pt-4 border-t border-[#E3ECF7] flex items-center justify-between gap-3">
+            <div>
+              {#if modalConnected}
+                <button
+                  type="button"
+                  onclick={handleDisconnect}
+                  class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+                >
+                  Disconnect Tool
+                </button>
+              {/if}
+            </div>
+
+            <div class="flex items-center gap-2.5">
+              <button
+                type="button"
+                onclick={closeModal}
+                class="px-4 py-2 rounded-xl text-xs font-semibold text-[#5E7694] hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 rounded-xl text-xs font-bold bg-[#1677FF] hover:bg-[#1260CC] text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Icon name="Save" size={14} />
+                <span>Save Credentials</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{/if}

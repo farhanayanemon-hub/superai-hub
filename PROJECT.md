@@ -38,9 +38,9 @@ The platform delivers:
 |---|------|-------|-------------|--------|
 | M1 | Poppins Typography & Global Styling | `web/src/app.html`, `web/src/routes/layout.css` | none | DONE |
 | M2 | 2-Plan Architecture & BYOK Removal | `web/src/lib/config/plans.ts`, `web/src/lib/components/PricingCardsGrid.svelte`, `plans/+page.svelte`, `dashboard/+page.svelte` (billing), `ApiKeyManager.svelte` | M1 | DONE |
-| M3 | Universal AI CEO Plan Guard & Store Removal | `web/src/lib/services/ceoRouter.ts`, `web/src/routes/api/chat/+server.ts`, `web/src/routes/dashboard/+page.svelte` (store removal) | M2 | IN_PROGRESS |
-| M4 | Dedicated 100+ Tools & Integrations Hub | `web/src/lib/config/toolConnectors.ts`, `web/src/lib/components/ToolConnectorsTab.svelte`, `web/src/routes/dashboard/+page.svelte` (tools tab) | M3 | PLANNED |
-| M5 | Workflow Studio Modal & Gating | `web/src/lib/components/WorkflowStudioModal.svelte`, `web/src/lib/components/ToolDrawer.svelte` | M4 | PLANNED |
+| M3 | Universal AI CEO Plan Guard & Store Removal | `web/src/lib/services/ceoRouter.ts`, `web/src/routes/api/chat/+server.ts`, `web/src/routes/dashboard/+page.svelte` (store removal) | M2 | DONE |
+| M4 | Dedicated 100+ Tools & Integrations Hub | `web/src/lib/config/toolConnectors.ts`, `web/src/lib/components/ToolConnectorsTab.svelte`, `web/src/routes/dashboard/+page.svelte` (tools tab) | M3 | DONE |
+| M5 | Workflow Studio Modal & Gating | `web/src/lib/components/WorkflowStudioModal.svelte`, `web/src/lib/components/ToolDrawer.svelte` | M4 | IN_PROGRESS |
 | M6 | Admin Panel Master Toggles & Plan Manager | `web/src/lib/server/adminSettings.ts`, `web/src/routes/api/admin/settings/+server.ts`, `web/src/routes/admin/+page.svelte` | M2, M5 | PLANNED |
 | M7 | E2E Test Suite & Adversarial Hardening | `tests/test_saas_platform_e2e.test.mjs`, `tests/run_all_tests.mjs`, `npm run check`, `npm run build` | M1-M6 | PLANNED |
 

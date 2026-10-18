@@ -373,10 +373,10 @@
           <button
             type="button"
             onclick={() => switchTab('agents')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
-              <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
+              <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' ? 'text-white' : 'text-[#1677FF]'} />
               <span>AI Helpers</span>
             </div>
           </button>
@@ -385,15 +385,15 @@
           <button
             type="button"
             onclick={() => switchTab('tools')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-200 group text-left cursor-pointer {$activeDashboardTab === 'tools'
+              ? 'bg-[#1677FF] text-white shadow-xs font-bold'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-[#F3F8FF]/80'}"
           >
             <div class="flex items-center gap-3">
-              <Icon name="Plug" size={17} class={$activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
-              <span>Tools &amp; Integrations</span>
+              <Icon name="Wrench" size={17} class={$activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>Tools & Integrations</span>
             </div>
-            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold {$activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-[#F0F5FF] text-[#1677FF] border border-[#CFE2FA]'}">
-              100+
-            </span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold {$activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-[#CFE2FA]/50 text-[#1677FF]'}">100+</span>
           </button>
 
           <!-- 4. Subscription & Billing -->
