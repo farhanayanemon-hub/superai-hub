@@ -35,23 +35,23 @@ export interface PlansSettings {
 
 const DEFAULT_BYOK_STARTER: PlanConfig = {
   id: 'byok_starter',
-  name: 'BYOK Starter',
-  badge: 'Essential BYOK',
+  name: 'Starter Plan',
+  badge: 'Essential Starter',
   highlightBadge: '',
   description:
-    'For freelancers, marketers, and solo creators starting with their own API keys. Single key per provider with zero token markups.',
+    'For freelancers, marketers, and solo creators. Run-only access to all 75 pre-built agent workflows, 100+ tool connectors, and tier-guarded Master AI CEO.',
   monthlyPrice: 499,
   yearlyMonthlyPrice: 399,
   yearlyTotal: 4790,
   features: [
     '1 Master AI CEO + All 75+ Specialized Business & Freelancer AI Helpers (#01–#75)',
-    'Regularly Added New AI Helpers Included FREE in 1 Subscription',
+    'Run-Only Access to 75 Readymade Agent Workflows',
+    'Full Access to 100+ Enterprise Tool Connectors',
     'Control AI CEO & All 75 Helpers via Web, WhatsApp & Telegram',
     '1 Active API Key per Provider (Gemini, ChatGPT, Grok, DeepSeek, OpenRouter & Replicate)',
-    'Zero token markups — direct provider billing (1,500/day FREE via Google Gemini Key)',
-    'Custom Studio Options + Interactive Chat for every AI Helper',
+    'Zero Token Markups — Direct Provider Billing (1,500/day FREE via Google Gemini Key)',
     'Commercial Image & Logo Generation (#34 & #35)',
-    'Standard technical support'
+    'Standard Technical Support'
   ],
   featureToggles: {
     aiCeo: true,
@@ -69,23 +69,23 @@ const DEFAULT_BYOK_STARTER: PlanConfig = {
 
 const DEFAULT_BYOK_PRO: PlanConfig = {
   id: 'byok_pro',
-  name: 'BYOK Pro',
-  badge: 'Power Multi-Engine',
+  name: 'Pro Plan',
+  badge: 'Power Automation',
   highlightBadge: '⚡ Power User Choice',
   description:
-    'For power users, agencies, and marketers who want unlimited multi-key round-robin failover, OpenRouter model chains, and zero downtime.',
+    'For power users, agencies, and marketers who want visual workflow editing, custom agent building, and multi-key failover.',
   monthlyPrice: 899,
   yearlyMonthlyPrice: 719,
   yearlyTotal: 8690,
   features: [
-    'Everything in BYOK Starter, PLUS:',
+    'Everything in Starter Plan, PLUS:',
+    'Visual Workflow Studio with Node Graph Canvas & Curved Cables',
+    'Full Workflow Customization & Node Editing',
+    'Unlimited Custom Agent Builder with Dedicated Frameworks',
+    'Unrestricted Master AI CEO with Executive Workflow Authority',
     'Universal Multi-Key Vault with Round-Robin Rotation & Auto-Failover',
     'OpenRouter Multi-Model Failover Chains & Free Auto-Rotation',
-    'High-Throughput Concurrency for Teams & Automation Workflows',
-    'Custom Master CEO System Prompts & Industry Presets',
-    'Commercial Image & Logo Generation with Priority Render Queue',
-    'Priority WhatsApp & Email Support',
-    'Early Access to Newly Released AI Specialist Helpers'
+    'Priority WhatsApp & Email Support'
   ],
   featureToggles: {
     aiCeo: true,

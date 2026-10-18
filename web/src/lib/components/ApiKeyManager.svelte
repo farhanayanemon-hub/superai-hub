@@ -121,8 +121,8 @@
 
   // Upgrade Modal State
   let isUpgradeModalOpen = $state(false);
-  let upgradeFeatureTitle = $state('BYOK Pro Feature');
-  let upgradeFeatureDesc = $state('Upgrade to BYOK Pro to unlock multi-key vaults, auto-failover, and custom model routing chains.');
+  let upgradeFeatureTitle = $state('Pro Plan Feature');
+  let upgradeFeatureDesc = $state('Upgrade to Pro Plan to unlock multi-key vaults, auto-failover, and custom model routing chains.');
 
   function triggerProUpgrade(featureTitle: string, featureDesc: string) {
     upgradeFeatureTitle = featureTitle;
@@ -199,7 +199,7 @@
       const pMeta = ALL_PROVIDERS.find((p) => p.id === providerId);
       triggerProUpgrade(
         'Multiple Keys for ' + (pMeta?.name || providerId),
-        'BYOK Starter includes 1 active API key per provider. Upgrade to BYOK Pro to add unlimited backup keys with automatic round-robin load balancing and instant rate-limit failover.'
+        'Starter Plan includes 1 active API key per provider. Upgrade to Pro Plan to add unlimited backup keys with automatic round-robin load balancing and instant rate-limit failover.'
       );
       return;
     }
@@ -283,7 +283,7 @@
     if (strategy !== 'single_model' && isByokStarter) {
       triggerProUpgrade(
         strategy === 'auto_free_rotate' ? 'Auto Free Model Rotation' : 'Multi-Provider Key Rotation',
-        'Model rotation and failover strategies require BYOK Pro. Upgrade today to automatically rotate across models and prevent rate limits.'
+        'Model rotation and failover strategies require Pro Plan. Upgrade today to automatically rotate across models and prevent rate limits.'
       );
       return;
     }
@@ -297,7 +297,7 @@
       if (isByokStarter && $openrouterSelectedModels.length >= 1) {
         triggerProUpgrade(
           'Multi-Model Failover Chains',
-          'BYOK Starter supports 1 active primary model. Upgrade to BYOK Pro to configure multi-model failover chains with automatic fallback when rate limits occur.'
+          'Starter Plan supports 1 active primary model. Upgrade to Pro Plan to configure multi-model failover chains with automatic fallback when rate limits occur.'
         );
         return;
       }
@@ -388,7 +388,7 @@
       <div class="space-y-1">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38CFFF]/15 border border-[#38CFFF]/35 text-[#38CFFF] text-[10px] font-extrabold uppercase tracking-wider">
           <Icon name="Key" size={12} />
-          <span>Bring Your Own Key (BYOK) & Multi-Model Engine</span>
+          <span>Private Key Vault & Multi-Model Engine</span>
         </div>
         <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
           <span>API Key Management</span>
@@ -955,7 +955,7 @@
 
         <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] space-y-2 text-xs">
           <div class="flex items-center justify-between text-[#102A56] font-bold">
-            <span>BYOK Pro Plan</span>
+            <span>Pro Plan</span>
             <span class="text-[#1677FF]">BDT 899 / month</span>
           </div>
           <ul class="space-y-1.5 text-[11px] text-[#4B6382]">
@@ -981,7 +981,7 @@
             }}
             class="flex-1 py-3 rounded-xl blue-btn text-white text-xs font-extrabold transition-all cursor-pointer shadow-md text-center"
           >
-            Upgrade to BYOK Pro
+            Upgrade to Pro Plan
           </button>
         </div>
       </div>

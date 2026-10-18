@@ -53,6 +53,7 @@
     telegramBotToken?: string;
     telegramBotUsername?: string;
     hasTelegramBot?: boolean;
+    channelsCeoEnabled?: boolean;
     plans?: PlansSettings;
     providersAllowed?: Record<string, boolean>;
     userGrants?: Record<string, ServerUserGrant>;
@@ -200,6 +201,7 @@
   let saveFeedback = $state('');
   let saveFeedbackType = $state<'success' | 'error'>('success');
   let copyFeedback = $state('');
+  let channelsCeoEnabled = $state(true);
 
   const MODELS_CATALOG: { id: keyof AdminModelToggles; name: string; provider: string; tag: string; latency: string }[] = [
     { id: 'gemini-2.0-flash', name: 'Google Gemini 2.0 Flash', provider: 'Google AI Studio', tag: 'High Speed (Default)', latency: '~350ms' },
@@ -318,6 +320,7 @@
         if (s.registeredUsers) {
           registeredUsersMap = s.registeredUsers;
         }
+        channelsCeoEnabled = s.channelsCeoEnabled !== false;
         isAuthenticated = true;
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('ezbo_admin_authed', 'true');
@@ -636,6 +639,7 @@
         smtpFrom,
         telegramBotToken,
         telegramBotUsername,
+        channelsCeoEnabled,
         modelsEnabled,
         providersAllowed,
         plans: {
@@ -1855,28 +1859,21 @@
                   </div>
                 </div>
 
-                <!-- Plan Switcher Pills (3 Tiers) -->
+                <!-- Plan Switcher Pills (2 Plans) -->
                 <div class="flex items-center p-1 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] shrink-0 gap-1">
                   <button
                     type="button"
                     onclick={() => activePlanTab = 'byok_starter'}
                     class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'byok_starter' ? 'bg-[#102A56] text-white shadow-2xs' : 'text-[#4B6382] hover:text-[#102A56]'}"
                   >
-                    <span>BYOK Starter</span>
+                    <span>Starter Plan</span>
                   </button>
                   <button
                     type="button"
                     onclick={() => activePlanTab = 'byok_pro'}
                     class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'byok_pro' ? 'bg-[#1677FF] text-white shadow-sm' : 'text-[#4B6382] hover:text-[#102A56]'}"
                   >
-                    <span>BYOK Pro</span>
-                  </button>
-                  <button
-                    type="button"
-                    onclick={() => activePlanTab = 'managed'}
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'managed' ? 'ui-banner-navy text-white shadow-sm border border-[#38CFFF]/40' : 'text-[#4B6382] hover:text-[#102A56]'}"
-                  >
-                    <span>All-Inclusive Cloud</span>
+                    <span>Pro Plan</span>
                   </button>
                 </div>
               </div>
@@ -3103,6 +3100,23 @@
                     {hasTelegramBot || telegramBotToken ? '● Bot Configured' : '○ Pending Setup'}
                   </span>
                 </div>
+              </div>
+
+              <!-- Master Channels Toggle Card -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] flex items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full {channelsCeoEnabled ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
+                    <h4 class="text-sm font-bold text-[#102A56]">External Channels CEO Master Switch (WhatsApp & Telegram)</h4>
+                  </div>
+                  <p class="text-xs text-[#4B6382] mt-0.5">
+                    Toggle external WhatsApp and Telegram channel control dynamically. When disabled, public and dashboard channel interfaces are deactivated.
+                  </p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" bind:checked={channelsCeoEnabled} class="sr-only peer" />
+                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1677FF]"></div>
+                </label>
               </div>
 
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">

@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 
 @theme {
+  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
   /* Corporate White & Blue AI SaaS Theme Tokens */
   --color-blue-50: #F3F8FF;
   --color-blue-100: #E4F0FF;
@@ -38,7 +41,7 @@
 
 @layer base {
   :root {
-    --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-serif: 'Playfair Display', Georgia, serif;
     --font-mono: 'JetBrains Mono', monospace;
 
@@ -91,7 +94,7 @@
   }
 
   body {
-    font-family: var(--font-sans);
+    font-family: 'Poppins', var(--font-sans), sans-serif;
     background-color: var(--color-bg-pale);
     color: var(--color-text-navy);
     line-height: 1.6;

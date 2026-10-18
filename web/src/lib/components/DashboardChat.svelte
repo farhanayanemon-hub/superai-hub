@@ -94,6 +94,7 @@
         message: text,
         helperId: selectedHelperId === 'ceo' ? undefined : selectedHelperId,
         mode: selectedHelperId === 'ceo' ? 'ceo' : 'helper',
+        planTier: $subscription?.tier || $currentUser?.tier || 'byok_starter',
         history: $chatMessages.slice(-6).map((m) => ({
           role: m.role,
           content: m.content

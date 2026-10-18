@@ -19,8 +19,8 @@
     activeTierProcessing?: string | null;
   }>();
 
-  // Ordered list of 3 plans to render
-  const planOrder: PlanTierId[] = ['byok_starter', 'byok_pro', 'managed'];
+  // Ordered list of 2 plans to render: Starter and Pro
+  const planOrder: PlanTierId[] = ['byok_starter', 'byok_pro'];
 
   function getHelperCountBadge(plan: PlanConfig): string {
     const toggles = plan?.featureToggles;
@@ -72,8 +72,8 @@
     {/if}
   </div>
 
-  <!-- 3-Tier Dynamic Pricing Cards Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-7xl mx-auto">
+  <!-- 2-Tier Dynamic Pricing Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-4xl mx-auto">
     {#each planOrder as planId (planId)}
       {@const plan = $plansStore[planId] || $plansStore.byok_starter}
       {@const isCurrent = isUserCurrentPlan(planId)}

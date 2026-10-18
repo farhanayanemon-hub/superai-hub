@@ -167,6 +167,7 @@ export function buildCeoOrHelperSystemPrompt(
     tone?: string;
     mode?: 'ceo' | 'helper';
     ceoCustomPrompt?: string;
+    planTier?: string;
   }
 ): string {
   const langInstruction = options?.language
@@ -177,6 +178,13 @@ export function buildCeoOrHelperSystemPrompt(
     ? `\nTONE & STYLE: Use a ${options.tone} tone.`
     : `\nTONE & STYLE: Executive, structured, high-converting, ready-to-use output with clear headings and bullet points.`;
 
+  const tierInstruction =
+    options?.planTier === 'byok_starter' || options?.planTier === 'free'
+      ? `\n\nPLAN TIER EXECUTION DIRECTIVE: The user is on the Starter Plan. Execute tasks within the scope of the 75 readymade AI helper workflows and connected tools. If the user asks for visual workflow node editing, custom agent building from scratch, or multi-key failover, inform them that those features require the Pro Plan.`
+      : options?.planTier === 'byok_pro'
+        ? `\n\nPLAN TIER EXECUTION DIRECTIVE: The user is on the Pro Plan with unrestricted executive authority for workflow orchestration, node customization, custom agent creation, and multi-key failover.`
+        : '';
+
   const customDirective = options?.ceoCustomPrompt && options.ceoCustomPrompt.trim()
     ? `\n\nUSER DIRECTIVE & MASTER PERSONA (STRICT PRIORITY):\n${options.ceoCustomPrompt.trim()}`
     : '';
@@ -184,7 +192,7 @@ export function buildCeoOrHelperSystemPrompt(
   if (helper && options?.mode === 'helper') {
     return `You are [${helper.code}] ${helper.name} (${helper.badge}) on the EzboAgents Business & Freelancer AI Platform.
 SPECIALTY: ${helper.shortDesc}
-CORE INSTRUCTION: ${helper.systemPrompt}${langInstruction}${toneInstruction}
+CORE INSTRUCTION: ${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}
 Do not give generic filler. Deliver complete, copy-paste ready results immediately.${customDirective}`;
   }
 
@@ -196,7 +204,7 @@ You have automatically routed this request to specialist helper **[${helper.code
 Begin your response with a brief 1-line executive header:
 "⚡ **AI CEO → Delegated to [${helper.code}] ${helper.name}**"
 Then execute the task using this specialist's protocol:
-${helper.systemPrompt}${langInstruction}${toneInstruction}${customDirective}`;
+${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
   }
 
   return `${AI_CEO_PROFILE.systemPrompt}
@@ -209,6 +217,121 @@ You oversee 75 specialized Business & Freelancer AI Helpers (#01 to #75) across 
 5. SEO & Website Traffic (#42-#50)
 6. Freelancing — Upwork, Fiverr & Client Hunting (#51-#62)
 7. Business Operations, Sales & Productivity (#63-#75)
-
-NOTE ON AUTONOMOUS STORE AGENTS: Agents purchased from the "Agents Store" are standalone autonomous agents configured exclusively on the Web Dashboard and are NOT controlled via chat/WhatsApp/Telegram.${langInstruction}${toneInstruction}${customDirective}`;
+${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
 }
+
+const RESTRICTED_PATTERNS: RegExp[] = [
+  /customiz(e|ing|ation)\s+workflow/i,
+  /customiz(e|ing|ation)\s+this\s+workflow/i,
+  /edit(ing)?\s+workflow/i,
+  /modify(ing)?\s+workflow/i,
+  /workflow\s+(editor|customization|studio|builder|canvas|cables)/i,
+  /workflow\s+(customiz|customis|edit|modify)/i,
+  /edit(ing)?\s+nodes?/i,
+  /custom(ize)?\s+nodes?/i,
+  /connect\s+nodes?/i,
+  /node\s+(graph|canvas|palette|editor|cables)/i,
+  /nodes\s+in\s+the\s+graph/i,
+  /creat(e|ing)\s+(a\s+)?(new\s+)?custom\s+agent/i,
+  /build(ing)?\s+(a\s+)?(new\s+)?custom\s+agent/i,
+  /build\s+me\s+a\s+custom\s+agent/i,
+  /create\s+me\s+a\s+custom\s+agent/i,
+  /make\s+(a\s+)?(new\s+)?custom\s+agent/i,
+  /custom\s+agent\s+(builder|creation|studio)/i,
+  /custom\s+agent\s+from\s+scratch/i,
+  /new\s+agent\s+from\s+scratch/i,
+  /multi(ple)?[- ]key/i,
+  /key\s+failover/i,
+  /round[- ]robin\s+keys?/i,
+  /failover\s+vault/i,
+  /ওয়ার্কফ্লো\s*(কাস্টমাইজ|এডিট|পরিবর্তন)/i,
+  /ওয়ার্কফ্লো\s*(কাস্টমাইজ|এডিট|পরিবর্তন)/i,
+  /নোড\s*(এডিট|পরিবর্তন|কাস্টমাইজ)/i,
+  /নতুন\s+এজেন্ট\s*(তৈরি|বানাও)/i,
+  /কাস্টম\s+এজেন্ট\s*(তৈরি|বানাও)/i,
+  /মাল্টি[- ]কি/i,
+  /কি\s+ফেইলওভার/i,
+  /workflow\s+customize\s+koro/i,
+  /custom\s+agent\s+(banano|banate)/i
+];
+
+/**
+ * Intelligent plan guard to detect if a Starter Plan subscriber is asking to perform
+ * restricted actions (workflow node customization, custom agent building from scratch, multi-key rotation).
+ */
+export function isRestrictedStarterIntent(message: string): boolean {
+  if (!message || typeof message !== 'string') return false;
+  const q = message.trim();
+  if (!q) return false;
+
+  // Explicit prohibited phrases across English, Bengali, and Banglish
+  const restrictedPhrases = [
+    'customize this workflow',
+    'customize workflow',
+    'customise workflow',
+    'workflow customize',
+    'workflow customise',
+    'workflow edit',
+    'edit workflow',
+    'edit node',
+    'edit nodes',
+    'node edit',
+    'nodes edit',
+    'nodes in the graph',
+    'modify workflow',
+    'workflow modify',
+    'build me a custom agent',
+    'create a custom agent',
+    'custom agent',
+    'custom agent from scratch',
+    'new agent from scratch',
+    'multi-key failover',
+    'multi-key rotation',
+    'multi key rotation',
+    'key rotation failover',
+    'n8n workflow studio',
+    'workflow canvas',
+    // Bengali triggers
+    'ওয়ার্কফ্লো এডিট',
+    'ওয়ার্কফ্লো এডিট',
+    'ওয়ার্কফ্লো কাস্টমাইজ',
+    'ওয়ার্কফ্লো কাস্টমাইজ',
+    'কাস্টম এজেন্ট',
+    'নতুন এজেন্ট তৈরি',
+    'নোড এডিট',
+    'মাল্টি-কি',
+    // Banglish triggers
+    'workflow customize koro',
+    'custom agent banano',
+    'custom agent banate',
+    'custom agent banano lagbe',
+    'workflow edit koro',
+    'node edit koro'
+  ];
+
+  const lower = q.toLowerCase();
+  for (const phrase of restrictedPhrases) {
+    if (lower.includes(phrase)) return true;
+  }
+
+  return RESTRICTED_PATTERNS.some((re) => re.test(q));
+}
+
+/**
+ * Polite bilingual response explaining that workflow customization, custom agent creation,
+ * and multi-key rotation require upgrading to the Pro Plan.
+ */
+export function getStarterGuardResponse(): string {
+  return `সম্মানিত গ্রাহক, আপনি বর্তমানে **Starter Plan** ব্যবহার করছেন।
+
+Starter Plan-এ আপনি সব **৭৫টি তৈরি এআই হেল্পারের রেডিমেড ওয়ার্কফ্লো** চালানো এবং **১০০+ এন্টারপ্রাইজ টুল কানেক্টর** ব্যবহারের সম্পূর্ণ সুবিধা উপভোগ করতে পারেন।
+
+তবে **ভিজ্যুয়াল নোড এডিটিং (Visual Workflow Studio)**, **কাস্টম ওয়ার্কফ্লো মডিফিকেশন**, **নতুন কাস্টম এজেন্ট তৈরি**, এবং **মাল্টি-কি অটো-ফেইলওভার ভল্ট** সুবিধাগুলো ব্যবহার করতে **Pro Plan**-এ আপগ্রেড করা প্রয়োজন।
+
+আপনার এক্সিকিউটিভ অটোমেশনকে আরও শক্তিশালী করতে আজই প্রো প্ল্যানে আপগ্রেড করুন:
+👉 [Upgrade to Pro Plan](/plans)
+
+---
+*Dear User, you are currently on the **Starter Plan**. Your current plan allows you to run all 75 specialized agent workflows and connect 100+ enterprise tool connectors. However, visual workflow customization, node canvas editing, custom agent building, and multi-key failover require the **Pro Plan**. Please [Upgrade to Pro Plan](/plans) to unlock full visual workflow customization and custom agent creation!*`;
+}
+

@@ -3,7 +3,9 @@ import { getAdminConfig } from '$lib/server/adminSettings';
 import {
   matchHelperForMessage,
   buildCeoOrHelperSystemPrompt,
-  isVisualGenerationHelper
+  isVisualGenerationHelper,
+  isRestrictedStarterIntent,
+  getStarterGuardResponse
 } from '$lib/services/ceoRouter';
 
 const RAILWAY_ENGINE_URL =
@@ -20,6 +22,9 @@ interface ChatHistoryTurn {
 interface ChatRequest {
   message: string;
   helperId?: string;
+  tier?: string;
+  userPlan?: string;
+  planTier?: string;
   mode?: 'ceo' | 'helper';
   language?: string;
   tone?: string;
@@ -83,6 +88,30 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ success: false, error: 'Message is required' }, { status: 400 });
     }
 
+    // Starter tier plan guard: intercept restricted requests politely
+    const effectivePlanTier = body.planTier || body.userPlan || body.tier || 'byok_starter';
+    const isStarter =
+      effectivePlanTier === 'byok_starter' ||
+      effectivePlanTier === 'free' ||
+      !effectivePlanTier;
+
+    if (isStarter && isRestrictedStarterIntent(message)) {
+      const guardResponse = getStarterGuardResponse();
+      return json({
+        success: true,
+        input: message,
+        delegatedHelper: null,
+        result: {
+          type: 'text',
+          text: guardResponse
+        },
+        reply: guardResponse,
+        guarded: true,
+        isPlanGuarded: true,
+        provider: 'system'
+      });
+    }
+
     // Match helper via AI CEO router or explicit helperId
     const matchedHelper = matchHelperForMessage(message, helperId);
     const delegatedHelperMeta = matchedHelper
@@ -100,7 +129,8 @@ export const POST: RequestHandler = async ({ request }) => {
       language,
       tone,
       mode,
-      ceoCustomPrompt
+      ceoCustomPrompt,
+      planTier: effectivePlanTier
     });
 
     // Determine the key and provider to use

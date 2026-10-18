@@ -6,11 +6,10 @@
   import ToolDrawer from '$lib/components/ToolDrawer.svelte';
   import ApiVaultManager from '$lib/components/ApiVaultManager.svelte';
   import ApiKeyManager from '$lib/components/ApiKeyManager.svelte';
-  import OwnedAgentsManager from '$lib/components/OwnedAgentsManager.svelte';
+  import ToolConnectorsTab from '$lib/components/ToolConnectorsTab.svelte';
   import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
   import type { PlanTierId } from '$lib/config/plans';
-  import { STORE_BOTS, STORE_CATEGORIES, type StoreBot } from '$lib/config/storeBots';
-  import { initiateSubscriptionPayment, initiateBotPayment, verifyOpayTransaction } from '$lib/services/opay';
+  import { initiateSubscriptionPayment, verifyOpayTransaction } from '$lib/services/opay';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
   import { whatsappApi } from '$lib/services/whatsappApi';
   import { validateGeminiKey } from '$lib/services/gemini';
@@ -34,7 +33,6 @@
     cancelSubscription,
     reactivateSubscription,
     switchPlan,
-    unlockStoreBot,
     syncUserAccessWithServer,
     closeToolDrawer,
     apiVault,
@@ -110,12 +108,6 @@
   let billingError = $state('');
   let dashboardBillingInterval = $state<'monthly' | 'yearly'>('monthly');
 
-  // Store Tab state
-  let storeUnlockMsg = $state('');
-  let storeError = $state('');
-  let storeBillingInterval = $state<'monthly' | 'yearly'>('monthly');
-  let storeCategory = $state<string>('all');
-
   // OPay Payment state & handlers
   let isProcessingPayment = $state(false);
 
@@ -137,26 +129,6 @@
     } catch (e: any) {
       billingNotice = '';
       billingError = e.message || 'Payment request failed to connect.';
-    } finally {
-      isProcessingPayment = false;
-    }
-  }
-
-  async function handleUnlockBot(bot: StoreBot) {
-    isProcessingPayment = true;
-    storeError = '';
-    storeUnlockMsg = `Connecting to OPayBD to unlock ${bot.name}...`;
-    try {
-      const res = await initiateBotPayment(bot, storeBillingInterval, $currentUser);
-      if (res.success && res.paymentUrl) {
-        window.location.href = res.paymentUrl;
-        return;
-      }
-      storeUnlockMsg = '';
-      storeError = res.error || 'Payment gateway could not initialize. Please configure your OPay credentials in the Admin Panel (/admin).';
-    } catch (e: any) {
-      storeUnlockMsg = '';
-      storeError = e.message || 'Failed to initialize agent checkout.';
     } finally {
       isProcessingPayment = false;
     }
@@ -252,7 +224,7 @@
       return;
     }
 
-    // Sync any admin-assigned plan or store bot grants from server
+    // Sync any admin-assigned plan grants from server
     await syncUserAccessWithServer();
     hasCheckedServerAccess = true;
 
@@ -304,7 +276,7 @@
     if (isValid) {
       setApiKey(inputKey.trim(), true);
       keyValidationState = 'valid';
-      keyValidationMsg = 'API Key verified successfully! Unlimited BYOK access enabled.';
+      keyValidationMsg = 'API Key verified successfully! Unlimited access enabled.';
     } else {
       keyValidationState = 'invalid';
       keyValidationMsg = 'Invalid Gemini API key or quota exceeded. Please check your key.';
@@ -346,14 +318,6 @@
           tool.keywords.some((k) => k.toLowerCase().includes(query)))
       );
     })
-  );
-
-  const unlockedBotsList = $derived(
-    STORE_BOTS.filter((bot) => ($subscription.unlockedStoreBots || []).includes(bot.id))
-  );
-
-  const filteredStoreBots = $derived(
-    STORE_BOTS.filter((bot) => storeCategory === 'all' || bot.category === storeCategory)
   );
 </script>
 
@@ -417,33 +381,19 @@
             </div>
           </button>
 
-          <!-- 3. Store -->
+          <!-- 2. Tools & Integrations Hub (100+) -->
           <button
             type="button"
-            onclick={() => switchTab('store')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'store' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            onclick={() => switchTab('tools')}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
-              <Icon name="ShoppingBag" size={17} class={$activeDashboardTab === 'store' ? 'text-white' : 'text-[#1677FF]'} />
-              <span>Store</span>
+              <Icon name="Plug" size={17} class={$activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>Tools &amp; Integrations</span>
             </div>
-          </button>
-
-          <!-- 3a. Owned Agents (Child Tab under Store) -->
-          <button
-            type="button"
-            onclick={() => switchTab('owned-agents')}
-            class="w-[calc(100%-1rem)] ml-4 px-3 py-2 rounded-xl text-[11px] font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'owned-agents' ? 'bg-[#1677FF]/15 text-[#1677FF] font-bold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-          >
-            <div class="flex items-center gap-2.5">
-              <Icon name="Bot" size={14} class={$activeDashboardTab === 'owned-agents' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
-              <span>Owned Agents</span>
-            </div>
-            {#if ($subscription?.unlockedStoreBots?.length || 0) > 0}
-              <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#1677FF] text-white">
-                {$subscription?.unlockedStoreBots?.length}
-              </span>
-            {/if}
+            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold {$activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-[#F0F5FF] text-[#1677FF] border border-[#CFE2FA]'}">
+              100+
+            </span>
           </button>
 
           <!-- 4. Subscription & Billing -->
@@ -580,9 +530,9 @@
     <!-- Tab View Router -->
     <div class="flex-1 overflow-hidden p-3 sm:p-5">
       <!-- ==================================================== -->
-      <!-- TAB 1: 75 AI HELPERS STUDIO + UNLOCKED STORE BOTS -->
+      <!-- TAB 1: 75 AI HELPERS STUDIO -->
       <!-- ==================================================== -->
-      {#if $activeDashboardTab === 'agents' || $activeDashboardTab === 'tools' || $activeDashboardTab === 'chat'}
+      {#if $activeDashboardTab === 'agents' || $activeDashboardTab === 'chat'}
         <div class="h-full flex flex-col space-y-4 overflow-y-auto pr-1">
           <!-- Master AI CEO Banner + Search -->
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 ui-banner-navy text-white p-4 sm:p-6 rounded-3xl">
@@ -622,49 +572,8 @@
             </div>
           </div>
 
-          <!-- Unlocked Store Bots Section -->
-          {#if unlockedBotsList.length > 0}
-            <div class="space-y-3">
-              <div class="flex items-center gap-2">
-                <Icon name="Crown" size={16} class="text-[#1677FF]" />
-                <h3 class="text-xs font-bold uppercase tracking-wider text-[#102A56]">Unlocked Autonomous Store Agents (Web-Only Setup)</h3>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {#each unlockedBotsList as bot}
-                  <div class="p-5 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all flex flex-col justify-between space-y-4">
-                    <div>
-                      <div class="flex items-start gap-3">
-                        <img src={bot.avatar} alt={bot.name} class="w-12 h-12 rounded-2xl object-cover border border-[#E3ECF7] shrink-0" />
-                        <div>
-                          <div class="flex items-center gap-1.5">
-                            <h4 class="font-bold text-sm text-[#102A56]">{bot.name}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">AUTONOMOUS</span>
-                          </div>
-                          <p class="text-xs text-[#1677FF] font-semibold">{bot.role}</p>
-                        </div>
-                      </div>
-                      <p class="text-xs text-[#4B6382] mt-3 leading-relaxed">{bot.description}</p>
-                      <div class="mt-3 pt-3 border-t border-[#E3ECF7] space-y-1.5">
-                        <p class="text-[10px] font-bold text-[#5E7694] uppercase">Unlocked Features:</p>
-                        {#each bot.features as feat}
-                          <div class="flex items-start gap-1.5 text-[11px] text-[#102A56]">
-                            <Icon name="CheckCircle2" size={13} class="text-emerald-500 shrink-0 mt-0.5" />
-                            <span>{feat}</span>
-                          </div>
-                        {/each}
-                      </div>
-                    </div>
-                    <div class="px-3 py-2 rounded-xl bg-white/60 border border-[#CFE2FA] text-[11px] text-[#102A56] font-medium">
-                      ⚙️ Web-Only Autonomous Agent (Not controlled via WhatsApp/Telegram)
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-          {/if}
-
           <!-- Base Tools Catalog -->
-          {#if filteredTools.length === 0 && unlockedBotsList.length === 0}
+          {#if filteredTools.length === 0}
             <div class="text-center py-20 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 rounded-3xl p-8 space-y-4 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
               <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
                 <Icon name="Sparkles" size={28} />
@@ -707,195 +616,11 @@
         </div>
 
       <!-- ==================================================== -->
-      <!-- TAB 3: AGENTS STORE (AUTONOMOUS WEB-ONLY AGENTS) -->
+      <!-- TAB 3: TOOLS & INTEGRATIONS HUB (100+) -->
       <!-- ==================================================== -->
-      {:else if $activeDashboardTab === 'store'}
-        <div class="h-full flex flex-col space-y-5 overflow-y-auto pr-1 pb-12">
-          <!-- Store Header -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 p-4 sm:p-6 rounded-3xl shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
-            <div>
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ui-badge-primary text-xs font-bold mb-2">
-                <Icon name="Cpu" size={13} />
-                <span>Standalone Autonomous Agents • Web Dashboard Setup Only</span>
-              </div>
-              <h2 class="text-xl font-black bg-gradient-to-r from-[#102A56] via-[#1677FF] to-[#38CFFF] bg-clip-text text-transparent tracking-tight">Autonomous Agents Store</h2>
-              <p class="text-xs text-[#4B6382] mt-1 max-w-2xl leading-relaxed">
-                Agents in the <strong class="text-[#102A56]">Agents Store</strong> operate as standalone <strong class="text-[#102A56]">Autonomous Agents</strong>. Once unlocked, they are configured and operated exclusively inside this Web Dashboard — <strong class="text-[#102A56]">they cannot be controlled via WhatsApp or Telegram</strong> (only the Master AI CEO and the 75 AI Helpers are controllable via WhatsApp and Telegram).
-              </p>
-            </div>
-
-            <!-- 1 Month / 1 Year Interval Switcher -->
-            <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-[#F3F8FF] p-2.5 rounded-2xl border border-[#E3ECF7] self-start lg:self-auto shrink-0">
-              <span class="text-xs font-semibold {storeBillingInterval === 'monthly' ? 'text-[#102A56] font-bold' : 'text-[#4B6382]'}">1 Month</span>
-              <button
-                type="button"
-                onclick={() => (storeBillingInterval = storeBillingInterval === 'monthly' ? 'yearly' : 'monthly')}
-                class="relative w-12 h-6.5 rounded-full transition-colors duration-200 cursor-pointer {storeBillingInterval === 'yearly' ? 'bg-[#1677FF]' : 'bg-[#C8D8EC]'}"
-                aria-label="Toggle store billing interval"
-              >
-                <span
-                  class="absolute top-1 transition-all duration-200 w-4.5 h-4.5 rounded-full bg-white shadow-xs {storeBillingInterval === 'yearly' ? 'left-6.5' : 'left-1'}"
-                ></span>
-              </button>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-semibold {storeBillingInterval === 'yearly' ? 'text-[#1677FF] font-bold' : 'text-[#4B6382]'}">1 Year</span>
-                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Save 20%</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Alert Notices -->
-          {#if storeUnlockMsg}
-            <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#1677FF]/30 text-[#102A56] text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in shadow-2xs">
-              <div class="flex items-center gap-2.5">
-                <Icon name="CheckCircle2" size={18} class="text-[#1677FF]" />
-                <span>{storeUnlockMsg}</span>
-              </div>
-              <button onclick={() => (storeUnlockMsg = '')} class="p-1 hover:bg-[#E4F0FF] rounded-lg text-[#1677FF] cursor-pointer">
-                <Icon name="X" size={14} />
-              </button>
-            </div>
-          {/if}
-
-          {#if storeError}
-            <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in">
-              <div class="flex items-center gap-2.5">
-                <Icon name="AlertCircle" size={18} class="text-rose-600" />
-                <span>{storeError}</span>
-              </div>
-              <button onclick={() => (storeError = '')} class="p-1 hover:bg-rose-100 rounded-lg text-rose-600 cursor-pointer">
-                <Icon name="X" size={14} />
-              </button>
-            </div>
-          {/if}
-
-          <!-- Category Filter Tabs -->
-          <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar shrink-0">
-            {#each STORE_CATEGORIES as cat}
-              <button
-                type="button"
-                onclick={() => (storeCategory = cat.id)}
-                class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {storeCategory === cat.id ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'bg-white border border-[#E3ECF7] text-[#4B6382] hover:border-[#1677FF] hover:text-[#1677FF]'}"
-              >
-                {cat.label}
-              </button>
-            {/each}
-          </div>
-
-          <!-- Store Grid -->
-          {#if filteredStoreBots.length === 0}
-            <div class="text-center py-20 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 rounded-3xl p-8 space-y-4 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
-              <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
-                <Icon name="ShoppingBag" size={28} />
-              </div>
-              <div class="space-y-1">
-                <h3 class="text-base font-bold text-[#102A56]">No Add-on Bots Available Yet</h3>
-                <p class="text-xs text-[#4B6382] max-w-md mx-auto">
-                  Custom store bots and specialized AI agents will appear here once published. Meanwhile, you can use Executive Chat anytime.
-                </p>
-              </div>
-              <button
-                type="button"
-                onclick={() => switchTab('chat')}
-                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer"
-              >
-                <Icon name="MessageSquare" size={14} />
-                <span>Open Executive Chat</span>
-              </button>
-            </div>
-          {:else}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {#each filteredStoreBots as bot (bot.id)}
-                {@const isUnlocked = ($subscription.unlockedStoreBots || []).includes(bot.id)}
-                <div class="rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 p-6 flex flex-col justify-between space-y-5 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
-                  <div class="space-y-4">
-                    <!-- Header: Avatar, Name & Badges -->
-                    <div class="flex items-start gap-3.5">
-                      <div class="relative w-14 h-14 rounded-2xl overflow-hidden border border-[#E3ECF7] shadow-2xs shrink-0">
-                        <img src={bot.avatar} alt={bot.name} class="w-full h-full object-cover" />
-                      </div>
-                      <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <h3 class="font-bold text-[#102A56] text-base">{bot.name}</h3>
-                          {#if bot.badge}
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ui-badge-primary uppercase">{bot.badge}</span>
-                          {/if}
-                          {#if bot.isNew}
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">NEW</span>
-                          {/if}
-                        </div>
-                        <p class="text-xs text-[#1677FF] font-semibold mt-0.5">{bot.role}</p>
-                      </div>
-                    </div>
-
-                    <p class="text-xs text-[#4B6382] leading-relaxed">{bot.description}</p>
-
-                    <!-- Technical Specs Card -->
-                    <div class="p-3.5 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-1.5 text-[11px]">
-                      <div class="flex items-center justify-between">
-                        <span class="text-[#4B6382] font-medium">Neural Engine:</span>
-                        <span class="font-mono text-[#102A56] font-semibold">{bot.specs.engine}</span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span class="text-[#4B6382] font-medium">Latency:</span>
-                        <span class="text-emerald-600 font-semibold">{bot.specs.responseTime}</span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span class="text-[#4B6382] font-medium">Context Window:</span>
-                        <span class="text-[#102A56] font-semibold">{bot.specs.contextWindow}</span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span class="text-[#4B6382] font-medium">Specialization:</span>
-                        <span class="text-[#1677FF] font-medium truncate max-w-[160px]">{bot.specs.specialization}</span>
-                      </div>
-                    </div>
-
-                    <!-- Features Preview -->
-                    <div class="space-y-1.5">
-                      <p class="text-[10px] font-bold text-[#5E7694] uppercase tracking-wider">Features Unlocked Upon Purchase:</p>
-                      {#each bot.features as feat}
-                        <div class="flex items-start gap-2 text-xs text-[#102A56]">
-                          <Icon name="Check" size={13} class="text-[#1677FF] shrink-0 mt-0.5" />
-                          <span class="text-[11px] leading-tight">{feat}</span>
-                        </div>
-                      {/each}
-                    </div>
-                  </div>
-
-                  <!-- Price and Action CTA -->
-                  <div class="pt-4 border-t border-[#E3ECF7] flex items-center justify-between gap-3">
-                    <div>
-                      <span class="text-xl font-black text-[#102A56]">
-                        BDT {storeBillingInterval === 'yearly' ? bot.yearlyPrice.toLocaleString() : bot.monthlyPrice.toLocaleString()}
-                      </span>
-                      <span class="text-xs text-[#4B6382] font-medium">/{storeBillingInterval === 'yearly' ? 'yr' : 'mo'}</span>
-                    </div>
-
-                    {#if isUnlocked}
-                      <button
-                        type="button"
-                        onclick={() => switchTab('agents')}
-                        class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Icon name="CheckCircle2" size={14} />
-                        <span>Active in My Agents →</span>
-                      </button>
-                    {:else}
-                      <button
-                        type="button"
-                        onclick={() => handleUnlockBot(bot)}
-                        disabled={isProcessingPayment}
-                        class="px-4 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                      >
-                        <Icon name="Zap" size={14} />
-                        <span>{isProcessingPayment ? 'Connecting...' : 'Subscribe'}</span>
-                      </button>
-                    {/if}
-                  </div>
-                </div>
-              {/each}
-            </div>
-          {/if}
+      {:else if $activeDashboardTab === 'tools'}
+        <div class="h-full overflow-y-auto max-w-7xl mx-auto pb-12">
+          <ToolConnectorsTab />
         </div>
 
       <!-- ==================================================== -->
@@ -1296,12 +1021,12 @@
               {:else if $subscription.plan === 'free'}
                 <div class="px-3.5 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#4B6382] text-xs font-bold flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-[#7B92AE]"></span>
-                  <span>Plan: Free / BYOK</span>
+                  <span>Plan: Free / Starter</span>
                 </div>
               {:else}
                 <div class="px-3.5 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-[#1677FF] text-xs font-bold flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Plan: {$subscription.tier === 'managed' ? 'All-Inclusive Cloud' : 'BYOK Multi-Engine'} ({$subscription.interval === 'yearly' ? 'Yearly' : 'Monthly'})</span>
+                  <span>Plan: {$subscription.tier === 'byok_pro' ? 'Pro Plan' : $subscription.tier === 'managed' ? 'All-Inclusive Cloud' : 'Starter Plan'} ({$subscription.interval === 'yearly' ? 'Yearly' : 'Monthly'})</span>
                 </div>
               {/if}
             </div>
@@ -1313,12 +1038,14 @@
                 <p class="text-xl font-black text-[#102A56] mt-1">
                   {#if $subscription.tier === 'managed'}
                     BDT {$subscription.interval === 'yearly' ? '1,199' : '1,499'} <span class="text-xs text-[#4B6382] font-normal">/ mo</span>
+                  {:else if $subscription.tier === 'byok_pro'}
+                    BDT {$subscription.interval === 'yearly' ? '719' : '899'} <span class="text-xs text-[#4B6382] font-normal">/ mo</span>
                   {:else}
                     BDT {$subscription.interval === 'yearly' ? '399' : '499'} <span class="text-xs text-[#4B6382] font-normal">/ mo</span>
                   {/if}
                 </p>
                 <p class="text-[10px] text-[#1677FF] font-semibold mt-1">
-                  {$subscription.tier === 'managed' ? '100% Managed Cloud (Zero Keys)' : 'BYOK Multi-Engine (Client Keys)'}
+                  {$subscription.tier === 'byok_pro' ? 'Pro Plan (Power Automation)' : $subscription.tier === 'managed' ? '100% Managed Cloud (Zero Keys)' : 'Starter Plan (Essential Starter)'}
                 </p>
               </div>
 
@@ -1372,7 +1099,7 @@
                 <Icon name="Layers" size={20} class="text-[#1677FF]" />
                 <span>Available Plans & Tiers</span>
               </h3>
-              <p class="text-xs text-[#4B6382] mt-0.5">Switch between Bring-Your-Own-Key (BYOK Starter or Pro) or fully managed AI compute.</p>
+              <p class="text-xs text-[#4B6382] mt-0.5">Switch between Starter Plan and Pro Plan to upgrade your AI capabilities.</p>
             </div>
 
             <!-- Unified Dynamic Pricing Grid -->
@@ -1428,7 +1155,7 @@
                     class="ui-select px-3 py-2 text-xs"
                   >
                     <option value="too_expensive">It is too expensive for me right now</option>
-                    <option value="byok">I want to use my own free Gemini API key (BYOK)</option>
+                    <option value="byok">I want to use my own free Gemini API key</option>
                     <option value="project_done">Finished my project / temporary need</option>
                     <option value="missing_features">Missing a specific feature I need</option>
                     <option value="other">Other reason</option>
@@ -1461,9 +1188,9 @@
         {/if}
 
       <!-- ==================================================== -->
-      <!-- TAB 6: SETTINGS & UNIVERSAL API VAULT -->
+      <!-- TAB 6: SETTINGS -->
       <!-- ==================================================== -->
-      {:else if $activeDashboardTab === 'settings' || $activeDashboardTab === 'vault'}
+      {:else if $activeDashboardTab === 'settings'}
         <div class="h-full overflow-y-auto max-w-4xl mx-auto space-y-6 pb-12">
           <!-- Master AI CEO Persona & Custom Instructions Card -->
           <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 space-y-6 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
@@ -1578,7 +1305,7 @@
                   <span>API Key Management & Model Hub</span>
                 </h3>
                 <p class="text-xs text-[#4B6382] mt-1">
-                  Connect encrypted BYOK API keys (OpenRouter, Gemini, OpenAI, Groq, DeepSeek), sync 200+ live models, and select smart auto-rotating free models.
+                  Connect encrypted provider API keys (OpenRouter, Gemini, OpenAI, Groq, DeepSeek), sync 200+ live models, and select smart auto-rotating free models.
                 </p>
               </div>
 
@@ -1624,11 +1351,6 @@
           </div>
         </div>
 
-      <!-- ==================================================== -->
-      <!-- TAB 7: OWNED AUTONOMOUS AGENTS -->
-      <!-- ==================================================== -->
-      {:else if $activeDashboardTab === 'owned-agents'}
-        <OwnedAgentsManager onBrowseStore={() => switchTab('store')} />
 
       <!-- ==================================================== -->
       <!-- TAB 8: API KEY MANAGEMENT & MODEL EXPLORER -->

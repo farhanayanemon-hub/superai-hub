@@ -50,12 +50,12 @@
       a: 'Yes! We regularly release new Business, Marketing, and Freelancer AI Helpers every month. All new AI Helpers are unlocked automatically inside your single active subscription at zero extra cost.'
     },
     {
-      q: 'What is the difference between the 75 AI Helpers and Agents Store bots?',
-      a: 'All 75+ AI Helpers and the Master AI CEO are included in your subscription and can be controlled from Web, WhatsApp, and Telegram. By contrast, bots in the "Agents Store" are standalone Autonomous Agents that run complex workflows exclusively inside the Web Dashboard (they are not controlled via WhatsApp or Telegram).'
+      q: 'What is the difference between Starter Plan and Pro Plan?',
+      a: 'The Starter Plan (৳499/mo) gives you run-only access to all 75 pre-built agent workflows, 100+ enterprise tool connectors, and tier-guarded Master AI CEO. The Pro Plan (৳899/mo) unlocks the visual workflow studio with node graph editing, unlimited custom agent building, unrestricted Master AI CEO, and multi-key auto-failover.'
     },
     {
-      q: 'What is the BYOK (Bring Your Own Key) plan vs All-Inclusive Cloud?',
-      a: 'The BYOK plan lets you connect your own API keys from Google Gemini (1,500 free daily requests!), OpenAI, Grok, DeepSeek, OpenRouter, and Replicate with zero token markups. The All-Inclusive Cloud plan requires ZERO API keys or setup — everything runs on our platform high-speed AI cluster immediately.'
+      q: 'Do I need my own API keys to use EzboAgents?',
+      a: 'You can connect your own provider API keys (such as Google Gemini with 1,500 free daily requests, OpenAI, Grok, DeepSeek, OpenRouter, or Replicate) directly with zero token markups. Your keys remain encrypted and private in your vault.'
     },
     {
       q: 'How do payments work and how fast is activation?',
@@ -248,11 +248,11 @@
             One Subscription. All 75+ Helpers + Future Bots Included.
           </h2>
           <p class="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Bring your own API keys (BYOK) or choose our 100% Managed Cloud — both plans unlock the Master AI CEO and all 75+ AI Helpers.
+            Unlock the Master AI CEO, all 75+ AI Helpers, and 100+ Tool Connectors across Starter & Pro plans.
           </p>
         </div>
 
-        <!-- 3-Tier Dynamic Pricing Grid -->
+        <!-- 2-Tier Dynamic Pricing Grid -->
         <PricingCardsGrid context="landing" bind:selectedInterval={billingInterval} />
 
         <!-- Payment methods -->

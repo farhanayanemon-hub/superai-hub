@@ -91,6 +91,10 @@ export const POST: RequestHandler = async ({ request }) => {
       cleanPatch.plans = patch.plans;
     }
 
+    if (typeof patch.channelsCeoEnabled === 'boolean') {
+      cleanPatch.channelsCeoEnabled = patch.channelsCeoEnabled;
+    }
+
     const updated = updateAdminConfig(cleanPatch);
     const masked = getMaskedAdminConfig();
 

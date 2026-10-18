@@ -184,7 +184,7 @@
         Activate Your<br class="sm:hidden" /> Executive Workspace
       </h1>
       <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed px-3">
-        Choose how you want to deploy: bring your own API keys for zero token markups, or enjoy our fully managed high-speed cloud cluster.
+        Choose the ideal plan for your workflow: start with 75 ready-made AI agents or unlock the full visual workflow studio.
       </p>
 
     </div>
@@ -204,7 +204,7 @@
       </div>
     {/if}
 
-    <!-- 3-Tier Dynamic Pricing Grid -->
+    <!-- 2-Tier Dynamic Pricing Grid -->
     <PricingCardsGrid
       context="plans"
       bind:selectedInterval={billingInterval}

@@ -62,6 +62,7 @@ export interface AdminConfig {
   smtpSecure?: boolean;
   telegramBotToken?: string;
   telegramBotUsername?: string;
+  channelsCeoEnabled: boolean;
   plans?: PlansSettings;
   userGrants?: Record<string, UserAccessGrant>;
   registeredUsers?: Record<string, RegisteredUserSummary>;
@@ -116,6 +117,7 @@ function loadConfigFromStorage(): AdminConfig {
     smtpSecure: process.env.SMTP_SECURE === 'true',
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
     telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot',
+    channelsCeoEnabled: true,
     providersAllowed: { ...DEFAULT_PROVIDERS_ALLOWED },
     plans: DEFAULT_PLANS,
     userGrants: {},
@@ -234,6 +236,7 @@ function loadConfigFromStorage(): AdminConfig {
         smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure,
         telegramBotToken: saved.telegramBotToken ?? envConfig.telegramBotToken,
         telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername,
+        channelsCeoEnabled: saved.channelsCeoEnabled ?? true,
         plans: mergedPlans,
         userGrants: migratedGrants,
         registeredUsers: migratedUsers
@@ -319,15 +322,19 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
   };
 
   memoryConfig = updated;
+  saveConfigToStorage(updated);
+  return updated;
+}
 
+export function saveConfigToStorage(config: AdminConfig): void {
   try {
-    fs.writeFileSync(CACHE_FILE_PATH, JSON.stringify(updated, null, 2), 'utf-8');
+    fs.writeFileSync(CACHE_FILE_PATH, JSON.stringify(config, null, 2), 'utf-8');
   } catch (err) {
     console.warn('Could not persist admin settings to file cache:', err);
   }
-
-  return updated;
 }
+
+export const updateAdminSettings = updateAdminConfig;
 
 export function upsertUserGrant(input: {
   email: string;
@@ -491,6 +498,7 @@ export function getMaskedAdminConfig() {
     telegramBotToken: maskKey(config.telegramBotToken),
     telegramBotUsername: config.telegramBotUsername || 'EzboAgentsBot',
     hasTelegramBot: !!config.telegramBotToken,
+    channelsCeoEnabled: config.channelsCeoEnabled !== false,
     plans: config.plans || DEFAULT_PLANS,
     userGrants: config.userGrants || {},
     registeredUsers: config.registeredUsers || {}

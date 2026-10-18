@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
+  import WorkflowStudioModal from './WorkflowStudioModal.svelte';
   import {
     activeTool,
     isDrawerOpen,
@@ -19,6 +20,10 @@
   import { marked } from 'marked';
 
   let { onOpenByok }: { onOpenByok?: () => void } = $props();
+
+  let isStudioOpen = $state(false);
+  let showUpgradeModal = $state(false);
+  let isPro = $derived($subscription?.tier === 'byok_pro' || $subscription?.tier === 'managed');
 
   interface StudioTurn {
     id: string;
@@ -342,6 +347,84 @@
         </button>
       {/if}
     </div>
+
+    <!-- Autonomous Workflow Pipeline & Gated Customization Bar -->
+    <div class="px-4 sm:px-6 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-xs text-[#102A56]">
+        <Icon name="GitBranch" size={14} class="text-[#1677FF]" />
+        <span class="font-bold">Autonomous Workflow Pipeline</span>
+        <span class="text-[10px] text-emerald-600 font-semibold">• Readymade 1-Click Execution</span>
+      </div>
+
+      {#if isPro}
+        <button
+          type="button"
+          onclick={() => (isStudioOpen = true)}
+          class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#1677FF] hover:bg-[#F0F5FF] border border-[#CFE2FA] flex items-center gap-1 cursor-pointer transition-colors"
+        >
+          <Icon name="Sliders" size={13} />
+          <span>Customize Workflow</span>
+        </button>
+      {:else}
+        <button
+          type="button"
+          onclick={() => (showUpgradeModal = true)}
+          class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#102A56] hover:bg-gray-100 border border-gray-200 flex items-center gap-1.5 cursor-pointer transition-colors"
+        >
+          <span>Customize Workflow</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase bg-[#1677FF] text-white shadow-2xs">
+            [PRO]
+          </span>
+        </button>
+      {/if}
+    </div>
+
+    <!-- Upgrade Prompt Modal for Starter Users -->
+    {#if showUpgradeModal}
+      <div
+        role="button"
+        tabindex="0"
+        onclick={() => (showUpgradeModal = false)}
+        onkeydown={(e) => { if (e.key === 'Escape') showUpgradeModal = false; }}
+        class="fixed inset-0 bg-[#102A56]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          tabindex="0"
+          onclick={(e) => e.stopPropagation()}
+          onkeydown={(e) => { if (e.key === 'Escape') showUpgradeModal = false; }}
+          class="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#CFE2FA] space-y-4 text-center"
+        >
+          <div class="w-12 h-12 rounded-2xl bg-[#F0F5FF] text-[#1677FF] border border-[#CFE2FA] flex items-center justify-center mx-auto">
+            <Icon name="Lock" size={22} />
+          </div>
+          <h3 class="text-base font-extrabold text-[#102A56]">Upgrade to Pro Plan</h3>
+          <p class="text-xs text-[#4B6382] leading-relaxed">
+            Starter Plan allows running all 75 readymade workflows. Visual workflow customization, node editing, and custom agent building are exclusive to <strong>Pro Plan</strong>.
+          </p>
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onclick={() => (showUpgradeModal = false)}
+              class="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
+            >
+              Close
+            </button>
+            <a
+              href="/plans"
+              class="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#1677FF] hover:bg-[#1162DB] text-white shadow-xs inline-flex items-center gap-1"
+            >
+              <span>Upgrade to Pro Plan</span>
+              <Icon name="ArrowRight" size={13} />
+            </a>
+          </div>
+        </div>
+      </div>
+    {/if}
+
+    <WorkflowStudioModal bind:isOpen={isStudioOpen} agentName={$activeTool?.name || 'Specialist Agent'} />
+
 
     <!-- Drawer Body -->
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 bg-white">
