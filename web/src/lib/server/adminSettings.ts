@@ -467,7 +467,7 @@ function maskKey(key?: string): string {
   return key.slice(0, 4) + '••••••••' + key.slice(-4);
 }
 
-export function getMaskedAdminConfig() {
+export function getMaskedAdminConfig(includeUsers = false) {
   const config = getAdminConfig();
   return {
     opayApiKey: maskKey(config.opayApiKey),
@@ -500,7 +500,7 @@ export function getMaskedAdminConfig() {
     hasTelegramBot: !!config.telegramBotToken,
     channelsCeoEnabled: config.channelsCeoEnabled !== false,
     plans: config.plans || DEFAULT_PLANS,
-    userGrants: config.userGrants || {},
-    registeredUsers: config.registeredUsers || {}
+    userGrants: includeUsers ? (config.userGrants || {}) : {},
+    registeredUsers: includeUsers ? (config.registeredUsers || {}) : {}
   };
 }

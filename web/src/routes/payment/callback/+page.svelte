@@ -82,28 +82,12 @@
 
         verified = true;
       } else {
-        // Fallback: If OPay is slow to mark COMPLETED, record the transaction
-        txDetails = {
-          txId: txIdParam,
-          method: methodParam,
-          amount: amountParam
-        };
-        // Activate access provisionally for good UX
-        switchPlan('byok', 'monthly');
-        verified = true;
+        verified = false;
+        errorMsg = json.error || `Payment could not be verified (Status: ${json.status || 'UNPAID'}). If your account was charged, please contact support with Transaction ID: ${txIdParam}.`;
       }
     } catch (err: any) {
-      errorMsg = err.message || 'Unable to connect to verification gateway.';
-      // Fallback grace verification if txId is present
-      if (txIdParam) {
-        txDetails = {
-          txId: txIdParam,
-          method: methodParam,
-          amount: amountParam
-        };
-        switchPlan('byok', 'monthly');
-        verified = true;
-      }
+      verified = false;
+      errorMsg = err.message || 'Unable to connect to verification gateway. If your account was charged, please contact support.';
     } finally {
       verifying = false;
     }

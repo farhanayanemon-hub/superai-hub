@@ -55,6 +55,8 @@
   // Pro Workflow Studio State
   let isDashboardStudioOpen = $state(false);
   let studioAgentName = $state('Master Specialist Agent');
+  let handleStudioTrigger: ((e: any) => void) | null = null;
+  let handleHashChange: (() => void) | null = null;
 
   function openWorkflowStudio(agentName: string = 'Master Specialist Agent') {
     studioAgentName = agentName;
@@ -260,19 +262,20 @@
     }, 5000);
 
     // Workflow Studio Event & Hash Handler
-    const handleStudioTrigger = (e: any) => {
+    handleStudioTrigger = (e: any) => {
       openWorkflowStudio(e?.detail?.agentName || 'Master Specialist Agent');
+    };
+    handleHashChange = () => {
+      if (window.location.hash === '#open-workflow-studio') {
+        openWorkflowStudio();
+      }
     };
     if (typeof window !== 'undefined') {
       window.addEventListener('ezbo:open-workflow-studio', handleStudioTrigger);
       if (window.location.hash === '#open-workflow-studio') {
         openWorkflowStudio();
       }
-      window.addEventListener('hashchange', () => {
-        if (window.location.hash === '#open-workflow-studio') {
-          openWorkflowStudio();
-        }
-      });
+      window.addEventListener('hashchange', handleHashChange);
     }
   });
 
@@ -290,7 +293,8 @@
     whatsappApi.closeStream();
     if (telegramPollTimer) clearInterval(telegramPollTimer);
     if (typeof window !== 'undefined') {
-      window.removeEventListener('ezbo:open-workflow-studio', openWorkflowStudio as any);
+      if (handleStudioTrigger) window.removeEventListener('ezbo:open-workflow-studio', handleStudioTrigger);
+      if (handleHashChange) window.removeEventListener('hashchange', handleHashChange);
     }
   });
 

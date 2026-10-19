@@ -97,6 +97,16 @@
           <span>Download started automatically!</span>
         </p>
       {/if}
+
+      <div class="pt-1">
+        <a
+          href="/downloads/EzboAgents-universal.apk"
+          download="EzboAgents-universal.apk"
+          class="text-[11px] text-[#5E7694] hover:text-[#1677FF] inline-flex items-center gap-1 justify-center font-medium transition-colors"
+        >
+          <span>Using older 32-bit phone or PC emulator? Download Universal APK (53.2 MB) →</span>
+        </a>
+      </div>
     </div>
 
     <!-- 3-Step Installation Guide -->

@@ -38,7 +38,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({
         success: true,
         message: 'Passphrase verified successfully.',
-        settings: getMaskedAdminConfig()
+        settings: getMaskedAdminConfig(true)
       });
     }
 
@@ -96,7 +96,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const updated = updateAdminConfig(cleanPatch);
-    const masked = getMaskedAdminConfig();
+    const masked = getMaskedAdminConfig(true);
 
     return json({
       success: true,
