@@ -2,6 +2,7 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
 import {
   matchHelperForMessage,
+  matchMultiHelpersForMessage,
   buildCeoOrHelperSystemPrompt,
   isVisualGenerationHelper,
   isRestrictedStarterIntent,
@@ -150,6 +151,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Match helper via AI CEO router or explicit helperId
     const matchedHelper = matchHelperForMessage(message, helperId);
+    const multiHelpers = matchMultiHelpersForMessage(message);
+    const isMultiChain = multiHelpers.length > 1;
+
     const delegatedHelperMeta = matchedHelper
       ? {
           id: matchedHelper.id,
@@ -161,12 +165,23 @@ export const POST: RequestHandler = async ({ request }) => {
         }
       : null;
 
+    const delegatedPipelineMeta = isMultiChain
+      ? multiHelpers.map((h) => ({
+          id: h.id,
+          code: h.code,
+          name: h.name,
+          icon: h.icon,
+          badge: h.badge
+        }))
+      : undefined;
+
     const systemPrompt = buildCeoOrHelperSystemPrompt(matchedHelper, {
       language,
       tone,
       mode,
       ceoCustomPrompt,
-      planTier: effectivePlanTier
+      planTier: effectivePlanTier,
+      multiHelpers: isMultiChain ? multiHelpers : undefined
     });
 
     // Determine the key and provider to use
@@ -338,6 +353,7 @@ export const POST: RequestHandler = async ({ request }) => {
               success: true,
               input: message,
               delegatedHelper: delegatedHelperMeta,
+              delegatedPipeline: delegatedPipelineMeta,
               result: {
                 type: 'text',
                 text: reply
@@ -464,6 +480,7 @@ export const POST: RequestHandler = async ({ request }) => {
           success: true,
           input: message,
           delegatedHelper: delegatedHelperMeta,
+          delegatedPipeline: delegatedPipelineMeta,
           result: {
             type: 'text',
             text: successfulReply
@@ -505,6 +522,7 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({
       ...data,
       delegatedHelper: delegatedHelperMeta,
+      delegatedPipeline: delegatedPipelineMeta,
       provider: resolvedProvider
     });
   } catch (error: any) {

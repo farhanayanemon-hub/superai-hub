@@ -65,6 +65,27 @@ export interface ChatMessage {
   imageUrl?: string;
   status?: 'sending' | 'done' | 'error';
   provider?: AIProvider;
+  requiresApiKey?: boolean;
+  actionCard?: 'api_key_proposal' | 'navigation' | 'multi_agent_pipeline';
+  keyProposal?: {
+    provider: AIProvider;
+    providerName: string;
+    rawKey: string;
+    maskedKey: string;
+    status: 'pending' | 'saved' | 'discarded';
+  };
+  navigationAction?: {
+    type: 'workflow' | 'tools' | 'agents' | 'billing' | 'vault' | 'channels' | 'app';
+    label: string;
+    description?: string;
+  };
+  delegatedPipeline?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    icon?: string;
+    badge?: string;
+  }>;
 }
 
 // -------------------------------------------------------------

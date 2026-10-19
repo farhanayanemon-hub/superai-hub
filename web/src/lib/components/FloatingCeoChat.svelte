@@ -20,10 +20,13 @@
     activeDashboardTab,
     isHelperUnlocked,
     isProPlan,
-    type ChatMessage
+    addVaultKey,
+    setDefaultVaultKey,
+    type ChatMessage,
+    type AIProvider
   } from '$lib/stores/userStore';
   import { plansStore } from '$lib/stores/plansStore';
-  import { decryptVaultKey } from '$lib/services/crypto';
+  import { decryptVaultKey, encryptVaultKey } from '$lib/services/crypto';
   import { offlineStorage } from '$lib/services/offlineStorage';
   import { marked } from 'marked';
   import { onMount, tick } from 'svelte';
@@ -413,6 +416,283 @@
     }, 50);
   }
 
+  // =========================================================================
+  // API Key & Sensitive Credential Detection Engine
+  // =========================================================================
+  interface KeyDetectionResult {
+    provider: AIProvider;
+    providerName: string;
+    rawKey: string;
+    maskedKey: string;
+  }
+
+  function detectApiKey(text: string): KeyDetectionResult | null {
+    if (!text || typeof text !== 'string') return null;
+
+    // 1. Google Gemini (AIzaSy followed by 33 base64/url-safe chars)
+    const geminiMatch = text.match(/\b(AIzaSy[0-9A-Za-z_-]{33})\b/);
+    if (geminiMatch) {
+      const rawKey = geminiMatch[1];
+      return {
+        provider: 'gemini',
+        providerName: 'Google Gemini',
+        rawKey,
+        maskedKey: `${rawKey.slice(0, 6)}...${rawKey.slice(-4)}`
+      };
+    }
+
+    // 2. OpenRouter (sk-or-v1- followed by 64 hex characters)
+    const openRouterMatch = text.match(/\b(sk-or-v1-[a-f0-9]{64})\b/);
+    if (openRouterMatch) {
+      const rawKey = openRouterMatch[1];
+      return {
+        provider: 'openrouter',
+        providerName: 'OpenRouter',
+        rawKey,
+        maskedKey: `${rawKey.slice(0, 11)}...${rawKey.slice(-4)}`
+      };
+    }
+
+    // 3. xAI Grok (xai- followed by 20+ chars)
+    const grokMatch = text.match(/\b(xai-[a-zA-Z0-9_-]{20,})\b/);
+    if (grokMatch) {
+      const rawKey = grokMatch[1];
+      return {
+        provider: 'grok',
+        providerName: 'xAI Grok',
+        rawKey,
+        maskedKey: `${rawKey.slice(0, 6)}...${rawKey.slice(-4)}`
+      };
+    }
+
+    // 4. OpenAI (sk- followed by 20+ chars, when not openrouter)
+    const openAiMatch = text.match(/\b(sk-(?!or-v1-)[a-zA-Z0-9_-]{20,})\b/);
+    if (openAiMatch) {
+      const rawKey = openAiMatch[1];
+      return {
+        provider: 'openai',
+        providerName: 'OpenAI',
+        rawKey,
+        maskedKey: `${rawKey.slice(0, 5)}...${rawKey.slice(-4)}`
+      };
+    }
+
+    return null;
+  }
+
+  // =========================================================================
+  // Smart Site Navigation Detection Engine
+  // =========================================================================
+  interface NavigationDetectionResult {
+    type: 'workflow' | 'tools' | 'agents' | 'billing' | 'vault' | 'channels' | 'app';
+    label: string;
+    description: string;
+  }
+
+  function detectNavigationIntent(text: string): NavigationDetectionResult | null {
+    if (!text || typeof text !== 'string') return null;
+    const lower = text.toLowerCase();
+
+    if (
+      lower.includes('workflow studio') ||
+      lower.includes('open workflow') ||
+      lower.includes('ওয়ার্কফ্লো') ||
+      lower.includes('ওয়ার্কফ্লো') ||
+      lower.includes('node graph') ||
+      lower.includes('workflow canvas')
+    ) {
+      return {
+        type: 'workflow',
+        label: '🚀 Open Visual Workflow Studio',
+        description: 'Launch full-screen canvas to orchestrate nodes and automated pipelines.'
+      };
+    }
+
+    if (
+      lower.includes('tool connector') ||
+      lower.includes('open tools') ||
+      lower.includes('tools page') ||
+      lower.includes('integrations') ||
+      lower.includes('কানেক্টর') ||
+      (lower.includes('tools') && (lower.includes('dekhao') || lower.includes('show') || lower.includes('open')))
+    ) {
+      return {
+        type: 'tools',
+        label: '🛠️ Open Tools & Integrations',
+        description: 'Connect WhatsApp, Telegram, Google Workspace, CRMs, and 100+ platforms.'
+      };
+    }
+
+    if (
+      lower.includes('my agents') ||
+      lower.includes('all agents') ||
+      lower.includes('show agents') ||
+      lower.includes('এজেন্ট লিস্ট') ||
+      (lower.includes('agents') && (lower.includes('dekhao') || lower.includes('show') || lower.includes('open')))
+    ) {
+      return {
+        type: 'agents',
+        label: '🤖 Open My Agents',
+        description: 'Browse, search, and run all 75 specialized AI Agents.'
+      };
+    }
+
+    if (
+      lower.includes('upgrade plan') ||
+      lower.includes('view billing') ||
+      lower.includes('pricing') ||
+      lower.includes('বিলিং') ||
+      lower.includes('প্ল্যান') ||
+      lower.includes('সাবস্ক্রিপশন') ||
+      (lower.includes('billing') && (lower.includes('open') || lower.includes('show') || lower.includes('dekhao')))
+    ) {
+      return {
+        type: 'billing',
+        label: '💳 View Plans & Billing',
+        description: 'Manage Starter vs Pro subscription and explore plan features.'
+      };
+    }
+
+    if (
+      lower.includes('api vault') ||
+      lower.includes('manage keys') ||
+      lower.includes('ভল্ট') ||
+      (lower.includes('api key') && (lower.includes('vault') || lower.includes('open') || lower.includes('manage')))
+    ) {
+      return {
+        type: 'vault',
+        label: '🔑 Open API Vault',
+        description: 'Configure encrypted API keys, failover chains, and model rotation.'
+      };
+    }
+
+    if (
+      lower.includes('connect channel') ||
+      lower.includes('pair whatsapp') ||
+      lower.includes('connect telegram') ||
+      lower.includes('চ্যানেল কানেক্ট')
+    ) {
+      return {
+        type: 'channels',
+        label: '⚡ Connect Channels (WhatsApp / Telegram)',
+        description: 'Link your WhatsApp number or Telegram bot for 24/7 AI access.'
+      };
+    }
+
+    if (
+      lower.includes('download app') ||
+      lower.includes('android app') ||
+      lower.includes('mobile app') ||
+      lower.includes('apk download') ||
+      lower.includes('অ্যাপ ডাউনলোড')
+    ) {
+      return {
+        type: 'app',
+        label: '📱 Download Android App',
+        description: 'Get the official Ezbo Android APK with 120Hz fluid wave interface.'
+      };
+    }
+
+    return null;
+  }
+
+  function confirmSaveKeyProposal(msgId: string) {
+    if (!activeSession) return;
+    const msg = activeSession.messages.find((m) => m.id === msgId);
+    if (!msg || !msg.keyProposal || msg.keyProposal.status !== 'pending') return;
+
+    const { provider, providerName, rawKey } = msg.keyProposal;
+
+    // Encrypt and save to user's Vault
+    const encrypted = encryptVaultKey(rawKey, provider);
+    const added = addVaultKey({
+      provider,
+      label: `${providerName} Key (Saved from CEO Chat)`,
+      encryptedKey: encrypted,
+      isDefault: true,
+      isEnabled: true,
+      isValid: true
+    });
+    setDefaultVaultKey(added.id);
+    apiKey.set(rawKey);
+
+    // Notify listeners across app
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ezbo:vault-updated'));
+    }
+
+    msg.keyProposal.status = 'saved';
+
+    // Add confirmation message from CEO
+    const confMsg: ChatMessage = {
+      id: `bot-conf-${Date.now()}`,
+      role: 'assistant',
+      content: `✅ **${providerName} API Key** সফলভাবে আপনার ব্রাউজার এনক্রিপ্টেড ভল্টে সেভ করা হয়েছে এবং সক্রিয় রয়েছে! আপনি এখন যেকোনো এজেন্ট বা ওয়ার্কফ্লো নির্বিঘ্নে চালাতে পারেন।\n\n*(Your ${providerName} API Key has been safely encrypted and activated in your Vault. You can now command all agents without restrictions!)*`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    activeSession.messages = [...activeSession.messages, confMsg];
+    activeSession.updatedAt = Date.now();
+    sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+    saveSessions();
+    chatMessages.set(activeSession.messages);
+    scrollToBottom();
+  }
+
+  function discardKeyProposal(msgId: string) {
+    if (!activeSession) return;
+    const msg = activeSession.messages.find((m) => m.id === msgId);
+    if (!msg || !msg.keyProposal) return;
+    msg.keyProposal.status = 'discarded';
+
+    const discardMsg: ChatMessage = {
+      id: `bot-discard-${Date.now()}`,
+      role: 'assistant',
+      content: '❌ API Key সংরক্ষণ বাতিল করা হয়েছে। এটি কোথাও সেভ করা হয়নি। *(API Key discarded and not stored).*',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    activeSession.messages = [...activeSession.messages, discardMsg];
+    activeSession.updatedAt = Date.now();
+    sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+    saveSessions();
+    chatMessages.set(activeSession.messages);
+    scrollToBottom();
+  }
+
+  function handleNavigationAction(type: 'workflow' | 'tools' | 'agents' | 'billing' | 'vault' | 'channels' | 'app') {
+    switch (type) {
+      case 'workflow':
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ezbo:open-workflow-studio', { detail: { agentName: 'Master Specialist Agent' } }));
+        }
+        isOpen = false;
+        break;
+      case 'tools':
+        activeDashboardTab.set('tools');
+        isOpen = false;
+        break;
+      case 'agents':
+        activeDashboardTab.set('agents');
+        isOpen = false;
+        break;
+      case 'billing':
+        activeDashboardTab.set('billing');
+        isOpen = false;
+        break;
+      case 'vault':
+        activeDashboardTab.set('api-keys');
+        isOpen = false;
+        break;
+      case 'channels':
+        openChannelsModal();
+        break;
+      case 'app':
+        isAppDownloadModalOpen = true;
+        break;
+    }
+  }
+
   async function handleSend() {
     const text = inputMessage.trim();
     if ((!text && !attachedImage) || isSending) return;
@@ -424,6 +704,44 @@
     attachedImage = null;
     isSlashOpen = false;
     isPlusMenuOpen = false;
+
+    // Detect API Key intent in user message (Human-in-the-Loop Safe Setup)
+    const detectedKey = detectApiKey(messageText);
+    if (detectedKey) {
+      const userMsgId = `usr-${Date.now()}`;
+      const userMsg: ChatMessage = {
+        id: userMsgId,
+        role: 'user',
+        content: messageText.replace(detectedKey.rawKey, detectedKey.maskedKey),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      const proposalMsgId = `bot-${Date.now()}`;
+      const proposalMsg: ChatMessage = {
+        id: proposalMsgId,
+        role: 'assistant',
+        content: `I detected a **${detectedKey.providerName}** API Key in your message.\n\nFor your security and privacy, Ezbo never stores unconfirmed keys. Would you like me to securely encrypt and save this key to your browser Vault right now?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        actionCard: 'api_key_proposal',
+        keyProposal: {
+          provider: detectedKey.provider,
+          providerName: detectedKey.providerName,
+          rawKey: detectedKey.rawKey,
+          maskedKey: detectedKey.maskedKey,
+          status: 'pending'
+        }
+      };
+
+      if (activeSession) {
+        activeSession.messages = [...activeSession.messages, userMsg, proposalMsg];
+        activeSession.updatedAt = Date.now();
+        sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+        saveSessions();
+      }
+      chatMessages.set(activeSession ? activeSession.messages : [userMsg, proposalMsg]);
+      scrollToBottom();
+      return;
+    }
 
     const userMsgId = `usr-${Date.now()}`;
     const userMsg: ChatMessage = {
@@ -566,12 +884,16 @@
           'Your message was received, but no output was generated. Please verify your API Key in the API Vault / Settings tab.';
       }
 
+      const navIntent = detectNavigationIntent(messageText);
+
       const botMsg: ChatMessage = {
         id: `bot-${Date.now()}`,
         role: 'assistant',
         content: replyContent,
         toolMatched,
         imageUrl: replyImageUrl,
+        navigationAction: navIntent || undefined,
+        delegatedPipeline: data.delegatedPipeline,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -1020,6 +1342,22 @@
               </div>
 
               <div class="max-w-[90%] space-y-2">
+                <!-- Delegated Pipeline Badges if present -->
+                {#if msg.delegatedPipeline && msg.delegatedPipeline.length > 0}
+                  <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                    <span class="text-[9px] font-extrabold text-[#5E7694] uppercase tracking-wider">Coordinated Pipeline:</span>
+                    {#each msg.delegatedPipeline as p, idx}
+                      <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-[#CFE2FA] text-[10px] font-bold text-[#1677FF] shadow-2xs">
+                        <span class="w-3.5 h-3.5 rounded-full bg-[#1677FF] text-white flex items-center justify-center text-[8px] font-black">{idx + 1}</span>
+                        <span>[{p.code}] {p.name}</span>
+                      </div>
+                      {#if idx < msg.delegatedPipeline.length - 1}
+                        <span class="text-[#889DB5] text-xs font-bold">→</span>
+                      {/if}
+                    {/each}
+                  </div>
+                {/if}
+
                 <!-- Delegated Helper Badge if present -->
                 {#if msg.toolMatched}
                   <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F3F8FF] border border-[#CFE2FA] text-[10px] font-bold text-[#1677FF]">
@@ -1052,6 +1390,77 @@
                   >
                     {@html renderMarkdown(msg.content)}
                   </div>
+
+                  <!-- Interactive API Key Setup Action Card -->
+                  {#if msg.keyProposal}
+                    <div class="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-[#F3F8FF] via-indigo-50/70 to-blue-50/70 border border-[#CFE2FA] space-y-2.5 animate-in fade-in duration-200">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <div class="w-6 h-6 rounded-lg bg-white border border-[#CFE2FA] flex items-center justify-center text-xs shadow-2xs">
+                            🔑
+                          </div>
+                          <span class="text-xs font-bold text-[#102A56]">Detected {msg.keyProposal.providerName} API Key</span>
+                        </div>
+                        {#if msg.keyProposal.status === 'saved'}
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                            <Icon name="Check" size={10} /> Saved
+                          </span>
+                        {:else if msg.keyProposal.status === 'discarded'}
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                            Discarded
+                          </span>
+                        {:else}
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                            Confirmation Required
+                          </span>
+                        {/if}
+                      </div>
+
+                      <div class="p-2 rounded-xl bg-white/95 border border-[#E3ECF7] font-mono text-xs text-[#102A56] flex items-center justify-between shadow-2xs">
+                        <span class="tracking-wider">{msg.keyProposal.maskedKey}</span>
+                        <span class="text-[10px] font-sans font-bold text-emerald-600">Valid Format</span>
+                      </div>
+
+                      {#if msg.keyProposal.status === 'pending'}
+                        <div class="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onclick={() => confirmSaveKeyProposal(msg.id)}
+                            class="px-3.5 py-1.5 rounded-xl blue-btn text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer hover:scale-102 active:scale-98 transition-all"
+                          >
+                            <span>✅ Confirm & Save to Vault</span>
+                          </button>
+                          <button
+                            type="button"
+                            onclick={() => discardKeyProposal(msg.id)}
+                            class="px-3 py-1.5 rounded-xl bg-white border border-[#E3ECF7] text-xs font-semibold text-[#5E7694] hover:text-[#102A56] hover:bg-gray-50 cursor-pointer transition-all"
+                          >
+                            <span>❌ Discard</span>
+                          </button>
+                        </div>
+                      {:else if msg.keyProposal.status === 'saved'}
+                        <div class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1.5 pt-0.5">
+                          <Icon name="ShieldCheck" size={13} class="text-emerald-600" />
+                          <span>Encrypted and active in your local browser Vault.</span>
+                        </div>
+                      {/if}
+                    </div>
+                  {/if}
+
+                  <!-- Smart Site Navigation Action Chip -->
+                  {#if msg.navigationAction}
+                    <div class="mt-3 pt-2.5 border-t border-[#E3ECF7] space-y-1.5">
+                      <p class="text-[11px] text-[#5E7694]">{msg.navigationAction.description}</p>
+                      <button
+                        type="button"
+                        onclick={() => handleNavigationAction(msg.navigationAction!.type)}
+                        class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#1677FF] to-[#38CFFF] hover:from-[#1162DB] hover:to-[#22B8E6] text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
+                      >
+                        <span>{msg.navigationAction.label}</span>
+                        <Icon name="ArrowRight" size={13} />
+                      </button>
+                    </div>
+                  {/if}
 
                   <!-- In-Chat Missing API Key Setup Action Chip -->
                   {#if (msg as any).requiresApiKey || (msg.role === 'assistant' && msg.content && msg.content.includes('API Key') && (msg.content.includes('API Vault') || msg.content.includes('Vault tab') || msg.content.includes('No API Key')))}

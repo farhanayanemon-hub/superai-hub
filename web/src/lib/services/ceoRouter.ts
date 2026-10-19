@@ -136,6 +136,61 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
   return null;
 }
 
+/**
+ * Detects multiple agents mentioned or required in sequence for a multi-specialist pipeline.
+ * Extracts explicit mention chips (#01, #34, etc.) or distinct keyword triggers.
+ */
+export function matchMultiHelpersForMessage(query: string): ToolConfig[] {
+  const clean = (query || '').trim();
+  if (!clean) return [];
+
+  const matchedTools: ToolConfig[] = [];
+  const seenIds = new Set<string>();
+
+  // 1. Match all explicit mention chips or #XX codes: [⚡ #01 ...], #34, etc.
+  const chipMatches = clean.matchAll(/(?:\[?⚡?\s*#(\d{1,2})\b)/gi);
+  for (const m of chipMatches) {
+    const num = m[1].padStart(2, '0');
+    const tool = TOOLS.find((t) => t.code === `#${num}`);
+    if (tool && !seenIds.has(tool.id)) {
+      matchedTools.push(tool);
+      seenIds.add(tool.id);
+    }
+  }
+
+  // 2. If chaining conjunctions exist or multiple distinct keywords are present
+  const lower = clean.toLowerCase();
+  const hasChainIntent =
+    lower.includes('prothome') ||
+    lower.includes('tarpor') ||
+    lower.includes('then') ||
+    lower.includes('first') ||
+    lower.includes('after that') ||
+    lower.includes('এবং') ||
+    lower.includes('পরপর') ||
+    lower.includes('step by step') ||
+    lower.includes('pipeline');
+
+  if (hasChainIntent || matchedTools.length <= 1) {
+    for (const rule of KEYWORD_RULES) {
+      if (seenIds.has(rule.helperId)) continue;
+      for (const kw of rule.keywords) {
+        if (lower.includes(kw.toLowerCase())) {
+          const found = TOOLS.find((t) => t.id === rule.helperId);
+          if (found && !seenIds.has(found.id)) {
+            matchedTools.push(found);
+            seenIds.add(found.id);
+            break;
+          }
+        }
+      }
+      if (matchedTools.length >= 3) break;
+    }
+  }
+
+  return matchedTools;
+}
+
 export function isVisualGenerationHelper(
   helper: ToolConfig | string | null | undefined,
   query?: string
@@ -277,6 +332,7 @@ export function buildCeoOrHelperSystemPrompt(
     mode?: 'ceo' | 'helper';
     ceoCustomPrompt?: string;
     planTier?: string;
+    multiHelpers?: ToolConfig[];
   }
 ): string {
   const langInstruction = options?.language
@@ -297,6 +353,33 @@ export function buildCeoOrHelperSystemPrompt(
   const customDirective = options?.ceoCustomPrompt && options.ceoCustomPrompt.trim()
     ? `\n\nUSER DIRECTIVE & MASTER PERSONA (STRICT PRIORITY):\n${options.ceoCustomPrompt.trim()}`
     : '';
+
+  if (options?.multiHelpers && options.multiHelpers.length > 1) {
+    const pipelineList = options.multiHelpers
+      .map((h, i) => `Stage ${i + 1}: [${h.code}] ${h.name} (${h.agentRole})`)
+      .join('\n');
+
+    const specialistInstructions = options.multiHelpers
+      .map(
+        (h, i) => `### Stage ${i + 1}: [${h.code}] ${h.name} (${h.agentRole})
+Framework & Specialist Instructions:
+${h.systemPrompt}`
+      )
+      .join('\n\n');
+
+    return `${AI_CEO_PROFILE.systemPrompt}
+
+⚡ **MULTI-AGENT SEQUENTIAL PIPELINE ACTIVE**
+You are executing a coordinated multi-specialist sequential pipeline across ${options.multiHelpers.length} agents:
+${pipelineList}
+
+EXECUTION PROTOCOL:
+1. Begin your response with an executive pipeline header:
+"⚡ **Ezbo Master AI CEO → Coordinated Multi-Agent Pipeline (${options.multiHelpers.map((h) => h.code).join(' → ')})**"
+2. Execute each stage sequentially in complete detail, adhering to that specialist's exclusive prompt and framework:
+${specialistInstructions}
+3. The output of each stage must naturally connect to and power the next stage, delivering a unified, executive-ready deliverable.${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
+  }
 
   if (helper && options?.mode === 'helper') {
     return `You are [${helper.code}] ${helper.name} (${helper.badge}) on the EzboAgents Business & Freelancer AI Platform.
