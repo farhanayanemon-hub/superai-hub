@@ -22,7 +22,7 @@ const TIERS = [
   { id: 4, name: 'Tier 4: Real-World Scenarios & Full Build', file: 'tier4_real_world_build.test.mjs' },
   { id: 5, name: 'Tier 5: Adversarial Stress & Edge Cases', file: 'adversarial_challenge.test.mjs' },
   { id: 6, name: 'Tier 6: OpenRouter Multi-Model & Multi-Key Failover', file: 'openrouter_multimodel_multikey.test.mjs' },
-  { id: 7, name: 'Tier 7: Founder Security & Payment Enhancements', file: 'founder_security_and_payment_enhancements.test.mjs' }
+  { id: 7, name: 'Tier 7: Real-Time Pipeline, Missing Key Detection & Security', file: 'tier7_realtime_pipeline_security.test.mjs' }
 ];
 
 // Parse CLI arguments

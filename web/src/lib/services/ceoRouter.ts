@@ -37,8 +37,8 @@ const KEYWORD_RULES: Array<{ helperId: string; keywords: string[] }> = [
   { helperId: 'cold_email_b2b_outreach', keywords: ['cold email', 'b2b email', 'outreach email'] },
   { helperId: 'speech_presentation_scriptwriter', keywords: ['speech', 'presentation script', 'pitch deck script'] },
 
-  { helperId: 'ai_commercial_image_generator', keywords: ['generate image', 'create image', 'commercial photo', 'ছবি তৈরি'] },
-  { helperId: 'ai_business_logo_generator', keywords: ['logo', 'brand mark', 'লোগো'] },
+  { helperId: 'ai_commercial_image_generator', keywords: ['/img', '/image', 'generate image', 'create image', 'commercial image', 'commercial photo', 'ai image', 'ছবি তৈরি'] },
+  { helperId: 'ai_business_logo_generator', keywords: ['/logo', 'create logo', 'design logo', 'business logo', 'brand logo', 'logo', 'brand mark', 'লোগো'] },
   { helperId: 'product_photography_mockup', keywords: ['product photo', 'mockup', 'studio backdrop'] },
   { helperId: 'youtube_fb_thumbnail_designer', keywords: ['thumbnail', 'থাম্বনেইল'] },
   { helperId: 'social_poster_ad_banner', keywords: ['poster', 'banner design', 'পোস্টার', 'ব্যানার'] },
@@ -145,19 +145,128 @@ export function isVisualGenerationHelper(
     helperId === 'ai_commercial_image_generator' ||
     helperId === 'ai_commercial_image_gen' ||
     helperId === 'ai_business_logo_generator' ||
-    helperId === 'ai_business_logo_gen'
+    helperId === 'ai_business_logo_gen' ||
+    helperId === '#34' ||
+    helperId === '34' ||
+    helperId === '#35' ||
+    helperId === '35'
   ) {
     return true;
   }
   if (typeof helper === 'object' && helper !== null && (helper.code === '#34' || helper.code === '#35')) {
     return true;
   }
-  const lower = (query || (typeof helper === 'string' && !query ? helper : '')).toLowerCase();
+  const lower = (query || (typeof helper === 'string' && !query ? helper : '')).toLowerCase().trim();
   return (
     lower.startsWith('/img ') ||
+    lower.startsWith('/img') ||
+    lower.startsWith('/image ') ||
+    lower.startsWith('/image') ||
     lower.startsWith('generate image:') ||
-    lower.startsWith('create logo:')
+    lower.startsWith('generate image') ||
+    lower.startsWith('create logo:') ||
+    lower.startsWith('create logo') ||
+    lower.startsWith('/logo ') ||
+    lower.startsWith('/logo')
   );
+}
+
+export interface VisualGenerationParams {
+  prompt: string;
+  width: number;
+  height: number;
+  aspectRatio: '1:1' | '16:9' | '9:16' | '4:3';
+  seed: number;
+  model: string;
+  imageUrl: string;
+  caption: string;
+}
+
+export const VISUAL_ASPECT_RATIO_DIMS: Record<string, { width: number; height: number }> = {
+  '1:1': { width: 1024, height: 1024 },
+  '16:9': { width: 1280, height: 720 },
+  '9:16': { width: 720, height: 1280 },
+  '4:3': { width: 1024, height: 768 }
+};
+
+export function buildVisualGenerationParams(
+  prompt: string,
+  options?: {
+    aspectRatio?: '1:1' | '16:9' | '9:16' | '4:3' | string;
+    seed?: number;
+    model?: string;
+    helperId?: string;
+  }
+): VisualGenerationParams {
+  const cleanPrompt = (prompt || '')
+    .replace(/^\/img\s+/i, '')
+    .replace(/^\/image\s+/i, '')
+    .replace(/^\/logo\s+/i, '')
+    .replace(/^generate image:\s*/i, '')
+    .replace(/^create logo:\s*/i, '')
+    .trim();
+
+  let ratioKey: '1:1' | '16:9' | '9:16' | '4:3' = '1:1';
+  if (options?.aspectRatio) {
+    const rawRatio = options.aspectRatio.trim();
+    if (rawRatio.includes('16:9') || rawRatio.includes('16/9') || rawRatio.toLowerCase().includes('banner') || rawRatio.toLowerCase().includes('widescreen')) {
+      ratioKey = '16:9';
+    } else if (rawRatio.includes('9:16') || rawRatio.includes('9/16') || rawRatio.toLowerCase().includes('reel') || rawRatio.toLowerCase().includes('story') || rawRatio.toLowerCase().includes('vertical')) {
+      ratioKey = '9:16';
+    } else if (rawRatio.includes('4:3') || rawRatio.includes('4/3')) {
+      ratioKey = '4:3';
+    } else if (rawRatio.includes('1:1') || rawRatio.includes('1/1') || rawRatio.toLowerCase().includes('square')) {
+      ratioKey = '1:1';
+    }
+  }
+
+  const { width, height } = VISUAL_ASPECT_RATIO_DIMS[ratioKey] || VISUAL_ASPECT_RATIO_DIMS['1:1'];
+  const seed = typeof options?.seed === 'number' && !isNaN(options.seed) && options.seed >= 0
+    ? Math.floor(options.seed)
+    : Math.floor(Math.random() * 999999);
+  const model = options?.model && typeof options.model === 'string' && options.model.trim()
+    ? options.model.trim()
+    : 'flux';
+
+  const isLogo =
+    options?.helperId === 'ai_business_logo_generator' ||
+    options?.helperId === 'ai_business_logo_gen' ||
+    options?.helperId === '#35' ||
+    options?.helperId === '35' ||
+    cleanPrompt.toLowerCase().includes('logo');
+
+  let qualityTags = 'ultra detailed commercial quality, 8k resolution, professional lighting';
+  if (isLogo) {
+    qualityTags = 'vector logo brand identity, clean lines, professional branding, high resolution';
+  }
+
+  const encodedPrompt = encodeURIComponent(`${cleanPrompt}, ${qualityTags}`);
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true&seed=${seed}&model=${encodeURIComponent(model)}`;
+
+  let captionHeader = '✨ **EzboAgents AI Visual Engine**\n\nYour commercial visual render is ready. Preview or download below:';
+  if (isLogo) {
+    captionHeader = '⚡ **AI CEO → Delegated to [#35] AI Business Logo Generator**\n\nYour commercial brand logo render is ready. Preview or download below:';
+  } else if (
+    options?.helperId === 'ai_commercial_image_generator' ||
+    options?.helperId === 'ai_commercial_image_gen' ||
+    options?.helperId === '#34' ||
+    options?.helperId === '34'
+  ) {
+    captionHeader = '⚡ **AI CEO → Delegated to [#34] AI Commercial Image Generator**\n\nYour commercial visual render is ready. Preview or download below:';
+  }
+
+  const caption = `${captionHeader}\n\n**Prompt:** ${cleanPrompt}\n**Aspect Ratio:** ${ratioKey} (${width}x${height})`;
+
+  return {
+    prompt: cleanPrompt,
+    width,
+    height,
+    aspectRatio: ratioKey,
+    seed,
+    model,
+    imageUrl,
+    caption
+  };
 }
 
 export function buildCeoOrHelperSystemPrompt(

@@ -3,6 +3,20 @@
   import Icon from '$lib/components/Icon.svelte';
   import BrandIcon from '$lib/components/BrandIcon.svelte';
   import { TOOL_CONNECTORS, type ToolConnector } from '$lib/config/toolConnectors';
+  import {
+    apiKey,
+    subscription,
+    currentUser,
+    getActiveVaultKey,
+    getRoundRobinVaultKeys,
+    openrouterSelectedModels,
+    routingStrategy,
+    isProPlan,
+    apiVault,
+    activeDashboardTab
+  } from '$lib/stores/userStore';
+  import { decryptVaultKey } from '$lib/services/crypto';
+  import { marked } from 'marked';
 
   let { isOpen = $bindable(false), agentName = 'Custom Specialist', onSave } = $props<{
     isOpen?: boolean;
@@ -48,6 +62,40 @@
   let hoveredInPortNodeId = $state<string | null>(null);
   let nodeHeights = $state<Record<string, number>>({});
   let portOffsets = $state<Record<string, { inX: number; inY: number; outX: number; outY: number }>>({});
+
+  // Live Workflow Execution State
+  let isExecuting = $state(false);
+  let isExecutionDrawerOpen = $state(false);
+  let isExecutionDrawerMinimized = $state(false);
+  let executionInput = $state('Execute a high-converting multi-platform launch strategy for our flagship product.');
+  let outputMarkdown = $state('');
+  let executionDuration = $state(0);
+  let executionError = $state('');
+  let requiresApiKey = $state(false);
+  let isCopied = $state(false);
+  let activePulsingCables = $state<Set<string>>(new Set());
+
+  interface ExecutionStep {
+    id: string;
+    name: string;
+    role: 'trigger' | 'reasoning' | 'action';
+    status: 'idle' | 'waiting' | 'ready' | 'running' | 'completed' | 'failed';
+    detail: string;
+  }
+
+  let pipelineSteps = $state<ExecutionStep[]>([]);
+
+  const isCloudManaged = $derived(
+    $subscription?.tier === 'managed' ||
+    $subscription?.tier === 'complete' ||
+    $currentUser?.tier === 'managed'
+  );
+
+  const hasActiveKey = $derived(
+    isCloudManaged ||
+    $apiVault.some((k) => k.isEnabled !== false && !!k.encryptedKey) ||
+    (!!$apiKey && $apiKey.trim().length > 5)
+  );
 
   const DEFAULT_NODES: WorkflowNode[] = [
     {
@@ -627,6 +675,249 @@
       isOpen = false;
     }, 1200);
   }
+
+  function interpolatePrompt(template: string, inputVal: string, prevStepVal: string): string {
+    let res = template;
+    if (res.includes('{{input}}') || res.includes('{{user_prompt}}') || res.includes('{{previous_step}}')) {
+      return res
+        .replaceAll('{{input}}', inputVal)
+        .replaceAll('{{user_prompt}}', inputVal)
+        .replaceAll('{{previous_step}}', prevStepVal);
+    }
+    return `${res}\n\n[Trigger Inbound Input Payload]:\n${inputVal}`;
+  }
+
+  async function runLiveWorkflow() {
+    if (isExecuting) return;
+
+    // Open live execution drawer
+    isExecutionDrawerOpen = true;
+    isExecutionDrawerMinimized = false;
+    executionError = '';
+    requiresApiKey = false;
+    outputMarkdown = '';
+    isCopied = false;
+    activePulsingCables = new Set();
+
+    // 1. Inspect graph topology starting from Trigger (node-1 or root trigger node)
+    const triggerNode =
+      nodes.find((n) => n.type === 'trigger') ||
+      nodes.find((n) => !cables.some((c) => c.to === n.id)) ||
+      nodes[0];
+
+    const outgoingFromTrigger = triggerNode ? cables.filter((c) => c.from === triggerNode.id).map((c) => c.to) : [];
+    const aiNode =
+      nodes.find((n) => outgoingFromTrigger.includes(n.id) && (n.type === 'ai_agent' || n.id === 'node-2')) ||
+      nodes.find((n) => n.type === 'ai_agent') ||
+      nodes.find((n) => n.id === 'node-2') ||
+      nodes[1];
+
+    const downstreamFromAi = aiNode ? cables.filter((c) => c.from === aiNode.id).map((c) => c.to) : [];
+    const actionNodes = nodes.filter((n) => downstreamFromAi.includes(n.id) && n.type === 'action');
+
+    const inputPayload = (executionInput || triggerNode?.prompt || `Execute live workflow for ${agentName}`).trim();
+
+    // Initialize step statuses
+    pipelineSteps = [
+      {
+        id: triggerNode?.id || 'node-1',
+        name: triggerNode?.title || 'Workflow Trigger',
+        role: 'trigger',
+        status: 'completed',
+        detail: `Trigger input captured (${inputPayload.length} chars)`
+      },
+      {
+        id: aiNode?.id || 'node-2',
+        name: aiNode?.title || 'AI Reasoning Engine',
+        role: 'reasoning',
+        status: 'running',
+        detail: `Synthesizing via ${aiNode?.config?.model || 'Master AI Specialist'}...`
+      },
+      ...actionNodes.map((a) => ({
+        id: a.id,
+        name: a.title,
+        role: 'action' as const,
+        status: 'waiting' as const,
+        detail: 'Awaiting AI reasoning deliverable'
+      }))
+    ];
+
+    // Check if API key is connected
+    if (!hasActiveKey) {
+      requiresApiKey = true;
+      executionError = 'No AI API Key connected. Please connect your free Google Gemini or OpenRouter key in the API Vault.';
+      pipelineSteps = pipelineSteps.map((s) => (s.role === 'reasoning' ? { ...s, status: 'failed', detail: 'Missing API key' } : s));
+      return;
+    }
+
+    isExecuting = true;
+    const startTime = Date.now();
+
+    // Stage 1: Pulse cable between Trigger and AI Engine
+    if (triggerNode && aiNode) {
+      activePulsingCables = new Set([`${triggerNode.id}->${aiNode.id}`]);
+    }
+
+    // Token interpolation for {{input}}, {{user_prompt}}, and {{previous_step}}
+    const rawAiPrompt = aiNode?.prompt || 'Reason over input variables and synthesize high-converting output.';
+    const triggerSummary = `Inbound Trigger [${triggerNode?.title || 'Trigger'}]: "${inputPayload}"`;
+    const assembledPrompt = interpolatePrompt(rawAiPrompt, inputPayload, triggerSummary);
+
+    try {
+      const activeVaultKey = getActiveVaultKey();
+      const payload: Record<string, any> = {
+        message: assembledPrompt,
+        mode: 'ceo',
+        planTier: $isProPlan ? 'byok_pro' : ($subscription?.tier || $currentUser?.tier || 'byok_starter'),
+        history: []
+      };
+
+      if (isCloudManaged) {
+        payload.usePlatformKey = true;
+      } else if (activeVaultKey && activeVaultKey.encryptedKey) {
+        const roundRobinKeys = getRoundRobinVaultKeys(activeVaultKey.provider);
+        payload.vaultKey = {
+          provider: activeVaultKey.provider,
+          key: decryptVaultKey(activeVaultKey.encryptedKey, activeVaultKey.provider),
+          model: aiNode?.config?.model || activeVaultKey.model,
+          models: activeVaultKey.provider === 'openrouter' ? $openrouterSelectedModels : undefined,
+          label: activeVaultKey.label
+        };
+        payload.vaultKeys = roundRobinKeys.map((k) => ({
+          provider: k.provider,
+          key: decryptVaultKey(k.encryptedKey, k.provider),
+          model: k.model,
+          models: k.provider === 'openrouter' ? $openrouterSelectedModels : undefined,
+          label: k.label
+        }));
+        payload.openrouterModels = $openrouterSelectedModels;
+        payload.routingStrategy = $routingStrategy;
+      } else if ($apiKey) {
+        payload.apiKey = $apiKey;
+      }
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => ({}));
+      executionDuration = Date.now() - startTime;
+
+      if (data.requiresApiKey || (!data.success && data.error && (data.error.includes('API Key') || data.error.includes('api key')))) {
+        requiresApiKey = true;
+        executionError = data.error || 'No API Key configured. Please add your free Google Gemini or OpenRouter key in the API Vault.';
+        activePulsingCables = new Set();
+        pipelineSteps = pipelineSteps.map((s) => (s.role === 'reasoning' ? { ...s, status: 'failed', detail: executionError } : s));
+        isExecuting = false;
+        return;
+      }
+
+      if (res.ok && data.success && data.result) {
+        if (data.result.type === 'image') {
+          outputMarkdown = `![${data.result.caption || 'Synthesized Deliverable'}](${data.result.url})\n\n**Visual Deliverable:** ${data.result.caption || 'Render complete'}`;
+        } else {
+          outputMarkdown = data.result.text || '';
+        }
+
+        // Stage 2: Light stream flows to downstream action nodes
+        const downstreamCables = new Set<string>();
+        if (triggerNode && aiNode) {
+          downstreamCables.add(`${triggerNode.id}->${aiNode.id}`);
+        }
+        for (const act of actionNodes) {
+          if (aiNode) {
+            downstreamCables.add(`${aiNode.id}->${act.id}`);
+          }
+        }
+        activePulsingCables = downstreamCables;
+
+        // Update pipeline step statuses
+        pipelineSteps = [
+          {
+            id: triggerNode?.id || 'node-1',
+            name: triggerNode?.title || 'Workflow Trigger',
+            role: 'trigger',
+            status: 'completed',
+            detail: `Input processed (${inputPayload.length} chars)`
+          },
+          {
+            id: aiNode?.id || 'node-2',
+            name: aiNode?.title || 'AI Reasoning Engine',
+            role: 'reasoning',
+            status: 'completed',
+            detail: `Synthesized via ${data.model || 'Master AI Specialist'} in ${(executionDuration / 1000).toFixed(2)}s`
+          },
+          ...actionNodes.map((a) => ({
+            id: a.id,
+            name: a.title,
+            role: 'action' as const,
+            status: 'completed' as const,
+            detail: 'Deliverable ready for dispatch'
+          }))
+        ];
+      } else {
+        executionError = data.error || 'Failed to execute workflow. Please try again.';
+        pipelineSteps = pipelineSteps.map((s) => (s.role === 'reasoning' ? { ...s, status: 'failed', detail: executionError } : s));
+      }
+    } catch (err: any) {
+      executionDuration = Date.now() - startTime;
+      executionError = err?.message || 'Network error executing live workflow.';
+      pipelineSteps = pipelineSteps.map((s) => (s.role === 'reasoning' ? { ...s, status: 'failed', detail: executionError } : s));
+    } finally {
+      isExecuting = false;
+    }
+  }
+
+  async function copyDeliverable() {
+    if (!outputMarkdown) return;
+    try {
+      await navigator.clipboard.writeText(outputMarkdown);
+      isCopied = true;
+      setTimeout(() => {
+        isCopied = false;
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy deliverable:', err);
+    }
+  }
+
+  function exportMarkdown() {
+    if (!outputMarkdown) return;
+    const filename = `${agentName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-deliverable.md`;
+    const blob = new Blob([outputMarkdown], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  function exportJson() {
+    if (!outputMarkdown && !executionError) return;
+    const data = {
+      workflowName: agentName,
+      executedAt: new Date().toISOString(),
+      durationMs: executionDuration,
+      input: executionInput,
+      steps: pipelineSteps,
+      outputMarkdown: outputMarkdown
+    };
+    const filename = `${agentName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-execution-run.json`;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
 </script>
 
 <svelte:window
@@ -720,6 +1011,22 @@
 
         <button
           type="button"
+          onclick={runLiveWorkflow}
+          disabled={isExecuting}
+          class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white shadow-xs cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed"
+          title="Execute connected workflow nodes live"
+        >
+          {#if isExecuting}
+            <Icon name="Loader2" size={14} class="animate-spin text-white" />
+            <span>Executing...</span>
+          {:else}
+            <Icon name="Play" size={12} class="fill-current text-white" />
+            <span>▶ Run Live Workflow</span>
+          {/if}
+        </button>
+
+        <button
+          type="button"
           onclick={() => (isOpen = false)}
           class="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
         >
@@ -803,12 +1110,45 @@
                 />
               {/if}
 
+              <!-- Pulsing Light Stream when executing/active -->
+              {#if activePulsingCables.has(cableKey)}
+                <!-- High-intensity Cyan Glow Underlay -->
+                <path
+                  d={curve}
+                  fill="none"
+                  stroke="#38CFFF"
+                  stroke-width="7"
+                  stroke-opacity="0.6"
+                  class="blur-xs pointer-events-none"
+                />
+                <!-- Pulsing Light Stream with stroke-dasharray="10 6" and animation -->
+                <path
+                  d={curve}
+                  fill="none"
+                  stroke="#38CFFF"
+                  stroke-width="3.5"
+                  stroke-dasharray="10 6"
+                  stroke-linecap="round"
+                  class="pulse-cable-active pointer-events-none drop-shadow-sm"
+                />
+                <!-- White Core Particle Beam -->
+                <path
+                  d={curve}
+                  fill="none"
+                  stroke="#FFFFFF"
+                  stroke-width="1.5"
+                  stroke-dasharray="10 6"
+                  stroke-linecap="round"
+                  class="pulse-cable-active pointer-events-none"
+                />
+              {/if}
+
               <!-- Visible Connection Cable -->
               <path
                 d={curve}
                 fill="none"
                 stroke="url(#cableGradient)"
-                stroke-width={isHovered ? 4 : 3}
+                stroke-width={isHovered || activePulsingCables.has(cableKey) ? 4 : 3}
                 stroke-linecap="round"
                 class="{isDraggingNode ? '!transition-none' : 'transition-[stroke-width,stroke] duration-150'} drop-shadow-xs"
               />
@@ -1353,6 +1693,288 @@
           </div>
         </div>
       {/if}
+
+      <!-- Live Execution Output Drawer / Modal -->
+      {#if isExecutionDrawerOpen}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div
+          class="absolute bottom-3 left-3 right-3 sm:left-6 sm:right-6 max-w-4xl mx-auto bg-white/95 backdrop-blur-2xl rounded-3xl border border-[#CFE2FA] shadow-2xl p-4 sm:p-5 flex flex-col z-35 transition-all duration-300 {isExecutionDrawerMinimized ? 'max-h-16' : 'max-h-[75vh]'}"
+          onclick={(e) => e.stopPropagation()}
+        >
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9] shrink-0">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
+                {#if isExecuting}
+                  <Icon name="Loader2" size={16} class="animate-spin text-white" />
+                {:else if executionError || requiresApiKey}
+                  <Icon name="AlertCircle" size={16} class="text-white" />
+                {:else}
+                  <Icon name="Zap" size={16} class="text-white" />
+                {/if}
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs sm:text-sm font-extrabold text-[#102A56]">Live Workflow Execution</h4>
+                  {#if isExecuting}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                      ⚡ Executing Pipeline...
+                    </span>
+                  {:else if requiresApiKey}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300">
+                      🔑 Missing API Key
+                    </span>
+                  {:else if executionError}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300">
+                      ⚠️ Execution Failed
+                    </span>
+                  {:else if outputMarkdown}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                      <Icon name="Check" size={10} class="text-emerald-700" />
+                      <span>Pipeline Complete ({executionDuration}ms)</span>
+                    </span>
+                  {:else}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+                      Ready to Run
+                    </span>
+                  {/if}
+                </div>
+                <p class="text-[11px] text-[#64748B]">Real-time pipeline: Trigger → AI Reasoning Engine → Delivery Actions</p>
+              </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                onclick={() => (isExecutionDrawerMinimized = !isExecutionDrawerMinimized)}
+                class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-pointer transition-colors"
+                title={isExecutionDrawerMinimized ? 'Expand Output Drawer' : 'Minimize Output Drawer'}
+              >
+                <Icon name={isExecutionDrawerMinimized ? 'ChevronUp' : 'ChevronDown'} size={14} />
+              </button>
+              <button
+                type="button"
+                onclick={() => (isExecutionDrawerOpen = false)}
+                class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-rose-100 hover:text-rose-600 text-gray-600 flex items-center justify-center cursor-pointer transition-colors"
+                title="Close Output Drawer"
+              >
+                <Icon name="X" size={14} />
+              </button>
+            </div>
+          </div>
+
+          {#if !isExecutionDrawerMinimized}
+            <div class="flex-1 overflow-y-auto space-y-4 pt-3 pr-1">
+              <!-- Step-by-Step Node Execution Status Pipeline -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- Trigger Node Status -->
+                <div class="p-3 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                    <Icon name="Zap" size={14} />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">Step 1: Trigger</span>
+                      <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                        Trigger: ✅ Ready
+                      </span>
+                    </div>
+                    <p class="text-xs font-bold text-[#102A56] truncate">Workflow Trigger (node-1)</p>
+                  </div>
+                </div>
+
+                <!-- AI Reasoning Engine Status -->
+                <div class="p-3 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-[#1677FF] flex items-center justify-center shrink-0">
+                    <Icon name="Bot" size={14} />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">Step 2: AI Reasoning</span>
+                      {#if isExecuting}
+                        <span class="text-[11px] font-bold text-amber-600 flex items-center gap-1 animate-pulse">
+                          AI Reasoning: ⚡ Running
+                        </span>
+                      {:else if requiresApiKey}
+                        <span class="text-[11px] font-bold text-rose-600">Missing Key</span>
+                      {:else if executionError}
+                        <span class="text-[11px] font-bold text-rose-600">Failed</span>
+                      {:else if outputMarkdown}
+                        <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                          AI Reasoning: ⚡ Done
+                        </span>
+                      {:else}
+                        <span class="text-[11px] font-semibold text-gray-400">Pending</span>
+                      {/if}
+                    </div>
+                    <p class="text-xs font-bold text-[#102A56] truncate">AI Reasoning Engine (node-2)</p>
+                  </div>
+                </div>
+
+                <!-- Action / Delivery Status -->
+                <div class="p-3 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center shrink-0">
+                    <Icon name="Layers" size={14} />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">Step 3: Action</span>
+                      {#if outputMarkdown}
+                        <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                          Action: 📄 Deliverable Ready
+                        </span>
+                      {:else if isExecuting}
+                        <span class="text-[11px] font-semibold text-gray-400">Awaiting AI</span>
+                      {:else}
+                        <span class="text-[11px] font-semibold text-gray-400">Pending</span>
+                      {/if}
+                    </div>
+                    <p class="text-xs font-bold text-[#102A56] truncate">Delivery Connectors (node-3, node-4)</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Missing API Key Warning Card -->
+              {#if requiresApiKey || (!hasActiveKey && !outputMarkdown && !isExecuting)}
+                <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-300/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+                  <div class="flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 text-base font-bold">
+                      🔑
+                    </div>
+                    <div>
+                      <h5 class="text-xs sm:text-sm font-extrabold text-amber-900">🔑 No AI API Key Connected</h5>
+                      <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                        Google Gemini is 100% free with no credit card required. Connect your free API key in the API Vault to run visual workflows live.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onclick={() => { activeDashboardTab.set('api-keys'); isOpen = false; }}
+                    class="px-4 py-2 rounded-xl text-xs font-bold bg-[#1677FF] hover:bg-[#1162DB] text-white shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-95"
+                  >
+                    <Icon name="Key" size={13} />
+                    <span>Connect Free API Key</span>
+                  </button>
+                </div>
+              {/if}
+
+              <!-- Test Input / Trigger Payload Field -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label for="workflow-trigger-input" class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
+                    <Icon name="Terminal" size={13} class="text-[#1677FF]" />
+                    <span>Workflow Trigger Input Payload</span>
+                  </label>
+                  <span class="text-[10px] text-gray-500">Interpolates into <code>{'{{input}}'}</code> / <code>{'{{user_prompt}}'}</code></span>
+                </div>
+                <textarea
+                  id="workflow-trigger-input"
+                  bind:value={executionInput}
+                  rows={2}
+                  placeholder="Enter input parameters or prompt payload to send through connected nodes..."
+                  class="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs text-[#102A56] bg-white outline-none focus:border-[#1677FF] resize-none"
+                ></textarea>
+              </div>
+
+              <!-- Output Deliverable Render Area -->
+              {#if outputMarkdown}
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-[#102A56] flex items-center gap-1.5">
+                      <Icon name="FileText" size={14} class="text-emerald-600" />
+                      <span>Synthesized Deliverable</span>
+                    </span>
+                    <span class="text-[11px] text-gray-500 font-mono">
+                      {outputMarkdown.length} chars
+                    </span>
+                  </div>
+
+                  <div class="prose prose-sm max-w-none text-[#102A56] bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-200 overflow-y-auto max-h-[300px]">
+                    {@html (marked.parse(outputMarkdown) as string)}
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Error Display (if not missing API key) -->
+              {#if executionError && !requiresApiKey}
+                <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                  <Icon name="AlertCircle" size={15} class="text-rose-600 shrink-0" />
+                  <span>{executionError}</span>
+                </div>
+              {/if}
+
+              <!-- Bottom Action Toolbar: Copy, Export, Re-run -->
+              <div class="pt-2 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onclick={copyDeliverable}
+                    disabled={!outputMarkdown}
+                    class="px-3.5 py-2 rounded-xl border border-gray-200 hover:border-[#1677FF] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none text-[#102A56] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <Icon name={isCopied ? 'Check' : 'Copy'} size={13} class={isCopied ? 'text-emerald-600' : 'text-gray-500'} />
+                    <span>{isCopied ? 'Copied Deliverable!' : 'Copy Deliverable'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onclick={exportMarkdown}
+                    disabled={!outputMarkdown}
+                    class="px-3.5 py-2 rounded-xl border border-gray-200 hover:border-[#1677FF] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none text-[#102A56] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <Icon name="FileText" size={13} class="text-gray-500" />
+                    <span>Export Markdown (.md)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onclick={exportJson}
+                    disabled={!outputMarkdown}
+                    class="px-3.5 py-2 rounded-xl border border-gray-200 hover:border-[#1677FF] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none text-[#102A56] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <Icon name="FileJson" size={13} class="text-gray-500" />
+                    <span>Export JSON (.json)</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onclick={runLiveWorkflow}
+                  disabled={isExecuting}
+                  class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white shadow-xs cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed"
+                >
+                  {#if isExecuting}
+                    <Icon name="Loader2" size={13} class="animate-spin text-white" />
+                    <span>Executing...</span>
+                  {:else}
+                    <Icon name="Play" size={12} class="fill-current text-white" />
+                    <span>Run Again</span>
+                  {/if}
+                </button>
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
   </div>
 {/if}
+
+<style>
+  @keyframes pulseCable {
+    0% {
+      stroke-dashoffset: 48;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .pulse-cable-active {
+    stroke-dasharray: 10 6;
+    animation: pulseCable 0.8s linear infinite;
+  }
+</style>

@@ -1436,7 +1436,7 @@
   </main>
 
   <!-- Interactive Tool Drawer (Active when user clicks Launch on any tool in the Tools Catalog) -->
-  <ToolDrawer onOpenByok={() => { closeToolDrawer(); switchTab('settings'); }} />
+  <ToolDrawer onOpenByok={() => { closeToolDrawer(); switchTab('api-keys'); }} />
 
   <!-- Floating ChatGPT-style Master AI CEO Chat Window & Launcher -->
   <FloatingCeoChat

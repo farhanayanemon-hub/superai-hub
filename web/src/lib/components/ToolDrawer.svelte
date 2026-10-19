@@ -14,7 +14,9 @@
     openrouterSelectedModels,
     routingStrategy,
     incrementManagedUsage,
-    isProPlan
+    isProPlan,
+    apiVault,
+    activeDashboardTab
   } from '$lib/stores/userStore';
   import { decryptVaultKey } from '$lib/services/crypto';
   import { executeToolWithGemini } from '$lib/services/gemini';
@@ -25,6 +27,26 @@
   let isStudioOpen = $state(false);
   let showUpgradeModal = $state(false);
   let isPro = $derived($isProPlan);
+
+  const isCloudManaged = $derived(
+    $subscription?.tier === 'managed' ||
+    $subscription?.tier === 'complete' ||
+    $currentUser?.tier === 'managed'
+  );
+
+  const hasActiveKey = $derived(
+    isCloudManaged ||
+    $apiVault.some((k) => k.isEnabled !== false && k.encryptedKey) ||
+    (!!$apiKey && $apiKey.trim().length > 5)
+  );
+
+  function handleConnectKey() {
+    closeToolDrawer();
+    activeDashboardTab.set('api-keys');
+    if (onOpenByok) {
+      onOpenByok();
+    }
+  }
 
   interface StudioTurn {
     id: string;
@@ -111,6 +133,11 @@
 
   async function runHelperRequest(userPrompt: string, isInitialForm = false) {
     if (!$activeTool || isGenerating) return;
+    if (!hasActiveKey) {
+      errorMessage = 'No AI API Key connected. Please connect your free Google Gemini or OpenRouter key in the API Vault.';
+      handleConnectKey();
+      return;
+    }
     errorMessage = '';
     isGenerating = true;
 
@@ -193,6 +220,10 @@
         if (isCompletePlan) {
           incrementManagedUsage();
         }
+      } else if (data.requiresApiKey || (!res.ok && data.requiresApiKey)) {
+        errorMessage =
+          data.error ||
+          'No API Key configured. Please add your free Google Gemini or OpenRouter key in the API Vault.';
       } else if ($apiKey && $apiKey.trim().length > 10) {
         // Direct client-side Gemini fallback
         const fallback = await executeToolWithGemini($apiKey, $activeTool, {
@@ -228,6 +259,11 @@
   }
 
   async function handleGenerate() {
+    if (!hasActiveKey) {
+      errorMessage = 'No AI API Key connected. Please connect your free Google Gemini or OpenRouter key in the API Vault.';
+      handleConnectKey();
+      return;
+    }
     const prompt = buildPromptFromInputs();
     await runHelperRequest(prompt, true);
   }
@@ -235,6 +271,11 @@
   async function handleFollowUpSend() {
     const text = followUpInput.trim();
     if (!text || isGenerating) return;
+    if (!hasActiveKey) {
+      errorMessage = 'No AI API Key connected. Please connect your free Google Gemini or OpenRouter key in the API Vault.';
+      handleConnectKey();
+      return;
+    }
     followUpInput = '';
     await runHelperRequest(text, false);
   }
@@ -334,15 +375,9 @@
           in your message to trigger this helper directly!
         </span>
       </div>
-      {#if !$isKeyValid && $subscription?.tier !== 'complete'}
+      {#if !hasActiveKey}
         <button
-          onclick={() => {
-            if (onOpenByok) {
-              onOpenByok();
-            } else {
-              closeToolDrawer();
-            }
-          }}
+          onclick={handleConnectKey}
           class="px-2.5 py-1 rounded-lg bg-[#1677FF] hover:bg-[#0E63E0] text-white font-bold text-[10px] cursor-pointer transition-colors"
         >
           Connect API Key
@@ -427,6 +462,39 @@
 
     <!-- Drawer Body -->
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 bg-white">
+      <!-- Prominent Warning Card when No AI API Key is Connected -->
+      {#if !hasActiveKey}
+        <div class="p-4 sm:p-5 rounded-2xl bg-amber-50/90 border border-amber-200 shadow-xs space-y-3 animate-in fade-in">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 text-lg font-bold shadow-2xs">
+              🔑
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="text-sm font-extrabold text-[#102A56]">No AI API Key Connected</h4>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  100% Free
+                </span>
+              </div>
+              <p class="text-xs text-[#4B6382] mt-1 leading-relaxed">
+                Google Gemini API is <strong>100% free with no credit card required</strong> and includes high rate limits. Connect your free key in 30 seconds to run this specialist workflow.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end pt-1">
+            <button
+              type="button"
+              onclick={handleConnectKey}
+              class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#1677FF] hover:bg-[#1162DB] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+            >
+              <span>🔑 Connect Free API Key</span>
+              <Icon name="ArrowRight" size={13} />
+            </button>
+          </div>
+        </div>
+      {/if}
+
       <!-- Tailored Helper Parameters Card -->
       <div
         class="p-5 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] space-y-4"
@@ -543,10 +611,24 @@
       <!-- Error Box -->
       {#if errorMessage}
         <div
-          class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5"
+          class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex flex-col gap-2.5"
         >
-          <Icon name="AlertCircle" size={16} class="shrink-0 mt-0.5 text-rose-600" />
-          <div class="flex-1 whitespace-pre-line">{errorMessage}</div>
+          <div class="flex items-start gap-2.5">
+            <Icon name="AlertCircle" size={16} class="shrink-0 mt-0.5 text-rose-600" />
+            <div class="flex-1 whitespace-pre-line">{errorMessage}</div>
+          </div>
+          {#if !hasActiveKey || errorMessage.includes('API Key') || errorMessage.includes('API Vault')}
+            <div class="flex justify-end pt-1">
+              <button
+                type="button"
+                onclick={handleConnectKey}
+                class="px-3.5 py-1.5 rounded-lg bg-[#1677FF] hover:bg-[#1162DB] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>🔑 Connect Free API Key</span>
+                <Icon name="ArrowRight" size={12} />
+              </button>
+            </div>
+          {/if}
         </div>
       {/if}
 

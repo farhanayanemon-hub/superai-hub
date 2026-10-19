@@ -173,6 +173,27 @@ export const POST: RequestHandler = async ({ request }) => {
     let resolvedApiKey: string | undefined = undefined;
     let resolvedProvider: AIProvider = 'gemini';
 
+    const hasUserVaultKey = !!(
+      (vaultKey?.key && vaultKey.key.trim().length > 0) ||
+      (body.vaultKeys && body.vaultKeys.some((k) => k.key && k.key.trim().length > 0))
+    );
+    const hasSingleKey = !!(apiKey && apiKey.trim().length > 0);
+    const hasPlatformKey = !!(
+      usePlatformKey &&
+      (adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY || adminConfig.openaiApiKey)
+    );
+
+    if (!hasUserVaultKey && !hasSingleKey && !hasPlatformKey) {
+      return json(
+        {
+          success: false,
+          requiresApiKey: true,
+          error: 'No API Key configured. Please add your free Google Gemini or OpenRouter key in the API Vault.'
+        },
+        { status: 400 }
+      );
+    }
+
     if (usePlatformKey) {
       resolvedApiKey =
         adminConfig.geminiApiKey || PLATFORM_GEMINI_KEY || adminConfig.openaiApiKey;
