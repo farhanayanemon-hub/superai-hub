@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Icon from '$lib/components/Icon.svelte';
+
   let {
     name = '',
     modelId = '',
@@ -17,8 +19,7 @@
   const resolvedBrand = $derived.by(() => {
     const mid = (modelId || '').toLowerCase().trim();
     const n = (name || '').toLowerCase().trim();
-    const ic = (icon || '').toLowerCase().trim();
-    const raw = `${n} ${mid} ${ic}`.trim();
+    const raw = `${n} ${mid}`.trim();
 
     // 1. Exact Tool Connector ID Matches (Highest Priority)
     // Google Workspace (10)
@@ -137,7 +138,22 @@
     if (mid === 'docker_hub') return 'docker';
     if (mid === 'vercel_deployments') return 'vercel';
 
-    // 2. Specific Brand String Keywords (High Precedence)
+    // 2. Specific AI Helper Platform Matches
+    // Helper #01: Facebook & Instagram Ads -> Facebook / Meta Ads
+    if (mid === 'fb_insta_ads' || (raw.includes('facebook') && raw.includes('ads'))) return 'facebook';
+    // Helper #02: Google Search & Display Ads -> Google Ads
+    if (mid === 'google_search_ads' || (raw.includes('google') && raw.includes('ads'))) return 'google_ads';
+    // Helper #16: Instagram Captions
+    if (mid === 'fb_insta_captions' || raw.includes('instagram caption')) return 'instagram';
+    // Helper #46: Google My Business / Local SEO
+    if (raw.includes('google my business') || raw.includes('google business')) return 'google';
+    // Helper #66: Excel & Sheets
+    if (raw.includes('excel')) return 'excel';
+    if (raw.includes('google sheets') || raw.includes('sheet')) return 'sheets';
+    // Helper #74: WordPress
+    if (raw.includes('wordpress')) return 'wordpress';
+
+    // 3. Specific Brand Keywords
     if (raw.includes('opay')) return 'opaybd';
     if (raw.includes('bkash')) return 'bkash';
     if (raw.includes('nagad')) return 'nagad';
@@ -172,12 +188,11 @@
 
     if (raw.includes('outlook')) return 'outlook';
     if (raw.includes('onedrive')) return 'onedrive';
-    if (raw.includes('excel')) return 'excel';
     if (raw.includes('onenote')) return 'onenote';
     if (raw.includes('sharepoint')) return 'sharepoint';
     if (raw.includes('power bi') || raw.includes('power_bi')) return 'power_bi';
-    if (raw.includes('ms planner') || raw.includes('planner')) return 'ms_planner';
-    if (raw.includes('teams')) return 'teams';
+    if (raw.includes('ms planner') || raw.includes('microsoft planner')) return 'ms_planner';
+    if (raw.includes('teams') && !raw.includes('rate') && !raw.includes('strategy')) return 'teams';
     if (raw.includes('azure openai')) return 'azure_openai';
     if (raw.includes('azure')) return 'azure';
 
@@ -210,18 +225,16 @@
     if (raw.includes('docker')) return 'docker';
     if (raw.includes('vercel')) return 'vercel';
 
-    if (raw.includes('google ads')) return 'google_ads';
     if (raw.includes('google cloud')) return 'google_cloud';
     if (raw.includes('google meet')) return 'google_meet';
     if (raw.includes('google forms')) return 'google_forms';
-    if (raw.includes('analytics')) return 'google_analytics';
+    if (raw.includes('analytics') || raw.includes('google analytics')) return 'google_analytics';
     if (raw.includes('bigquery')) return 'bigquery';
-    if (raw.includes('sheet')) return 'sheets';
     if (raw.includes('docs') || raw.includes('google doc')) return 'docs';
-    if (raw.includes('calendar')) return 'calendar';
+    if (raw.includes('calendar') || raw.includes('content calendar')) return 'calendar';
     if (raw.includes('slides') || raw.includes('presentation')) return 'slides';
     if (raw.includes('drive')) return 'drive';
-    if (raw.includes('gmail') || raw.includes('email') || raw.includes('newsletter') || raw.includes('mail')) return 'gmail';
+    if (raw.includes('gmail')) return 'gmail';
 
     if (raw.includes('whatsapp')) return 'whatsapp';
     if (raw.includes('telegram')) return 'telegram';
@@ -238,24 +251,24 @@
     if (raw.includes('buffer')) return 'buffer';
     if (raw.includes('youtube')) return 'youtube';
     if (raw.includes('instagram')) return 'instagram';
-    if (raw.includes('facebook') || (raw.includes('meta') && !raw.includes('meta-llama') && !raw.includes('llama'))) return 'facebook';
+    if (raw.includes('facebook') || (raw.includes('meta') && !raw.includes('meta tag') && !raw.includes('meta-llama') && !raw.includes('llama'))) return 'facebook';
     if (raw.includes('tiktok')) return 'tiktok';
     if (raw.includes('linkedin')) return 'linkedin';
 
     if (raw.includes('midjourney')) return 'midjourney';
-    if (raw.includes('gemini') || raw.startsWith('google/') || raw.includes('google')) return 'gemini';
+    if (raw.includes('gemini') || raw.startsWith('google/') || raw.includes('google gemini')) return 'gemini';
     if (raw.includes('openrouter')) return 'openrouter';
     if (raw.includes('openai') || raw.includes('gpt') || raw.includes('chatgpt')) return 'openai';
     if (raw.includes('claude') || raw.includes('anthropic')) return 'anthropic';
     if (raw.includes('deepseek')) return 'deepseek';
     if (raw.includes('grok') || raw.includes('xai') || raw.includes('x-ai')) return 'grok';
-    if (raw.includes('llama') || raw.includes('meta')) return 'meta';
+    if (raw.includes('llama')) return 'meta';
     if (raw.includes('mistral') || raw.includes('mixtral')) return 'mistral';
     if (raw.includes('cohere')) return 'cohere';
     if (raw.includes('replicate') || raw.includes('flux')) return 'replicate';
     if (raw.includes('qwen') || raw.includes('alibaba')) return 'qwen';
 
-    if (raw.includes('trigger') || raw.includes('zap') || raw.includes('webhook') || raw.includes('button')) return 'webhook';
+    if (raw.includes('trigger') || raw.includes('webhook')) return 'webhook';
     if (raw.includes('agent') || raw.includes('bot') || raw.includes('reasoning') || raw.includes('specialist') || raw.includes('ceo')) return 'agent';
 
     return 'generic';
@@ -314,41 +327,27 @@
   </svg>
 
 {:else if resolvedBrand === 'google_meet'}
-  <!-- Official Google Meet Brand Icon -->
+  <!-- Official Google Meet Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google Meet">
-    <rect width="24" height="24" rx="5" fill="#FFFFFF" stroke="#E2E8F0"/>
-    <path fill="#00832D" d="M5 8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z"/>
-    <path fill="#2684FC" d="M15 10l4-2.5v9l-4-2.5v-4z"/>
-    <path fill="#EA4335" d="M5 14h10v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2z"/>
-    <path fill="#FFBA00" d="M13 6H7a2 2 0 0 0-2 2v2h10V8a2 2 0 0 0-2-2z"/>
+    <path fill="#00897B" d="M5.53 2.13 0 7.75h5.53zm.398 0v5.62h7.608v3.65l5.47-4.45c-.014-1.22.031-2.25-.025-3.46-.148-1.09-1.287-1.47-2.236-1.36zM23.1 4.32c-.802.295-1.358.995-2.047 1.49-2.506 2.05-4.982 4.12-7.468 6.19 3.025 2.59 6.04 5.18 9.065 7.76 1.218.671 1.428-.814 1.328-1.64v-13a.828.828 0 0 0-.877-.825zM.038 8.15v7.7h5.53v-7.7zm13.577 8.1H6.008v5.62c3.864-.006 7.737.011 11.58-.009 1.02-.07 1.618-1.12 1.468-2.07v-2.51l-5.47-4.68v3.65zm-13.577 0c.02 1.44-.041 2.88.033 4.31.162.948 1.158 1.43 2.047 1.31h3.464v-5.62z"/>
   </svg>
 
 {:else if resolvedBrand === 'google_forms'}
-  <!-- Official Google Forms Brand Icon -->
+  <!-- Official Google Forms Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google Forms">
-    <rect width="24" height="24" rx="5" fill="#7248B9"/>
-    <path fill="#FFFFFF" d="M8 8h8v1.6H8V8zm0 3.2h8v1.6H8v-1.6zm0 3.2h5v1.6H8v-1.6z"/>
-    <circle cx="6.5" cy="8.8" r="0.9" fill="#A079EC"/>
-    <circle cx="6.5" cy="12" r="0.9" fill="#A079EC"/>
-    <circle cx="6.5" cy="15.2" r="0.9" fill="#A079EC"/>
+    <path fill="#7248B9" d="M14.727 6h6l-6-6v6zm0 .727H14V0H4.91c-.905 0-1.637.732-1.637 1.636v20.728c0 .904.732 1.636 1.636 1.636h14.182c.904 0 1.636-.732 1.636-1.636V6.727h-6zM7.91 17.318a.819.819 0 1 1 .001-1.638.819.819 0 0 1 0 1.638zm0-3.273a.819.819 0 1 1 .001-1.637.819.819 0 0 1 0 1.637zm0-3.272a.819.819 0 1 1 .001-1.638.819.819 0 0 1 0 1.638zm9 6.409h-6.818v-1.364h6.818v1.364zm0-3.273h-6.818v-1.364h6.818v1.364zm0-3.273h-6.818V9.273h6.818v1.363z"/>
   </svg>
 
 {:else if resolvedBrand === 'google_analytics'}
-  <!-- Official Google Analytics Brand Icon -->
+  <!-- Official Google Analytics Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google Analytics">
-    <rect width="24" height="24" rx="5" fill="#F9AB00"/>
-    <rect x="5.5" y="14.5" width="3" height="4.5" rx="1.5" fill="#FFFFFF"/>
-    <rect x="10.5" y="10" width="3" height="9" rx="1.5" fill="#FFFFFF"/>
-    <rect x="15.5" y="5.5" width="3" height="13.5" rx="1.5" fill="#FFFFFF"/>
-    <circle cx="7" cy="12" r="1.5" fill="#E37400"/>
+    <path fill="#E37400" d="M22.84 2.9982v17.9987c.0086 1.6473-1.3197 2.9897-2.967 2.9984a2.9808 2.9808 0 01-.3677-.0208c-1.528-.226-2.6477-1.5558-2.6105-3.1V3.1204c-.0369-1.5458 1.0856-2.8762 2.6157-3.1 1.6361-.1915 3.1178.9796 3.3093 2.6158.014.1201.0208.241.0202.3619zM4.1326 18.0548c-1.6417 0-2.9726 1.331-2.9726 2.9726C1.16 22.6691 2.4909 24 4.1326 24s2.9726-1.3309 2.9726-2.9726-1.331-2.9726-2.9726-2.9726zm7.8728-9.0098c-.0171 0-.0342 0-.0513.0003-1.6495.0904-2.9293 1.474-2.891 3.1256v7.9846c0 2.167.9535 3.4825 2.3505 3.763 1.6118.3266 3.1832-.7152 3.5098-2.327.04-.1974.06-.3983.0593-.5998v-8.9585c.003-1.6474-1.33-2.9852-2.9773-2.9882z"/>
   </svg>
 
 {:else if resolvedBrand === 'bigquery'}
-  <!-- Official Google BigQuery Brand Icon -->
+  <!-- Official Google BigQuery Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google BigQuery">
-    <rect width="24" height="24" rx="5" fill="#E8F0FE"/>
-    <path fill="#4285F4" d="M12 4a7 7 0 0 0-6.1 10.4L4.2 16.1a1 1 0 0 0 1.4 1.4l1.7-1.7A7 7 0 1 0 12 4zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
-    <path fill="#1A73E8" d="M10 8h4v1.8h-4zm0 2.8h4v1.8h-4zm0 2.8h3v1.8h-3z"/>
+    <path fill="#669DF6" d="M5.676 10.595h2.052v5.244a5.892 5.892 0 0 1-2.052-2.088v-3.156zm18.179 10.836a.504.504 0 0 1 0 .708l-1.716 1.716a.504.504 0 0 1-.708 0l-4.248-4.248a.206.206 0 0 1-.007-.007c-.02-.02-.028-.045-.043-.066a10.736 10.736 0 0 1-6.334 2.065C4.835 21.599 0 16.764 0 10.799S4.835 0 10.8 0s10.799 4.835 10.799 10.8c0 2.369-.772 4.553-2.066 6.333.025.017.052.028.074.05l4.248 4.248zm-5.028-10.632a8.015 8.015 0 1 0-8.028 8.028h.024a8.016 8.016 0 0 0 8.004-8.028zm-4.86 4.98a6.002 6.002 0 0 0 2.04-2.184v-1.764h-2.04v3.948zm-4.5.948c.442.057.887.08 1.332.072.4.025.8.025 1.2 0V7.692H9.468v9.035z"/>
   </svg>
 
 {:else if resolvedBrand === 'youtube'}
@@ -397,12 +396,12 @@
   </svg>
 
 {:else if resolvedBrand === 'slack'}
-  <!-- Official Slack Icon -->
+  <!-- Official Slack Authentic 4-Color Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Slack">
-    <path fill="#E01E5A" d="M6 10.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm1.5-1.5a1.5 1.5 0 0 1 1.5 1.5v3.5a1.5 1.5 0 1 1-3 0V10.5a1.5 1.5 0 0 1 1.5-1.5z"/>
-    <path fill="#36C5F0" d="M13.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm-1.5 1.5a1.5 1.5 0 0 1 1.5-1.5h3.5a1.5 1.5 0 0 1 0 3H13.5a1.5 1.5 0 0 1-1.5-1.5z"/>
-    <path fill="#2EB67D" d="M18 13.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm-1.5 1.5a1.5 1.5 0 0 1-1.5-1.5V10a1.5 1.5 0 1 1 3 0v3.5a1.5 1.5 0 0 1-1.5 1.5z"/>
-    <path fill="#ECB22E" d="M10.5 18a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm1.5-1.5a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1 0-3h3.5a1.5 1.5 0 0 1 1.5 1.5z"/>
+    <path fill="#36C5F0" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/>
+    <path fill="#2EB67D" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.527 2.527 0 0 1 2.521 2.522v2.52h-2.521zm0 1.271a2.527 2.527 0 0 1 2.521 2.521v6.313A2.528 2.528 0 0 1 8.834 17.65a2.528 2.528 0 0 1-2.521-2.523V8.834a2.527 2.527 0 0 1 2.521-2.521z"/>
+    <path fill="#ECB22E" d="M18.958 8.835a2.528 2.528 0 0 1 2.52-2.523A2.528 2.528 0 0 1 24 8.835a2.527 2.527 0 0 1-2.522 2.52h-2.52v-2.52zM17.687 8.835a2.527 2.527 0 0 1-2.521 2.52 2.527 2.527 0 0 1-2.521-2.52V2.522A2.528 2.528 0 0 1 15.166 0a2.528 2.528 0 0 1 2.521 2.522v6.313z"/>
+    <path fill="#E01E5A" d="M15.166 18.958a2.528 2.528 0 0 1 2.521 2.52 2.528 2.528 0 0 1-2.521 2.522 2.527 2.527 0 0 1-2.521-2.52v-2.52h2.521zm0-1.271a2.527 2.527 0 0 1-2.521-2.521V8.834A2.528 2.528 0 0 1 15.166 6.35a2.528 2.528 0 0 1 2.521 2.523v6.313a2.527 2.527 0 0 1-2.521 2.521z"/>
   </svg>
 
 {:else if resolvedBrand === 'discord'}
@@ -413,23 +412,15 @@
   </svg>
 
 {:else if resolvedBrand === 'twilio'}
-  <!-- Official Twilio Brand Icon -->
+  <!-- Official Twilio Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Twilio">
-    <circle cx="12" cy="12" r="12" fill="#F22F46"/>
-    <circle cx="8.5" cy="8.5" r="2" fill="#FFFFFF"/>
-    <circle cx="15.5" cy="8.5" r="2" fill="#FFFFFF"/>
-    <circle cx="8.5" cy="15.5" r="2" fill="#FFFFFF"/>
-    <circle cx="15.5" cy="15.5" r="2" fill="#FFFFFF"/>
+    <path fill="#F22F46" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-3.3 6.9a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zm6.6 0a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zm-6.6 6.6a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zm6.6 0a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z"/>
   </svg>
 
 {:else if resolvedBrand === 'sendgrid'}
-  <!-- Official SendGrid Brand Icon -->
-  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="SendGrid">
-    <rect width="24" height="24" rx="5" fill="#009DD9"/>
-    <rect x="5.5" y="5.5" width="6" height="6" rx="1" fill="#FFFFFF"/>
-    <rect x="12.5" y="5.5" width="6" height="6" rx="1" fill="#7FD6FF"/>
-    <rect x="5.5" y="12.5" width="6" height="6" rx="1" fill="#005B82"/>
-    <rect x="12.5" y="12.5" width="6" height="6" rx="1" fill="#FFFFFF"/>
+  <!-- Official SendGrid Authentic Brand Icon -->
+  <svg viewBox="250 250 524 524" width={size} height={size} class={className} aria-label="SendGrid">
+    <path fill="#1A82E2" d="M290.5 591.72h141.78V733.5H290.5zm292.39 0H441.11V733.5h141.78zm-292.39-8.83h141.78V441.11H290.5zm150.61 0h141.78V441.11H441.11zm150.61-150.61H733.5V290.5H591.72zm141.78 8.82H591.72v141.79H733.5zm-292.39-8.82h141.78V290.5H441.11z"/>
   </svg>
 
 {:else if resolvedBrand === 'resend'}
@@ -471,18 +462,26 @@
   </svg>
 
 {:else if resolvedBrand === 'bkash'}
-  <!-- Official bKash Brand Icon -->
-  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="bKash">
-    <rect width="24" height="24" rx="5" fill="#D12053"/>
-    <path fill="#FFFFFF" d="M12.5 4.5L16 11l-7.5.5L12.5 4.5zm-5 7.5l9-.5-4 7.5L5 15l2.5-3zm6.5 1l3.5-3 1.5 5.5-5-2.5z"/>
+  <!-- Official bKash Authentic Origami Bird Icon -->
+  <svg viewBox="125 0 125 115" width={size} height={size} class={className} aria-label="bKash">
+    <path fill="#D12053" d="M223.65 62.45l-53.03-8.31 7.03 31.6z"/>
+    <path fill="#E2136E" d="M223.65 62.45L183.69 6.93l-13.06 47.22z"/>
+    <path fill="#D12053" d="M169.39 53.51L127.52 0l54.83 6.55z"/>
+    <path fill="#9E1638" d="M150.32 31.15L127.07 9.24h6.12z"/>
+    <path fill="#D12053" d="M234.96 35.46l-9.84 26.69-15.95-22.06z"/>
+    <path fill="#E2136E" d="M183.84 84.14l38.61-15.51 1.62-4.93z"/>
+    <path fill="#9E1638" d="M152.96 113.41l16.54-58.02 8.39 37.75z"/>
+    <path fill="#E2136E" d="M236.5 35.67l-4.06 11.02 14.64-.24z"/>
   </svg>
 
 {:else if resolvedBrand === 'nagad'}
-  <!-- Official Nagad Brand Icon -->
-  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Nagad">
-    <rect width="24" height="24" rx="5" fill="#ED1C24"/>
-    <path fill="#F7941D" d="M12 4.5c2.5 2.5 4.5 5.5 3.5 8.5-.8 2.2-2.8 3.5-4.8 3.5-2.8 0-4.7-2.2-4.7-4.7 0-3.5 3.5-5.5 6-7.3z"/>
-    <circle cx="12" cy="12.5" r="2.2" fill="#FFFFFF"/>
+  <!-- Official Nagad Authentic Flame & Swirl Icon -->
+  <svg viewBox="5 0 50 51" width={size} height={size} class={className} aria-label="Nagad">
+    <path fill="#ED1C24" d="M53.2 28.1c0 .7 0 1.3-.1 1.9-.2 2.8-.9 5.4-2 7.8-.4 1-.9 1.9-1.5 2.8-4.2 6.6-11.6 11-20 11-3.6 0-7-.8-10-2.2C11.6 45.7 6 37.5 6 28.1 6 18.8 11.4 10.8 19.1 7c-.6.8-1.2 1.6-1.7 2.5 0 .1-.1.1-.1.2-.3.3-.6.5-.9.8-.4.3-.7.7-1.1 1l-.2.2-.2.2c-.1.1-.2.3-.4.4-.2.3-.5.6-.7.9-1 1.3-1.8 2.7-2.4 4.2-.1.1-.1.3-.2.4-.1.2-.1.4-.2.5 0 .1-.1.2-.1.3-.1.3-.2.5-.3.8-.1.2-.1.4-.2.5 0 .1-.1.2-.1.3 0 .2-.1.4-.1.6l-.3 1.8c0 .2 0 .3-.1.5v2.4c0 6.4 2.9 12.2 7.6 15.9 3.6 2.9 8.1 4.7 13 4.7 4.5 0 8.6-1.4 12-3.9 2.5-1.8 4.5-4.1 6-6.8.2-.4.4-.7.6-1.1 1.2-2.5 1.9-5.2 1.9-8.1v-.7c0-.7 0-1.3-.1-2l.1.1c.3.3.6.5.9.8.3-.5.6-.9.9-1.4.2.9.3 1.8.4 2.8.1.9.1 1.6.1 2.3z"/>
+    <path fill="#F7941D" d="M32.4 9.2L28 1.1c-7.3 3.3-12.3 10.6-12.3 19.1 0 4.3 1.3 8.3 3.5 11.6-.2-1.1-.2-2.2-.2-3.4.1-8.7 5.6-16.1 13.4-19.2z"/>
+    <path fill="#ED1C24" d="M35.9 13.2c1.8-.5 3.8-.7 5.7-.7 1.2 0 2.5.1 3.6.3l-.1-3.6-.2-7.2c-.8-.1-1.7-.2-2.6-.2-4 0-7.7 1.3-10.7 3.4L34 9.6c-4.3 1.5-7.8 4.5-10 8.4-1.1 1.9-1.9 4.1-2.2 6.4.6-1.2 1.3-2.3 2.1-3.3 2.9-3.8 7.1-6.7 12-7.9z"/>
+    <path fill="#F7941D" d="M46.4 9.1l.2 5.1c-1.7-.5-3.4-.8-5.3-.8-3.5 0-6.8 1-9.7 2.7-3.6 2.2-6.4 5.7-7.8 9.8 1.4-1.9 3.1-3.6 5.1-4.9 2.9-1.9 6.4-3 10.1-3 2.8 0 5.4.6 7.8 1.7 1.8.8 3.4 1.9 4.8 3.3l2.8-4.2 3.6-5.5c-3.2-2.6-7.2-4.2-11.6-4.2z"/>
+    <path fill="#F7941D" d="M50.9 25.7v.7c0 4.2-1.7 7.7-1.9 8.1-.2.4-.4.7-.6 1.1-1.5 2.7-3.5 5-6 6.8-3.4 2.4-7.5 3.9-12 3.9-4.9 0-9.5-1.7-13-4.7-4.6-3.8-7.6-9.5-7.6-15.9v-2.4c0-.2 0-.3.1-.5l.3-1.8c0-.2.1-.4.1-.6 0-.1.1-.2.1-.3.1-.2.1-.4.2-.5.1-.3.2-.6.3-.8 0-.1.1-.2.1-.3.1-.2.1-.4.2-.5.1-.1.1-.3.2-.4.6-1.5 1.5-2.9 2.4-4.2.2-.3.5-.6.7-.9.1-.1.2-.3.4-.4.1-.1.1-.2.2-.2.1-.1.1-.2.2-.2.3-.4.7-.7 1.1-1 .3-.3.6-.5.9-.8 0 .1-.1.1-.1.2s-.1.2-.1.2c-1.2 2.4-2 5.3-2.3 8.3-.1.8-.1 1.6-.1 2.5 0 10.8 6.3 19.5 14.1 19.5h.8c1.1 0 2.2-.2 3.3-.4 5.3-1.4 9.2-6.3 9.2-12v-.3c-.1-3.4-1.5-6.5-3.8-8.6 1.6 0 3.2.3 4.7.7 2.9.7 5.5 2.1 7.8 3.9l.1.1c-.1.4 0 1.1 0 1.7z"/>
   </svg>
 
 {:else if resolvedBrand === 'shopify'}
@@ -543,17 +542,15 @@
   </svg>
 
 {:else if resolvedBrand === 'salesforce'}
-  <!-- Official Salesforce Brand Icon -->
+  <!-- Official Salesforce Authentic Cloud Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Salesforce">
-    <rect width="24" height="24" rx="5" fill="#00A1E0"/>
-    <path fill="#FFFFFF" d="M9.8 8.2a3.8 3.8 0 0 1 4.7-.6 3.2 3.2 0 0 1 3.5 2.8 2.6 2.6 0 0 1 1.7 2.4c0 1.5-1.2 2.6-2.7 2.6H7c-1.7 0-3-1.3-3-3 0-1.4 1-2.6 2.4-2.9a4.2 4.2 0 0 1 3.4-1.3z"/>
+    <path fill="#00A1E0" d="M19.388 9.394c-.456-2.185-2.072-3.87-4.184-4.457-.962-.267-1.958-.33-2.923-.178-1.222-1.74-3.262-2.775-5.46-2.775-3.328 0-6.195 2.37-6.864 5.632C.46 7.424-.002 9.04 0 10.74c.002 2.658 1.488 4.975 3.731 6.095h1.225c.348 0 .63-.283.63-.631v-1.168c0-.287-.202-.53-.484-.59-1.396-.298-2.435-1.527-2.437-2.997 0-1.472 1.042-2.702 2.44-2.999.282-.06.484-.303.484-.59V7.525c0-2.42 1.96-4.382 4.38-4.382 1.764 0 3.326 1.066 4.004 2.703.116.278.384.463.689.463h.79c.636 0 1.258.077 1.854.238 1.41.378 2.476 1.579 2.708 3.037.042.268.267.469.539.469h1.166c.347 0 .628-.281.63-.628.003-.314-.07-.63-.222-.924zm-2.036 6.326h-1.168c-.272 0-.497.201-.539.47-.232 1.458-1.298 2.66-2.708 3.037-.596.16-1.218.238-1.854.238h-.79c-.305 0-.573.185-.689.463-.678 1.637-2.24 2.703-4.004 2.703-2.42 0-4.38-1.962-4.38-4.382v-.935c0-.287-.202-.53-.484-.59-1.398-.297-2.44-1.527-2.44-2.999 0-1.47 1.041-2.699 2.437-2.997.282-.06.484-.303.484-.59V8.04c0-.348.283-.631.63-.631h1.225c2.243 1.12 3.729 3.437 3.731 6.095 0 1.7-.462 3.316-1.264 4.731.669 3.262 3.536 5.632 6.864 5.632 2.198 0 4.238-1.035 5.46-2.775.965.152 1.961.089 2.923-.178 2.112-.587 3.728-2.272 4.184-4.457.152-.294.225-.61.222-.924-.002-.347-.283-.628-.63-.628h-1.166c-.272 0-.497.201-.539.47z"/>
   </svg>
 
 {:else if resolvedBrand === 'pipedrive'}
-  <!-- Official Pipedrive Brand Icon -->
+  <!-- Official Pipedrive Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Pipedrive">
-    <circle cx="12" cy="12" r="12" fill="#00D084"/>
-    <path fill="#FFFFFF" d="M8.5 6h4.8a4.2 4.2 0 0 1 4.2 4.2c0 2.3-1.9 4.2-4.2 4.2H11v3.6H8.5V6zm2.5 6h2.2a1.8 1.8 0 0 0 0-3.6H11V12z"/>
+    <path fill="#26A373" d="M11.758 0C5.268 0 0 5.268 0 11.758s5.268 11.758 11.758 11.758 11.758-5.268 11.758-11.758S18.248 0 11.758 0zm4.12 7.02c1.782 0 3.23 1.448 3.23 3.23 0 1.782-1.448 3.23-3.23 3.23h-2.126V7.02h2.126zm-5.748 0h2.126v9.756H10.13V7.02zM7.886 10.25c0-.98-.795-1.775-1.775-1.775s-1.775.795-1.775 1.775.795 1.775 1.775 1.775 1.775-.795 1.775-1.775z"/>
   </svg>
 
 {:else if resolvedBrand === 'zoho'}
@@ -646,19 +643,17 @@
   </svg>
 
 {:else if resolvedBrand === 'google_ads'}
-  <!-- Official Google Ads Brand Icon -->
+  <!-- Official Google Ads Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google Ads">
-    <rect width="24" height="24" rx="5" fill="#FFFFFF" stroke="#E2E8F0"/>
-    <path fill="#FBBC04" d="M7.5 16.5l8-11a2.5 2.5 0 0 1 3.5.5l.5.7a2.5 2.5 0 0 1-.5 3.5l-8 11a2.5 2.5 0 0 1-3.5-.5l-.5-.7a2.5 2.5 0 0 1 .5-3.5z"/>
-    <path fill="#4285F4" d="M8 12l4-5.5a2.5 2.5 0 1 1 4 3L12 15a2.5 2.5 0 1 1-4-3z"/>
-    <circle cx="6.5" cy="17.5" r="2.5" fill="#34A853"/>
+    <path fill="#FABB05" d="M3.9998 22.9291C1.7908 22.9291 0 21.1383 0 18.9293s1.7908-3.9998 3.9998-3.9998 3.9998 1.7908 3.9998 3.9998-1.7908 3.9998-3.9998 3.9998zm19.4643-6.0004L15.4632 3.072C14.3586 1.1587 11.9121.5028 9.9988 1.6074S7.4295 5.1585 8.5341 7.0718l8.0009 13.8567c1.1046 1.9133 3.5511 2.5679 5.4644 1.4646 1.9134-1.1046 2.568-3.5511 1.4647-5.4644z"/>
+    <path fill="#4285F4" d="M7.5137 4.8438L1.5645 15.1484A4.5 4.5 0 0 1 4 14.4297c2.5597-.0075 4.6248 2.1585 4.4941 4.7148l3.2168-5.5723-3.6094-6.25c-.4499-.7793-.6322-1.6394-.5878-2.4784z"/>
   </svg>
 
 {:else if resolvedBrand === 'mailchimp'}
-  <!-- Official Mailchimp Icon -->
+  <!-- Official Mailchimp Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Mailchimp">
     <rect width="24" height="24" rx="5" fill="#FFE01B"/>
-    <path fill="#241C15" d="M12 4.5c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5 7.5-3.4 7.5-7.5-3.4-7.5-7.5-7.5zm-2.8 5.8a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm5.6 0a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm-2.8 6.5c-2 0-3.3-1.1-3.6-2h7.2c-.3.9-1.6 2-3.6 2z"/>
+    <path fill="#241C15" d="M11.267 0C6.791-.015-1.82 10.246 1.397 12.964l.79.669a3.88 3.88 0 0 0-.22 1.792c.084.84.518 1.644 1.22 2.266.666.59 1.542.964 2.392.964 1.406 3.24 4.62 5.228 8.386 5.34 4.04.12 7.433-1.776 8.854-5.182.093-.24.488-1.316.488-2.267 0-.956-.54-1.352-.885-1.352-.01-.037-.078-.286-.172-.586-.093-.3-.19-.51-.19-.51.375-.563.382-1.065.332-1.35-.053-.353-.2-.653-.496-.964-.296-.311-.902-.63-1.753-.868l-.446-.124c-.002-.019-.024-1.053-.043-1.497-.014-.32-.042-.822-.197-1.315-.186-.668-.508-1.253-.911-1.627 1.112-1.152 1.806-2.422 1.804-3.511-.003-2.095-2.576-2.729-5.746-1.416l-.672.285A678.22 678.22 0 0 0 12.7.504C12.304.159 11.817.002 11.267 0zm.073.873c.166 0 .322.019.465.058.297.084 1.28 1.224 1.28 1.224s-1.826 1.013-3.52 2.426c-2.28 1.757-4.005 4.311-5.037 7.082-.811.158-1.526.618-1.963 1.253-.261-.218-.748-.64-.834-.804-.698-1.326.761-3.902 1.781-5.357C5.834 3.44 9.37.867 11.34.873z"/>
   </svg>
 
 {:else if resolvedBrand === 'klaviyo'}
@@ -767,11 +762,21 @@
   </svg>
 
 {:else if resolvedBrand === 'azure'}
-  <!-- Official Microsoft Azure Brand Icon -->
-  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Microsoft Azure">
-    <rect width="24" height="24" rx="5" fill="#0078D4"/>
-    <path fill="#FFFFFF" d="M12.8 4.5l-5.6 15h3.6l1.7-4.8h4.2l-3.9-10.2zm.4 3.5l1.6 4.3h-3.2l1.6-4.3z"/>
-    <path fill="#50E6FF" d="M14.5 13.5l-2.5 6h6.5l-4-6z"/>
+  <!-- Official Microsoft Azure Authentic Brand Icon -->
+  <svg viewBox="0 0 96 96" width={size} height={size} class={className} aria-label="Microsoft Azure">
+    <defs>
+      <linearGradient id="az-grad-a-{uid}" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#114a8b"/>
+        <stop offset="100%" stop-color="#0669bc"/>
+      </linearGradient>
+      <linearGradient id="az-grad-c-{uid}" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#3ccbf4"/>
+        <stop offset="100%" stop-color="#2892df"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#az-grad-a-{uid})" d="M33.34 6.54h26.04l-27.03 80.1a4.15 4.15 0 0 1-3.94 2.81H8.15a4.14 4.14 0 0 1-3.93-5.47L29.4 9.38a4.15 4.15 0 0 1 3.94-2.83z"/>
+    <path fill="#0078d4" d="M71.17 60.26H29.88a1.91 1.91 0 0 0-1.3 3.31l26.53 24.76a4.17 4.17 0 0 0 2.85 1.13h23.38z"/>
+    <path fill="url(#az-grad-c-{uid})" d="M66.6 9.36a4.14 4.14 0 0 0-3.93-2.82H33.65a4.15 4.15 0 0 1 3.93 2.82l25.18 74.62a4.15 4.15 0 0 1-3.93 5.46h23.47a4.15 4.15 0 0 0 3.93-5.46z"/>
   </svg>
 
 {:else if resolvedBrand === 'azure_openai'}
@@ -783,10 +788,13 @@
   </svg>
 
 {:else if resolvedBrand === 'amazon_s3'}
-  <!-- Official Amazon S3 Brand Icon -->
-  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Amazon S3">
-    <rect width="24" height="24" rx="5" fill="#E05243"/>
-    <path fill="#FFFFFF" d="M12 5.5l6 2.5-6 2.5-6-2.5 6-2.5zm6 4.5v5l-6 2.5-6-2.5v-5l6 2.5 6-2.5z"/>
+  <!-- Official Amazon S3 Authentic Brand Icon -->
+  <svg viewBox="0 0 512 512" width={size} height={size} class={className} aria-label="Amazon S3">
+    <rect width="512" height="512" rx="72" fill="#E05243"/>
+    <g fill="#FFFFFF">
+      <path d="M256 64v97l58 14V93zm133 67v250l26-13V143zm-133 77v97l58-8v-82zm58 129l-58 14v97l58-29z"/>
+      <path transform="rotate(180 256 256)" d="M256 64v97l58 14V93zm133 67v250l26-13V143zm-133 77v97l58-8v-82zm58 129l-58 14v97l58-29z" opacity="0.85"/>
+    </g>
   </svg>
 
 {:else if resolvedBrand === 'cloudinary'}
@@ -854,46 +862,37 @@
   </svg>
 
 {:else if resolvedBrand === 'airtable'}
-  <!-- Official Airtable Brand Icon -->
+  <!-- Official Airtable Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Airtable">
-    <rect width="24" height="24" rx="5" fill="#FCB400"/>
-    <path fill="#18BFFF" d="M11.5 5.5l-6 3.5 6 3.5 6-3.5-6-3.5z"/>
-    <path fill="#F82B60" d="M12.5 13.5l5.5-3v6l-5.5 3v-6z"/>
-    <path fill="#FFFFFF" d="M5.5 10.5l5.5 3v6l-5.5-3v-6z"/>
+    <path fill="#FCB400" d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257z"/>
+    <path fill="#F82B60" d="M23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596z"/>
+    <path fill="#18BFFF" d="M.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z"/>
   </svg>
 
 {:else if resolvedBrand === 'trello'}
-  <!-- Official Trello Brand Icon -->
+  <!-- Official Trello Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Trello">
-    <rect width="24" height="24" rx="5" fill="#0079BF"/>
-    <rect x="6" y="6" width="4.5" height="10" rx="1" fill="#FFFFFF"/>
-    <rect x="13.5" y="6" width="4.5" height="6.5" rx="1" fill="#FFFFFF"/>
+    <path fill="#0079BF" d="M21.147 0H2.853A2.86 2.86 0 000 2.853v18.294A2.86 2.86 0 002.853 24h18.294A2.86 2.86 0 0024 21.147V2.853A2.86 2.86 0 0021.147 0zM10.34 17.287a.953.953 0 01-.953.953h-4a.954.954 0 01-.954-.953V5.38a.953.953 0 01.954-.953h4a.954.954 0 01.953.953zm9.233-5.467a.944.944 0 01-.953.947h-4a.947.947 0 01-.953-.947V5.38a.953.953 0 01.953-.953h4a.954.954 0 01.953.953z"/>
   </svg>
 
 {:else if resolvedBrand === 'asana'}
-  <!-- Official Asana Brand Icon -->
+  <!-- Official Asana Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Asana">
-    <rect width="24" height="24" rx="5" fill="#F06A6A"/>
-    <circle cx="12" cy="8" r="3.2" fill="#FFFFFF"/>
-    <circle cx="7.5" cy="15.5" r="3.2" fill="#FFFFFF"/>
-    <circle cx="16.5" cy="15.5" r="3.2" fill="#FFFFFF"/>
+    <path fill="#F06A6A" d="M18.78 12.653c-2.882 0-5.22 2.336-5.22 5.22s2.338 5.22 5.22 5.22 5.22-2.34 5.22-5.22-2.336-5.22-5.22-5.22zm-13.56 0c-2.88 0-5.22 2.337-5.22 5.22s2.338 5.22 5.22 5.22 5.22-2.338 5.22-5.22-2.336-5.22-5.22-5.22zm12-6.525c0 2.883-2.337 5.22-5.22 5.22-2.882 0-5.22-2.337-5.22-5.22 0-2.88 2.338-5.22 5.22-5.22 2.883 0 5.22 2.34 5.22 5.22z"/>
   </svg>
 
 {:else if resolvedBrand === 'clickup'}
-  <!-- Official ClickUp Brand Icon -->
+  <!-- Official ClickUp Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="ClickUp">
-    <rect width="24" height="24" rx="5" fill="#7B68EE"/>
-    <path fill="#FFFFFF" d="M6 13.5l6-5 6 5-2 1.5-4-3.3-4 3.3-2-1.5z"/>
-    <circle cx="12" cy="16.5" r="1.8" fill="#FF00DF"/>
+    <path fill="#7B68EE" d="M2 18.439l3.69-2.828c1.961 2.56 4.044 3.739 6.363 3.739 2.307 0 4.33-1.166 6.203-3.704L22 18.405C19.298 22.065 15.941 24 12.053 24 8.178 24 4.788 22.078 2 18.439zM12.04 6.15l-6.568 5.66-3.036-3.52L12.055 0l9.543 8.296-3.05 3.509z"/>
   </svg>
 
 {:else if resolvedBrand === 'monday'}
-  <!-- Official Monday.com Brand Icon -->
-  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Monday.com">
-    <rect width="24" height="24" rx="5" fill="#1C2038"/>
-    <rect x="5.5" y="7" width="3.5" height="10" rx="1.7" fill="#FF3D57"/>
-    <rect x="10.2" y="7" width="3.5" height="10" rx="1.7" fill="#FFCB00"/>
-    <rect x="15" y="7" width="3.5" height="10" rx="1.7" fill="#00CA72"/>
+  <!-- Official Monday.com Authentic Brand Icon -->
+  <svg viewBox="-1 0 23 14" width={size} height={size} class={className} aria-label="Monday.com">
+    <path d="M 2.62,12.627 A 2.63,2.63 0 0 1 0.328,11.297 2.543,2.543 0 0 1 0.4,8.679 L 5.12,1.267 a 2.632,2.632 0 0 1 2.33,-1.266 2.627,2.627 0 0 1 2.255,1.39 c 0.44,0.832 0.385,1.833 -0.142,2.614 l -4.717,7.412 a 2.631,2.631 0 0 1 -2.226,1.21 z" fill="#f62b54" />
+    <path d="M 10.716,12.627 C 9.764,12.627 8.888,12.118 8.428,11.3 A 2.535,2.535 0 0 1 8.5,8.689 l 4.711,-7.395 a 2.628,2.628 0 0 1 2.332,-1.293 c 0.96,0.021 1.83,0.558 2.27,1.398 0.437,0.84 0.373,1.847 -0.17,2.626 l -4.71,7.395 a 2.627,2.627 0 0 1 -2.217,1.207 z" fill="#ffcc00" />
+    <ellipse cx="18.631" cy="10.31" rx="2.43" ry="2.38" fill="#00ca72" />
   </svg>
 
 {:else if resolvedBrand === 'todoist'}
@@ -904,25 +903,21 @@
   </svg>
 
 {:else if resolvedBrand === 'linear'}
-  <!-- Official Linear Brand Icon -->
+  <!-- Official Linear Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Linear">
-    <rect width="24" height="24" rx="5" fill="#5E6AD2"/>
-    <path fill="#FFFFFF" d="M5.5 15.5l9-9a6.5 6.5 0 0 1 2 4.5 6.5 6.5 0 0 1-6.5 6.5 6.5 6.5 0 0 1-4.5-2z"/>
+    <path fill="#5E6AD2" d="M2.886 4.18A11.982 11.982 0 0 1 11.99 0C18.624 0 24 5.376 24 12.009c0 3.64-1.62 6.903-4.18 9.105L2.887 4.18ZM1.817 5.626l16.556 16.556c-.524.33-1.075.62-1.65.866L.951 7.277c.247-.575.537-1.126.866-1.65ZM.322 9.163l14.515 14.515c-.71.172-1.443.282-2.195.322L0 11.358a12 12 0 0 1 .322-2.195Zm-.17 4.862 9.823 9.824a12.02 12.02 0 0 1-9.824-9.824Z"/>
   </svg>
 
 {:else if resolvedBrand === 'jira'}
-  <!-- Official Jira Brand Icon -->
+  <!-- Official Jira Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Jira">
-    <rect width="24" height="24" rx="5" fill="#0052CC"/>
-    <path fill="#2684FF" d="M12 4.5a3.5 3.5 0 0 1 3.5 3.5v4a3.5 3.5 0 0 1-3.5 3.5l-3.5-3.5L12 4.5z"/>
-    <path fill="#FFFFFF" d="M8.5 8a3.5 3.5 0 0 1 3.5 3.5v4A3.5 3.5 0 0 1 8.5 19L5 15.5 8.5 8z"/>
+    <path fill="#0052CC" d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.218 5.218 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z"/>
   </svg>
 
 {:else if resolvedBrand === 'basecamp'}
-  <!-- Official Basecamp Brand Icon -->
+  <!-- Official Basecamp Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Basecamp">
-    <rect width="24" height="24" rx="5" fill="#26A65B"/>
-    <path fill="#FFFFFF" d="M6 16c2-4 4.5-8 6-8s4 4 6 8H6zm6-4.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+    <path fill="#1D2D35" d="M12.6516 22.453c-4.0328 0-7.575-1.5542-10.244-4.4946a1.11 1.11 0 0 1-.219-1.1338c.7008-1.8884 2.5935-6.2808 5.0205-6.2948h.0125c1.219 0 2.1312.9655 2.8648 1.7412.2192.2324.555.5875.7818.7611.5656-.5587 1.6775-2.4158 2.5422-4.2779.259-.5567.9203-.7985 1.4765-.5402.557.2584.7988.919.5404 1.4762-2.6217 5.6503-4.019 5.6503-4.478 5.6503-1.022 0-1.7628-.7843-2.4791-1.5422-.3208-.339-.9878-1.045-1.2482-1.045h-.0004c-.5665.095-1.8085 2.0531-2.6966 4.2034 2.1925 2.1722 4.9232 3.2726 8.1266 3.2726 4.3955 0 7.683-1.1964 9.0996-3.2953-.4888-5.585-3.5642-13.1634-9.0996-13.1634-4.6855 0-8.2152 3.264-10.4915 9.7007-.205.579-.8416.8828-1.4187.6776-.5789-.2047-.882-.8398-.6776-1.4185 2.624-7.421 6.859-11.1833 12.5878-11.1833 7.4826 0 10.9304 9.5613 11.3458 15.588a1.1154 1.1154 0 0 1-.1456.6314c-1.7407 3.0221-5.7182 4.6864-11.2002 4.6864Z"/>
   </svg>
 
 {:else if resolvedBrand === 'github'}
@@ -950,38 +945,33 @@
   </svg>
 
 {:else if resolvedBrand === 'postgresql'}
-  <!-- Official PostgreSQL Brand Icon -->
+  <!-- Official PostgreSQL Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="PostgreSQL">
-    <rect width="24" height="24" rx="5" fill="#336791"/>
-    <path fill="#FFFFFF" d="M12 5.5c-3 0-5.5 2.2-5.5 5 0 2 1.3 3.8 3.2 4.5v3.5h2.3v-3.5c2.3-.3 4.2-2 4.5-4.5h1v-1.5h-1c-.2-2-2-3.5-4.5-3.5zm-1 3.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm3.5 0a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/>
+    <path fill="#4169E1" d="M23.5594 14.7228a.5269.5269 0 0 0-.0563-.1191c-.139-.2632-.4768-.3418-1.0074-.2321-1.6533.3411-2.2935.1312-2.5256-.0191 1.342-2.0482 2.445-4.522 3.0411-6.8297.2714-1.0507.7982-3.5237.1222-4.7316a1.5641 1.5641 0 0 0-.1509-.235C21.6931.9086 19.8007.0248 17.5099.0005c-1.4947-.0158-2.7705.3461-3.1161.4794a9.449 9.449 0 0 0-.5159-.0816 8.044 8.044 0 0 0-1.3114-.1278c-1.1822-.0184-2.2038.2642-3.0498.8406-.8573-.3211-4.7888-1.645-7.2219.0788C.9359 2.1526.3086 3.8733.4302 6.3043c.0409.818.5069 3.334 1.2423 5.7436.4598 1.5065.9387 2.7019 1.4334 3.582.553.9942 1.1259 1.5933 1.7143 1.7895.4474.1491 1.1327.1441 1.8581-.7279.8012-.9635 1.5903-1.8258 1.9446-2.2069.4351.2355.9064.3625 1.39.3772a.0569.0569 0 0 0 .0004.0041 11.0312 11.0312 0 0 0-.2472.3054c-.3389.4302-.4094.5197-1.5002.7443-.3102.064-1.1344.2339-1.1464.8115-.0025.1224.0329.2309.0919.3268.2269.4231.9216.6097 1.015.6331 1.3345.3335 2.5044.092 3.3714-.6787-.017 2.231.0775 4.4174.3454 5.0874.2212.5529.7618 1.9045 2.4692 1.9043.2505 0 .5263-.0291.8296-.0941 1.7819-.3821 2.5557-1.1696 2.855-2.9059.1503-.8707.4016-2.8753.5388-4.1012.0169-.0703.0357-.1207.057-.1362.0007-.0005.0697-.0471.4272.0307a.3673.3673 0 0 0 .0443.0068l.2539.0223.0149.001c.8468.0384 1.9114-.1426 2.5312-.4308.6438-.2988 1.8057-1.0323 1.5951-1.6698zM2.371 11.8765c-.7435-2.4358-1.1779-4.8851-1.2123-5.5719-.1086-2.1714.4171-3.6829 1.5623-4.4927 1.8367-1.2986 4.8398-.5408 6.108-.13-.0032.0032-.0066.0061-.0098.0094-2.0238 2.044-1.9758 5.536-1.9708 5.7495-.0002.0823.0066.1989.0162.3593.0348.5873.0996 1.6804-.0735 2.9184-.1609 1.1504.1937 2.2764.9728 3.0892.0806.0841.1648.1631.2518.2374-.3468.3714-1.1004 1.1926-1.9025 2.1576-.5677.6825-.9597.5517-1.0886.5087-.3919-.1307-.813-.5871-1.2381-1.3223-.4796-.839-.9635-2.0317-1.4155-3.5126zm6.0072 5.0871c-.1711-.0428-.3271-.1132-.4322-.1772.0889-.0394.2374-.0902.4833-.1409 1.2833-.2641 1.4815-.4506 1.9143-1.0002.0992-.126.2116-.2687.3673-.4426a.3549.3549 0 0 0 .0737-.1298c.1708-.1513.2724-.1099.4369-.0417.156.0646.3078.26.3695.4752.0291.1016.0619.2945-.0452.4444-.9043 1.2658-2.2216 1.2494-3.1676 1.0128zm2.094-3.988-.0525.141c-.133.3566-.2567.6881-.3334 1.003-.6674-.0021-1.3168-.2872-1.8105-.8024-.6279-.6551-.9131-1.5664-.7825-2.5004.1828-1.3079.1153-2.4468.079-3.0586-.005-.0857-.0095-.1607-.0122-.2199.2957-.2621 1.6659-.9962 2.6429-.7724.4459.1022.7176.4057.8305.928.5846 2.7038.0774 3.8307-.3302 4.7363-.084.1866-.1633.3629-.2311.5454zm7.3637 4.5725c-.0169.1768-.0358.376-.0618.5959l-.146.4383a.3547.3547 0 0 0-.0182.1077c-.0059.4747-.054.6489-.115.8693-.0634.2292-.1353.4891-.1794 1.0575-.11 1.4143-.8782 2.2267-2.4172 2.5565-1.5155.3251-1.7843-.4968-2.0212-1.2217a6.5824 6.5824 0 0 0-.0769-.2266c-.2154-.5858-.1911-1.4119-.1574-2.5551.0165-.5612-.0249-1.9013-.3302-2.6462.0044-.2932.0106-.5909.019-.8918a.3529.3529 0 0 0-.0153-.1126 1.4927 1.4927 0 0 0-.0439-.208c-.1226-.4283-.4213-.7866-.7797-.9351-.1424-.059-.4038-.1672-.7178-.0869.067-.276.1831-.5875.309-.9249l.0529-.142c.0595-.16.134-.3257.213-.5012.4265-.9476 1.0106-2.2453.3766-5.1772-.2374-1.0981-1.0304-1.6343-2.2324-1.5098-.7207.0746-1.3799.3654-1.7088.5321a5.6716 5.6716 0 0 0-.1958.1041c.0918-1.1064.4386-3.1741 1.7357-4.4823a4.0306 4.0306 0 0 1 .3033-.276.3532.3532 0 0 0 .1447-.0644c.7524-.5706 1.6945-.8506 2.802-.8325.4091.0067.8017.0339 1.1742.081 1.939.3544 3.2439 1.4468 4.0359 2.3827.8143.9623 1.2552 1.9315 1.4312 2.4543-1.3232-.1346-2.2234.1268-2.6797.779-.9926 1.4189.543 4.1729 1.2811 5.4964.1353.2426.2522.4522.2889.5413.2403.5825.5515.9713.7787 1.2552.0696.087.1372.1714.1885.245-.4008.1155-1.1208.3825-1.0552 1.717-.0123.1563-.0423.4469-.0834.8148-.0461.2077-.0702.4603-.0994.7662zm.8905-1.6211c-.0405-.8316.2691-.9185.5967-1.0105a2.8566 2.8566 0 0 0 .135-.0406 1.202 1.202 0 0 0 .1342.103c.5703.3765 1.5823.4213 3.0068.1344-.2016.1769-.5189.3994-.9533.6011-.4098.1903-1.0957.333-1.7473.3636-.7197.0336-1.0859-.0807-1.1721-.151zm.5695-9.2712c-.0059.3508-.0542.6692-.1054 1.0017-.055.3576-.112.7274-.1264 1.1762-.0142.4368.0404.8909.0932 1.3301.1066.887.216 1.8003-.2075 2.7014a3.5272 3.5272 0 0 1-.1876-.3856c-.0527-.1276-.1669-.3326-.3251-.6162-.6156-1.1041-2.0574-3.6896-1.3193-4.7446.3795-.5427 1.3408-.5661 2.1781-.463zm.2284 7.0137a12.3762 12.3762 0 0 0-.0853-.1074l-.0355-.0444c.7262-1.1995.5842-2.3862.4578-3.4385-.0519-.4318-.1009-.8396-.0885-1.2226.0129-.4061.0666-.7543.1185-1.0911.0639-.415.1288-.8443.1109-1.3505.0134-.0531.0188-.1158.0118-.1902-.0457-.4855-.5999-1.938-1.7294-3.253-.6076-.7073-1.4896-1.4972-2.6889-2.0395.5251-.1066 1.2328-.2035 2.0244-.1859 2.0515.0456 3.6746.8135 4.8242 2.2824a.908.908 0 0 1 .0667.1002c.7231 1.3556-.2762 6.2751-2.9867 10.5405zm-8.8166-6.1162c-.025.1794-.3089.4225-.6211.4225a.5821.5821 0 0 1-.0809-.0056c-.1873-.026-.3765-.144-.5059-.3156-.0458-.0605-.1203-.178-.1055-.2844.0055-.0401.0261-.0985.0925-.1488.1182-.0894.3518-.1226.6096-.0867.3163.0441.6426.1938.6113.4186zm7.9305-.4114c.0111.0792-.049.201-.1531.3102-.0683.0717-.212.1961-.4079.2232a.5456.5456 0 0 1-.075.0052c-.2935 0-.5414-.2344-.5607-.3717-.024-.1765.2641-.3106.5611-.352.297-.0414.6111.0088.6356.1851z"/>
   </svg>
 
 {:else if resolvedBrand === 'mysql'}
-  <!-- Official MySQL Brand Icon -->
+  <!-- Official MySQL Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="MySQL">
-    <rect width="24" height="24" rx="5" fill="#00758F"/>
-    <path fill="#F29111" d="M16.5 7.5c-1.8 0-3.5 1-4.5 2.5-1-1.5-2.7-2.5-4.5-2.5-2.5 0-4.5 2-4.5 4.5s2 4.5 4.5 4.5c1.8 0 3.5-1 4.5-2.5 1 1.5 2.7 2.5 4.5 2.5 2.5 0 4.5-2 4.5-4.5s-2-4.5-4.5-4.5zm-9 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm9 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+    <path fill="#00758F" d="M16.405 5.501c-.115 0-.193.014-.274.033v.013h.014c.054.104.146.18.214.273.054.107.1.214.154.32l.014-.015c.094-.066.14-.172.14-.333-.04-.047-.046-.094-.08-.14-.04-.067-.126-.1-.18-.153zM5.77 18.695h-.927a50.854 50.854 0 00-.27-4.41h-.008l-1.41 4.41H2.45l-1.4-4.41h-.01a72.892 72.892 0 00-.195 4.41H0c.055-1.966.192-3.81.41-5.53h1.15l1.335 4.064h.008l1.347-4.064h1.095c.242 2.015.384 3.86.428 5.53zm4.017-4.08c-.378 2.045-.876 3.533-1.492 4.46-.482.716-1.01 1.073-1.583 1.073-.153 0-.34-.046-.566-.138v-.494c.11.017.24.026.386.026.268 0 .483-.075.647-.222.197-.18.295-.382.295-.605 0-.155-.077-.47-.23-.944L6.23 14.615h.91l.727 2.36c.164.536.233.91.205 1.123.4-1.064.678-2.227.835-3.483zm12.325 4.08h-2.63v-5.53h.885v4.85h1.745zm-3.32.135l-1.016-.5c.09-.076.177-.158.255-.25.433-.506.648-1.258.648-2.253 0-1.83-.718-2.746-2.155-2.746-.704 0-1.254.232-1.65.697-.43.508-.646 1.256-.646 2.245 0 .972.19 1.686.574 2.14.35.41.877.615 1.583.615.264 0 .506-.033.725-.098l1.325.772.36-.622zM15.5 17.588c-.225-.36-.337-.94-.337-1.736 0-1.393.424-2.09 1.27-2.09.443 0 .77.167.977.5.224.362.336.936.336 1.723 0 1.404-.424 2.108-1.27 2.108-.445 0-.77-.167-.978-.5zm-1.658-.425c0 .47-.172.856-.516 1.156-.344.3-.803.45-1.384.45-.543 0-1.064-.172-1.573-.515l.237-.476c.438.22.833.328 1.19.328.332 0 .593-.073.783-.22a.754.754 0 00.3-.615c0-.33-.23-.61-.648-.845-.388-.213-1.163-.657-1.163-.657-.422-.307-.632-.636-.632-1.177 0-.45.157-.81.47-1.085.315-.278.72-.415 1.22-.415.512 0 .98.136 1.4.41l-.213.476a2.726 2.726 0 00-1.064-.23c-.283 0-.502.068-.654.206a.685.685 0 00-.248.524c0 .328.234.61.666.85.393.215 1.187.67 1.187.67.433.305.648.63.648 1.168zm9.382-5.852c-.535-.014-.95.04-1.297.188-.1.04-.26.04-.274.167.055.053.063.14.11.214.08.134.218.313.346.407.14.11.28.216.427.31.26.16.555.255.81.416.145.094.293.213.44.313.073.05.12.14.214.172v-.02c-.046-.06-.06-.147-.105-.214-.067-.067-.134-.127-.2-.193a3.223 3.223 0 00-.695-.675c-.214-.146-.682-.35-.77-.595l-.013-.014c.146-.013.32-.066.46-.106.227-.06.435-.047.67-.106.106-.027.213-.06.32-.094v-.06c-.12-.12-.21-.283-.334-.395a8.867 8.867 0 00-1.104-.823c-.21-.134-.476-.22-.697-.334-.08-.04-.214-.06-.26-.127-.12-.146-.19-.34-.275-.514a17.69 17.69 0 01-.547-1.163c-.12-.262-.193-.523-.34-.763-.69-1.137-1.437-1.826-2.586-2.5-.247-.14-.543-.2-.856-.274-.167-.008-.334-.02-.5-.027-.11-.047-.216-.174-.31-.235-.38-.24-1.364-.76-1.644-.072-.18.434.267.862.422 1.082.115.153.26.328.34.5.047.116.06.235.107.356.106.294.207.622.347.897.073.14.153.287.247.413.054.073.146.107.167.227-.094.136-.1.334-.154.5-.24.757-.146 1.693.194 2.25.107.166.362.534.703.393.3-.12.234-.5.32-.835.02-.08.007-.133.048-.187v.015c.094.188.188.367.274.555.206.328.566.668.867.895.16.12.287.328.487.402v-.02h-.015c-.043-.058-.1-.086-.154-.133a3.445 3.445 0 01-.35-.4 8.76 8.76 0 01-.747-1.218c-.11-.21-.202-.436-.29-.643-.04-.08-.04-.2-.107-.24-.1.146-.247.273-.32.453-.127.288-.14.642-.188 1.01-.027.007-.014 0-.027.014-.214-.052-.287-.274-.367-.46-.2-.475-.233-1.238-.06-1.785.047-.14.247-.582.167-.716-.042-.127-.174-.2-.247-.303a2.478 2.478 0 01-.24-.427c-.16-.374-.24-.788-.414-1.162-.08-.173-.22-.354-.334-.513-.127-.18-.267-.307-.368-.52-.033-.073-.08-.194-.027-.274.014-.054.042-.075.094-.09.088-.072.335.022.422.062.247.1.455.194.662.334.094.066.195.193.315.226h.14c.214.047.455.014.655.073.355.114.675.28.962.46a5.953 5.953 0 012.085 2.286c.08.154.115.295.188.455.14.33.313.663.455.982.14.315.275.636.476.897.1.14.502.213.682.286.133.06.34.115.46.188.23.14.454.3.67.454.11.076.443.243.463.378z"/>
   </svg>
 
 {:else if resolvedBrand === 'redis'}
-  <!-- Official Redis Brand Icon -->
+  <!-- Official Redis Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Redis">
-    <rect width="24" height="24" rx="5" fill="#DC382D"/>
-    <path fill="#FFFFFF" d="M12 5.5l6 3-6 3-6-3 6-3zm6 4.5l-6 3-6-3v2.5l6 3 6-3V10zm0 4.5l-6 3-6-3V17l6 3 6-3v-2.5z"/>
+    <path fill="#FF4438" d="M22.71 13.145c-1.66 2.092-3.452 4.483-7.038 4.483-3.203 0-4.397-2.825-4.48-5.12.701 1.484 2.073 2.685 4.214 2.63 4.117-.133 6.94-3.852 6.94-7.239 0-4.05-3.022-6.972-8.268-6.972-3.752 0-8.4 1.428-11.455 3.685C2.59 6.937 3.885 9.958 4.35 9.626c2.648-1.904 4.748-3.13 6.784-3.744C8.12 9.244.886 17.05 0 18.425c.1 1.261 1.66 4.648 2.424 4.648.232 0 .431-.133.664-.365a100.49 100.49 0 0 0 5.54-6.765c.222 3.104 1.748 6.898 6.014 6.898 3.819 0 7.604-2.756 9.33-8.965.2-.764-.73-1.361-1.261-.73zm-4.349-5.013c0 1.959-1.926 2.922-3.685 2.922-.941 0-1.664-.247-2.235-.568 1.051-1.592 2.092-3.225 3.21-4.973 1.972.334 2.71 1.43 2.71 2.619z"/>
   </svg>
 
 {:else if resolvedBrand === 'postman'}
-  <!-- Official Postman Brand Icon -->
+  <!-- Official Postman Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Postman">
-    <circle cx="12" cy="12" r="12" fill="#FF6C37"/>
-    <path fill="#FFFFFF" d="M15.5 8.5c-.5-.7-1.4-1.2-2.3-1.2-1.5 0-2.8 1.1-3.1 2.5L7.5 11l-2 1.5 3 .5 1.5 3.5 1-2 2 .5c1.4.3 2.7-.6 3-2 .2-.9 0-1.8-.5-2.5zm-3 3.5l-1.5-.4.4-1.5c.2-.7.8-1.2 1.5-1.1.7.1 1.2.8 1.1 1.5-.1.7-.8 1.4-1.5 1.5z"/>
+    <path fill="#FF6C37" d="M13.527.099C6.955-.744.942 3.9.099 10.473c-.843 6.572 3.8 12.584 10.373 13.428 6.573.843 12.587-3.801 13.428-10.374C24.744 6.955 20.101.943 13.527.099zm2.471 7.485a.855.855 0 0 0-.593.25l-4.453 4.453-.307-.307-.643-.643c4.389-4.376 5.18-4.418 5.996-3.753zm-4.863 4.861l4.44-4.44a.62.62 0 1 1 .847.903l-4.699 4.125-.588-.588zm.33.694l-1.1.238a.06.06 0 0 1-.067-.032.06.06 0 0 1 .01-.073l.645-.645.512.512zm-2.803-.459l1.172-1.172.879.878-1.979.426a.074.074 0 0 1-.085-.039.072.072 0 0 1 .013-.093zm-3.646 6.058a.076.076 0 0 1-.069-.083.077.077 0 0 1 .022-.046h.002l.946-.946 1.222 1.222-2.123-.147zm2.425-1.256a.228.228 0 0 0-.117.256l.203.865a.125.125 0 0 1-.211.117h-.003l-.934-.934-.294-.295 3.762-3.758 1.82-.393.874.874c-1.255 1.102-2.971 2.201-5.1 3.268zm5.279-3.428h-.002l-.839-.839 4.699-4.125a.952.952 0 0 0 .119-.127c-.148 1.345-2.029 3.245-3.977 5.091zm3.657-6.46l-.003-.002a1.822 1.822 0 0 1 2.459-2.684l-1.61 1.613a.119.119 0 0 0 0 .169l1.247 1.247a1.817 1.817 0 0 1-2.093-.343zm2.578 0a1.714 1.714 0 0 1-.271.218h-.001l-1.207-1.207 1.533-1.533c.661.72.637 1.832-.054 2.522zM18.855 6.05a.143.143 0 0 0-.053.157.416.416 0 0 1-.053.45.14.14 0 0 0 .023.197.141.141 0 0 0 .084.03.14.14 0 0 0 .106-.05.691.691 0 0 0 .087-.751.138.138 0 0 0-.194-.033z"/>
   </svg>
 
 {:else if resolvedBrand === 'docker'}
-  <!-- Official Docker Brand Icon -->
+  <!-- Official Docker Authentic Brand Icon -->
   <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Docker">
-    <rect width="24" height="24" rx="5" fill="#2496ED"/>
-    <path fill="#FFFFFF" d="M19.5 11c-.3 0-.6.1-.8.2-.5-.9-1.5-1.5-2.6-1.5-.2 0-.4 0-.6.1-.7-1.3-2-2-3.5-2v-.8H4v5.5c0 3.6 2.9 6.5 6.5 6.5 4.5 0 8.2-3.3 8.5-7.7.8-.1 1.5-.7 1.5-1.5 0-.7-.5-1.3-1-1.3zM5.5 8.5h1.8v1.8H5.5V8.5zm2.8 0h1.8v1.8H8.3V8.5zm2.8 0h1.8v1.8h-1.8V8.5zm-5.6 2.8h1.8v1.8H5.5v-1.8zm2.8 0h1.8v1.8H8.3v-1.8zm2.8 0h1.8v1.8h-1.8v-1.8zm2.8 0h1.8v1.8h-1.8v-1.8z"/>
+    <path fill="#2496ED" d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/>
   </svg>
 
 {:else if resolvedBrand === 'vercel'}
@@ -1251,6 +1241,21 @@
     />
   </svg>
 
+{:else if resolvedBrand === 'google'}
+  <!-- Official Google Brand 4-Color Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="Google">
+    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.26 21.39 7.33 24 12 24z"/>
+    <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.13z"/>
+    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.61 1.25 6.58l4.03 3.13c.95-2.83 3.6-4.96 6.72-4.96z"/>
+  </svg>
+
+{:else if resolvedBrand === 'wordpress'}
+  <!-- Official WordPress Brand Icon -->
+  <svg viewBox="0 0 24 24" width={size} height={size} class={className} aria-label="WordPress">
+    <path fill="#21759B" d="M21.469 6.825c.84 1.537 1.318 3.3 1.318 5.175 0 3.979-2.156 7.456-5.363 9.325l3.295-9.527c.615-1.54.82-2.771.82-3.864 0-.405-.026-.78-.07-1.11m-7.981.105c.647-.03 1.232-.105 1.232-.105.582-.075.514-.93-.067-.899 0 0-1.755.135-2.88.135-1.064 0-2.85-.15-2.85-.15-.585-.03-.661.855-.075.885 0 0 .54.061 1.125.09l1.68 4.605-2.37 7.08L5.354 6.9c.649-.03 1.234-.1 1.234-.1.585-.075.516-.93-.065-.896 0 0-1.746.138-2.874.138-.2 0-.438-.008-.69-.015C4.911 3.15 8.235 1.215 12 1.215c2.809 0 5.365 1.072 7.286 2.833-.046-.003-.091-.009-.141-.009-1.06 0-1.812.923-1.812 1.914 0 .89.513 1.643 1.06 2.531.411.72.89 1.643.89 2.977 0 .915-.354 1.994-.821 3.479l-1.075 3.585-3.9-11.61.001.014zM12 22.784c-1.059 0-2.081-.153-3.048-.437l3.237-9.406 3.315 9.087c.024.053.05.101.078.149-1.12.393-2.325.609-3.582.609M1.211 12c0-1.564.336-3.05.935-4.39L7.29 21.709C3.694 19.96 1.212 16.271 1.211 12M12 0C5.385 0 0 5.385 0 12s5.385 12 12 12 12-5.385 12-12S18.615 0 12 0"/>
+  </svg>
+
 {:else if resolvedBrand === 'telegram'}
   <!-- Official Telegram SVG Logo -->
   <svg
@@ -1266,6 +1271,10 @@
       d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"
     />
   </svg>
+
+{:else if icon}
+  <!-- Polished Thematic Category / Skill Icon Fallback -->
+  <Icon name={icon} {size} class={className} />
 
 {:else}
   <!-- Generic High-Tech AI Chip Fallback -->

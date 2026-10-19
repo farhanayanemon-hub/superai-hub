@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
+  import BrandIcon from '$lib/components/BrandIcon.svelte';
   import ChannelModal from '$lib/components/ChannelModal.svelte';
   import AppDownloadModal from '$lib/components/AppDownloadModal.svelte';
   import { TOOLS, AI_CEO_PROFILE, type AITool } from '$lib/config/tools';
@@ -1257,6 +1258,9 @@
                   <span class="px-1.5 py-0.5 rounded-md font-mono font-bold text-[11px] shrink-0 {isUnlocked ? 'bg-[#1677FF]/10 text-[#1677FF]' : 'bg-gray-100 text-gray-500'}">
                     {tool.code}
                   </span>
+                  <div class="w-5 h-5 rounded flex items-center justify-center shrink-0">
+                    <BrandIcon name={tool.name} modelId={tool.id} icon={tool.icon} size={16} />
+                  </div>
                   <div class="min-w-0">
                     <p class="text-xs font-bold break-words flex items-center gap-1.5">
                       <span>{tool.name}</span>

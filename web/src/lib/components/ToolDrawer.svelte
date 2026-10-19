@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
+  import BrandIcon from './BrandIcon.svelte';
   import WorkflowStudioModal from './WorkflowStudioModal.svelte';
   import {
     activeTool,
@@ -322,9 +323,9 @@
     >
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <div
-          class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1677FF] text-white flex items-center justify-center shrink-0 shadow-sm"
+          class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] text-[#1677FF] flex items-center justify-center shrink-0 shadow-sm"
         >
-          <Icon name={$activeTool.icon || 'Sparkles'} size={22} />
+          <BrandIcon name={$activeTool.name} modelId={$activeTool.id} icon={$activeTool.icon || 'Sparkles'} size={24} />
           <span
             class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white"
           ></span>

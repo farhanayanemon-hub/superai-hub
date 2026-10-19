@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
+  import BrandIcon from './BrandIcon.svelte';
   import type { AITool } from '$lib/config/tools';
   import { openToolDrawer, subscription, isHelperUnlocked } from '$lib/stores/userStore';
   import { plansStore } from '$lib/stores/plansStore';
@@ -35,7 +36,7 @@
         <div
           class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] group-hover:border-[#1677FF] group-hover:bg-[#EBF4FF] transition-all duration-200 flex items-center justify-center text-[#1677FF] shrink-0"
         >
-          <Icon name={tool.icon || 'Sparkles'} size={20} />
+          <BrandIcon name={tool.name} modelId={tool.id} icon={tool.icon || 'Sparkles'} size={22} />
           {#if isUnlocked}
             <span
               class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"
