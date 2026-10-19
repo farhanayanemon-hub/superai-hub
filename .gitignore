@@ -9,3 +9,9 @@ auth_info_baileys/
 Thumbs.db
 scratch/
 .agents/
+*.apk
+.dart_tool/
+mobile_app/build/
+mobile_app/.flutter-plugins
+mobile_app/.flutter-plugins-dependencies
+

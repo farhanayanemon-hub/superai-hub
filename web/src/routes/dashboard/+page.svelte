@@ -407,7 +407,7 @@
           >
             <div class="flex items-center gap-3">
               <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' ? 'text-white' : 'text-[#1677FF]'} />
-              <span>AI Helpers</span>
+              <span>My Agents</span>
             </div>
           </button>
 
