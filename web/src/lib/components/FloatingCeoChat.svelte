@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import ChannelModal from '$lib/components/ChannelModal.svelte';
+  import AppDownloadModal from '$lib/components/AppDownloadModal.svelte';
   import { TOOLS, AI_CEO_PROFILE, type AITool } from '$lib/config/tools';
   import {
     chatMessages,
@@ -54,6 +55,11 @@
 
   // Channels modal state
   let isChannelsModalOpen = $state(false);
+
+  // App Download modal & smart banner state
+  let isAppDownloadModalOpen = $state(false);
+  let isAppBannerDismissed = $state(false);
+  let isMobileDevice = $state(false);
 
   // Input & Attachment state
   let inputMessage = $state('');
@@ -173,6 +179,19 @@
       chatMessages.set(sessions[0].messages);
     }
     scrollToBottom();
+
+    if (typeof window !== 'undefined') {
+      isMobileDevice = window.innerWidth < 768;
+      const dismissed = localStorage.getItem('ezbo_app_banner_dismissed');
+      if (dismissed === 'true') {
+        isAppBannerDismissed = true;
+      }
+      const handleResize = () => {
+        isMobileDevice = window.innerWidth < 768;
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
   });
 
   // Start a new chat session with animated typing
@@ -586,6 +605,9 @@
 <!-- Embedded Channels Modal -->
 <ChannelModal bind:isOpen={isChannelsModalOpen} />
 
+<!-- Embedded Mobile App Download Modal -->
+<AppDownloadModal bind:isOpen={isAppDownloadModalOpen} />
+
 <!-- ====================================================================== -->
 <!-- 1. FIXED FLOATING LAUNCHER BUTTON (Bottom-Right) -->
 <!-- ====================================================================== -->
@@ -773,7 +795,7 @@
             </button>
           </div>
 
-          <!-- Connect Channels Button -->
+            <!-- Connect Channels Button -->
           <div class="pb-2.5 border-b border-[#F1F5F9]">
             <button
               type="button"
@@ -792,6 +814,33 @@
                 </div>
               </div>
               <Icon name="ChevronRight" size={14} class="text-[#1677FF]" />
+            </button>
+          </div>
+
+          <!-- Download Mobile App Button -->
+          <div class="pb-2.5 border-b border-[#F1F5F9]">
+            <button
+              type="button"
+              onclick={() => {
+                isInnerSidebarOpen = false;
+                isAppDownloadModalOpen = true;
+              }}
+              class="w-full p-2.5 rounded-xl bg-gradient-to-r from-[#F3F8FF] to-white hover:bg-[#E4F0FF] border border-[#CFE2FA] flex items-center justify-between text-xs transition-all cursor-pointer group shadow-2xs"
+              title="Download Ezbo Android App"
+            >
+              <div class="flex items-center gap-2.5">
+                <div class="w-6 h-6 rounded-lg bg-[#E4F0FF] text-[#1677FF] flex items-center justify-center">
+                  <Icon name="Smartphone" size={14} />
+                </div>
+                <div class="text-left">
+                  <p class="font-bold text-[#102A56] group-hover:text-[#1677FF] text-xs flex items-center gap-1.5">
+                    <span>Mobile App</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-[#1677FF] text-white">APK</span>
+                  </p>
+                  <span class="text-[10px] text-[#5E7694]">120Hz Fluid Wave</span>
+                </div>
+              </div>
+              <Icon name="Download" size={14} class="text-[#1677FF]" />
             </button>
           </div>
 
@@ -830,6 +879,65 @@
                 {/if}
               </div>
             {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- ====================================================================== -->
+      <!-- Smart App Download Banner (Desktop: QR Code Modal, Mobile: 1-Click APK) -->
+      <!-- ====================================================================== -->
+      {#if !isAppBannerDismissed}
+        <div class="px-3.5 py-2.5 bg-gradient-to-r from-[#1677FF]/10 via-[#38CFFF]/10 to-indigo-50/50 border-b border-[#CFE2FA] flex items-center justify-between gap-2.5 shrink-0 animate-in fade-in duration-200">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="w-7 h-7 rounded-lg bg-white border border-[#CFE2FA] shadow-xs flex items-center justify-center shrink-0">
+              <Icon name="Smartphone" size={15} class="text-[#1677FF]" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-[#102A56] truncate flex items-center gap-1.5">
+                <span>{isMobileDevice ? 'Get Ezbo Android App' : 'Ezbo Android App'}</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-[#1677FF] text-white">120Hz</span>
+              </p>
+              <p class="text-[10px] text-[#5E7694] truncate">
+                {isMobileDevice ? 'Tap Download for 120Hz smooth chat' : 'Scan QR code with phone camera to download'}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            {#if isMobileDevice}
+              <a
+                href="/downloads/EzboAgents.apk"
+                download="EzboAgents.apk"
+                class="px-2.5 py-1 rounded-lg blue-btn text-white text-[11px] font-bold shadow-xs flex items-center gap-1 hover:scale-102 transition-transform"
+              >
+                <Icon name="Download" size={12} />
+                <span>Download Now</span>
+              </a>
+            {:else}
+              <button
+                type="button"
+                onclick={() => (isAppDownloadModalOpen = true)}
+                class="px-2.5 py-1 rounded-lg blue-btn text-white text-[11px] font-bold shadow-xs flex items-center gap-1 hover:scale-102 transition-transform cursor-pointer"
+              >
+                <Icon name="QrCode" size={12} />
+                <span>Download</span>
+              </button>
+            {/if}
+
+            <button
+              type="button"
+              onclick={() => {
+                isAppBannerDismissed = true;
+                if (typeof localStorage !== 'undefined') {
+                  localStorage.setItem('ezbo_app_banner_dismissed', 'true');
+                }
+              }}
+              class="w-6 h-6 rounded-md text-[#5E7694] hover:text-[#102A56] hover:bg-white/60 flex items-center justify-center cursor-pointer transition-colors"
+              title="Dismiss banner"
+              aria-label="Dismiss banner"
+            >
+              <Icon name="X" size={13} />
+            </button>
           </div>
         </div>
       {/if}

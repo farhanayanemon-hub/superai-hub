@@ -7,6 +7,7 @@
   import PaymentMethods from '$lib/components/PaymentMethods.svelte';
   import RobotShowcase from '$lib/components/robots/RobotShowcase.svelte';
   import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
+  import MobileAppShowcase from '$lib/components/MobileAppShowcase.svelte';
   import { isAuthenticated, currentUser } from '$lib/stores/userStore';
   import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
 
@@ -237,6 +238,11 @@
         </div>
       </div>
     </section>
+
+    <!-- ======================================================== -->
+    <!-- 3B. 120HZ MOBILE APP & ORBITING 100+ TOOLS SHOWCASE -->
+    <!-- ======================================================== -->
+    <MobileAppShowcase />
 
     <!-- ======================================================== -->
     <!-- 4. PRICING SECTION -->

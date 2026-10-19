@@ -2,6 +2,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import FloatingCeoChat from '$lib/components/FloatingCeoChat.svelte';
   import ChannelModal from '$lib/components/ChannelModal.svelte';
+  import AppDownloadModal from '$lib/components/AppDownloadModal.svelte';
   import ToolCard from '$lib/components/ToolCard.svelte';
   import ToolDrawer from '$lib/components/ToolDrawer.svelte';
   import ApiVaultManager from '$lib/components/ApiVaultManager.svelte';
@@ -48,6 +49,7 @@
   let mobileSidebarOpen = $state(false);
   let isChannelModalOpen = $state(false);
   let isCeoChatOpen = $state(false);
+  let isAppDownloadModalOpen = $state(false);
   let hasCheckedServerAccess = $state(false);
 
   // Pro Workflow Studio State
@@ -465,6 +467,22 @@
                 {$apiVault.length}
               </span>
             {/if}
+          </button>
+
+          <!-- 6. Download Mobile App -->
+          <button
+            type="button"
+            onclick={() => {
+              isAppDownloadModalOpen = true;
+              mobileSidebarOpen = false;
+            }}
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF] group"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="Smartphone" size={17} class="text-[#1677FF] group-hover:scale-110 transition-transform" />
+              <span>Download App</span>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#CFE2FA]/50 text-[#1677FF] border border-[#CFE2FA]">APK</span>
           </button>
         </nav>
       </div>
@@ -1427,6 +1445,12 @@
   <ChannelModal
     bind:isOpen={isChannelModalOpen}
     onClose={() => { isChannelModalOpen = false; }}
+  />
+
+  <!-- Embedded Mobile App Download Modal -->
+  <AppDownloadModal
+    bind:isOpen={isAppDownloadModalOpen}
+    onClose={() => { isAppDownloadModalOpen = false; }}
   />
 
   <!-- Interactive Workflow Studio Modal for Pro Subscribers -->
