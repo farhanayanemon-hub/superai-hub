@@ -1,6 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEFAULT_PLANS, type PlansSettings, type PlanConfig, type PlanTierId } from '$lib/config/plans';
+import { TOOL_CONNECTORS } from '$lib/config/toolConnectors';
+
+export const DEFAULT_TOOL_CONNECTOR_IDS: string[] = TOOL_CONNECTORS.map((t) => t.id);
 
 export interface AdminModelToggles {
   'gemini-2.0-flash': boolean;
@@ -64,6 +67,7 @@ export interface AdminConfig {
   telegramBotUsername?: string;
   telegramWebhookSecret?: string;
   channelsCeoEnabled: boolean;
+  enabledToolConnectors?: string[];
   plans?: PlansSettings;
   userGrants?: Record<string, UserAccessGrant>;
   registeredUsers?: Record<string, RegisteredUserSummary>;
@@ -120,6 +124,7 @@ function loadConfigFromStorage(): AdminConfig {
     telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot',
     telegramWebhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET || '',
     channelsCeoEnabled: true,
+    enabledToolConnectors: [...DEFAULT_TOOL_CONNECTOR_IDS],
     providersAllowed: { ...DEFAULT_PROVIDERS_ALLOWED },
     plans: DEFAULT_PLANS,
     userGrants: {},
@@ -240,6 +245,9 @@ function loadConfigFromStorage(): AdminConfig {
         telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername,
         telegramWebhookSecret: saved.telegramWebhookSecret ?? envConfig.telegramWebhookSecret,
         channelsCeoEnabled: saved.channelsCeoEnabled ?? true,
+        enabledToolConnectors: Array.isArray(saved.enabledToolConnectors)
+          ? saved.enabledToolConnectors
+          : [...DEFAULT_TOOL_CONNECTOR_IDS],
         plans: mergedPlans,
         userGrants: migratedGrants,
         registeredUsers: migratedUsers
@@ -319,6 +327,9 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       ...(current.providersAllowed || {}),
       ...(patch.providersAllowed || {})
     },
+    enabledToolConnectors: patch.enabledToolConnectors !== undefined && Array.isArray(patch.enabledToolConnectors)
+      ? patch.enabledToolConnectors.filter((id) => typeof id === 'string')
+      : (current.enabledToolConnectors || [...DEFAULT_TOOL_CONNECTOR_IDS]),
     plans: updatedPlans,
     userGrants: patch.userGrants ?? current.userGrants ?? {},
     registeredUsers: patch.registeredUsers ?? current.registeredUsers ?? {}
@@ -504,6 +515,7 @@ export function getMaskedAdminConfig(includeUsers = false) {
     telegramWebhookSecret: maskKey(config.telegramWebhookSecret),
     hasTelegramWebhookSecret: !!config.telegramWebhookSecret,
     channelsCeoEnabled: config.channelsCeoEnabled !== false,
+    enabledToolConnectors: config.enabledToolConnectors || [...DEFAULT_TOOL_CONNECTOR_IDS],
     plans: config.plans || DEFAULT_PLANS,
     userGrants: includeUsers ? (config.userGrants || {}) : {},
     registeredUsers: includeUsers ? (config.registeredUsers || {}) : {}

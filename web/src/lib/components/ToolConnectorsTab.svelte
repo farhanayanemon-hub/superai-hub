@@ -11,6 +11,7 @@
     type ToolConnector,
     type ConnectedToolState
   } from '$lib/config/toolConnectors';
+  import { enabledToolConnectorsStore, loadPublicPlans } from '$lib/stores/plansStore';
 
   let searchQuery = $state('');
   let selectedCategory = $state('all');
@@ -25,16 +26,23 @@
 
   onMount(() => {
     refreshConnectedState();
+    loadPublicPlans();
 
     const handleUpdate = () => {
       refreshConnectedState();
     };
 
+    const handleSettingsUpdate = () => {
+      loadPublicPlans(true);
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('ezbo:tools-updated', handleUpdate);
+      window.addEventListener('ezbo:tools-settings-updated', handleSettingsUpdate);
       window.addEventListener('storage', handleUpdate);
       return () => {
         window.removeEventListener('ezbo:tools-updated', handleUpdate);
+        window.removeEventListener('ezbo:tools-settings-updated', handleSettingsUpdate);
         window.removeEventListener('storage', handleUpdate);
       };
     }
@@ -44,9 +52,22 @@
     Object.values(connectedMap).filter((item) => item?.status === 'connected').length
   );
 
+  const enabledTools = $derived(
+    TOOL_CONNECTORS.filter((tool) => $enabledToolConnectorsStore.includes(tool.id))
+  );
+
+  const categoryCounts = $derived.by(() => {
+    const counts: Record<string, number> = {};
+    for (const tool of enabledTools) {
+      counts[tool.categoryId] = (counts[tool.categoryId] || 0) + 1;
+      counts[tool.category] = (counts[tool.category] || 0) + 1;
+    }
+    return counts;
+  });
+
   const filteredTools = $derived.by(() => {
     const q = searchQuery.trim().toLowerCase();
-    return TOOL_CONNECTORS.filter((tool) => {
+    return enabledTools.filter((tool) => {
       // Category filter
       if (selectedCategory === 'connected') {
         if (connectedMap[tool.id]?.status !== 'connected') return false;
@@ -129,14 +150,14 @@
       <div>
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1677FF]/10 text-[#1677FF] text-[11px] font-bold uppercase tracking-wider mb-2">
           <Icon name="Sparkles" size={13} />
-          <span>Universal Integration Hub • 100+ Connectors</span>
+          <span>Universal Integration Hub • Connectors</span>
         </div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-[#102A56] tracking-tight">
           Tools &amp; Enterprise Integrations
         </h2>
         <p class="text-xs sm:text-sm text-[#4B6382] mt-1 max-w-3xl leading-relaxed">
           Connect your workspace platforms, messaging bots, payment gateways, and CRM suites.
-          Both Starter and Pro plans have complete access to all 100+ connectors to empower autonomous agent execution.
+          Both Starter and Pro plans have complete access to all connectors to empower autonomous agent execution.
         </p>
       </div>
 
@@ -144,7 +165,7 @@
       <div class="flex items-center gap-3 shrink-0">
         <div class="px-4 py-2.5 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs text-center min-w-[100px]">
           <p class="text-[10px] uppercase font-bold text-[#5E7694] tracking-wider">Available</p>
-          <p class="text-lg font-black text-[#102A56]">{TOOL_CONNECTORS.length}+</p>
+          <p class="text-lg font-black text-[#102A56]">{enabledTools.length}</p>
         </div>
         <div class="px-4 py-2.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 shadow-2xs text-center min-w-[100px]">
           <p class="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Connected</p>
@@ -162,7 +183,7 @@
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Search 100+ connectors by name, category, or service..."
+          placeholder="Search connectors by name, category, or service..."
           class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white border border-[#CFE2FA] focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 text-xs sm:text-sm text-[#102A56] placeholder-[#7B92AE] outline-none transition-all shadow-2xs"
           aria-label="Search tool connectors"
         />
@@ -181,7 +202,7 @@
       <div class="text-xs font-semibold text-[#5E7694] flex items-center gap-1.5 self-center sm:self-auto">
         <span>Showing</span>
         <strong class="text-[#102A56]">{filteredTools.length}</strong>
-        <span>of {TOOL_CONNECTORS.length} tools</span>
+        <span>of {enabledTools.length} tools</span>
       </div>
     </div>
   </div>
@@ -199,7 +220,7 @@
       <Icon name="Grid" size={14} class={selectedCategory === 'all' ? 'text-white' : 'text-[#1677FF]'} />
       <span>All Tools</span>
       <span class="text-[10px] px-1.5 py-0.2 rounded-full {selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}">
-        {TOOL_CONNECTORS.length}
+        {enabledTools.length}
       </span>
     </button>
 
@@ -230,7 +251,7 @@
         <Icon name={cat.icon} size={14} class={selectedCategory === cat.id ? 'text-white' : 'text-[#5E7694]'} />
         <span>{cat.name}</span>
         <span class="text-[10px] px-1.5 py-0.2 rounded-full {selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}">
-          {cat.count}
+          {categoryCounts[cat.id] || 0}
         </span>
       </button>
     {/each}

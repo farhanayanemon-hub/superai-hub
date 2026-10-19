@@ -91,6 +91,10 @@ export const POST: RequestHandler = async ({ request }) => {
       cleanPatch.channelsCeoEnabled = patch.channelsCeoEnabled;
     }
 
+    if (Array.isArray(patch.enabledToolConnectors)) {
+      cleanPatch.enabledToolConnectors = patch.enabledToolConnectors.filter((id: any) => typeof id === 'string');
+    }
+
     const updated = updateAdminConfig(cleanPatch);
     const masked = getMaskedAdminConfig(true);
 

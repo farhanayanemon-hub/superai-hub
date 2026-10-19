@@ -417,7 +417,7 @@
             </div>
           </button>
 
-          <!-- 2. Tools & Integrations Hub (100+) -->
+          <!-- 2. Tools & Integrations Hub -->
           <button
             type="button"
             onclick={() => switchTab('tools')}
@@ -429,7 +429,6 @@
               <Icon name="Wrench" size={17} class={$activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
               <span>Tools & Integrations</span>
             </div>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold {$activeDashboardTab === 'tools' ? 'bg-white/20 text-white' : 'bg-[#CFE2FA]/50 text-[#1677FF]'}">100+</span>
           </button>
 
           <!-- 4. Subscription & Billing -->
@@ -690,7 +689,7 @@
         </div>
 
       <!-- ==================================================== -->
-      <!-- TAB 3: TOOLS & INTEGRATIONS HUB (100+) -->
+      <!-- TAB 3: TOOLS & INTEGRATIONS HUB -->
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'tools'}
         <div class="h-full overflow-y-auto max-w-7xl mx-auto pb-12">

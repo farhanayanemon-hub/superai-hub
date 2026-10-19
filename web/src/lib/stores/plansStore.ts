@@ -1,7 +1,28 @@
 import { writable } from 'svelte/store';
 import { DEFAULT_PLANS, type PlansSettings, type PlanConfig } from '$lib/config/plans';
+import { TOOL_CONNECTORS } from '$lib/config/toolConnectors';
 
 const STORAGE_KEY = 'ezbo_public_plans';
+const TOOLS_STORAGE_KEY = 'ezbo_enabled_tool_connectors';
+
+export function getAllToolConnectorIds(): string[] {
+  return TOOL_CONNECTORS.map((t) => t.id);
+}
+
+function getInitialEnabledToolConnectors(): string[] {
+  if (typeof window === 'undefined') return getAllToolConnectorIds();
+  try {
+    const raw = localStorage.getItem(TOOLS_STORAGE_KEY);
+    if (!raw) return getAllToolConnectorIds();
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // fallback
+  }
+  return getAllToolConnectorIds();
+}
+
+export const enabledToolConnectorsStore = writable<string[]>(getInitialEnabledToolConnectors());
 
 export function normalizePlans(raw: any): PlansSettings {
   if (!raw || typeof raw !== 'object') {
@@ -100,6 +121,16 @@ export async function loadPublicPlans(force = false): Promise<PlansSettings> {
         const normalized = normalizePlans(data.plans);
         plansStore.set(normalized);
         lastFetched = now;
+        if (data.enabledToolConnectors && Array.isArray(data.enabledToolConnectors)) {
+          enabledToolConnectorsStore.set(data.enabledToolConnectors);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(TOOLS_STORAGE_KEY, JSON.stringify(data.enabledToolConnectors));
+            } catch {
+              // ignore
+            }
+          }
+        }
         if (typeof window !== 'undefined') {
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
@@ -117,4 +148,14 @@ export async function loadPublicPlans(force = false): Promise<PlansSettings> {
   }
 
   return getInitialPlans();
+}
+
+export async function loadEnabledToolConnectors(force = false): Promise<string[]> {
+  await loadPublicPlans(force);
+  let currentVal: string[] = [];
+  const unsubscribe = enabledToolConnectorsStore.subscribe((val) => {
+    currentVal = val;
+  });
+  unsubscribe();
+  return currentVal;
 }

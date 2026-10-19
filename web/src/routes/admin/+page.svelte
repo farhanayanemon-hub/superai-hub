@@ -5,6 +5,7 @@
   import { DEFAULT_PLANS, type PlansSettings, type PlanConfig, type PlanTierId } from '$lib/config/plans';
   import { STORE_BOTS } from '$lib/config/storeBots';
   import { ALL_TOOLS, CATEGORIES, type AITool } from '$lib/config/tools';
+  import { TOOL_CONNECTORS, TOOL_CONNECTOR_CATEGORIES, type ToolConnector, type ToolConnectorCategory } from '$lib/config/toolConnectors';
   import {
     currentUser,
     getAllLocalRegisteredUsers,
@@ -12,7 +13,7 @@
     type ServerUserGrant
   } from '$lib/stores/userStore';
 
-  type AdminTab = 'overview' | 'users' | 'plans' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
+  type AdminTab = 'overview' | 'users' | 'plans' | 'tools' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
 
   interface AdminModelToggles {
     'gemini-2.0-flash': boolean;
@@ -54,6 +55,7 @@
     telegramBotUsername?: string;
     hasTelegramBot?: boolean;
     channelsCeoEnabled?: boolean;
+    enabledToolConnectors?: string[];
     plans?: PlansSettings;
     providersAllowed?: Record<string, boolean>;
     userGrants?: Record<string, ServerUserGrant>;
@@ -93,6 +95,11 @@
   let previewBillingInterval = $state<'monthly' | 'yearly'>('monthly');
   let helperSearch = $state('');
   let helperCategoryFilter = $state('all');
+
+  // Form state - Tool Connectors (100 Enterprise Connectors)
+  let enabledToolConnectors = $state<string[]>(TOOL_CONNECTORS.map((t) => t.id));
+  let toolConnectorSearch = $state('');
+  let toolConnectorCategoryFilter = $state('all');
 
   // Form state - Payment
   let opayApiKey = $state('');
@@ -218,6 +225,7 @@
     { id: 'overview', label: 'Overview', icon: 'Grid', badge: 'Live' },
     { id: 'users', label: 'User Access & Bots', icon: 'UserCheck', badge: 'Assign' },
     { id: 'plans', label: 'Plans & Pricing', icon: 'Receipt', badge: 'Editable' },
+    { id: 'tools', label: 'Tool Connectors', icon: 'Wrench', badge: 'Connectors' },
     { id: 'payment', label: 'Payment Gateway', icon: 'CreditCard', badge: 'OPayBD' },
     { id: 'ai-keys', label: 'AI Engines Vault', icon: 'Key', badge: '6 Providers' },
     { id: 'models', label: 'Model Toggles', icon: 'Bot', badge: '8 Models' },
@@ -319,6 +327,9 @@
         }
         if (s.registeredUsers) {
           registeredUsersMap = s.registeredUsers;
+        }
+        if (s.enabledToolConnectors && Array.isArray(s.enabledToolConnectors)) {
+          enabledToolConnectors = [...s.enabledToolConnectors];
         }
         channelsCeoEnabled = s.channelsCeoEnabled !== false;
         isAuthenticated = true;
@@ -630,6 +641,49 @@
     return list;
   });
 
+  function toggleToolConnector(id: string) {
+    if (enabledToolConnectors.includes(id)) {
+      enabledToolConnectors = enabledToolConnectors.filter((t) => t !== id);
+    } else {
+      enabledToolConnectors = [...enabledToolConnectors, id];
+    }
+  }
+
+  function selectAllToolConnectors() {
+    enabledToolConnectors = TOOL_CONNECTORS.map((t) => t.id);
+  }
+
+  function clearAllToolConnectors() {
+    enabledToolConnectors = [];
+  }
+
+  function enableCategoryTools(catId: string) {
+    const catTools = TOOL_CONNECTORS.filter((t) => t.categoryId === catId).map((t) => t.id);
+    const set = new Set([...enabledToolConnectors, ...catTools]);
+    enabledToolConnectors = Array.from(set);
+  }
+
+  function disableCategoryTools(catId: string) {
+    const catTools = new Set(TOOL_CONNECTORS.filter((t) => t.categoryId === catId).map((t) => t.id));
+    enabledToolConnectors = enabledToolConnectors.filter((id) => !catTools.has(id));
+  }
+
+  const filteredToolConnectors = $derived.by(() => {
+    const q = toolConnectorSearch.trim().toLowerCase();
+    return TOOL_CONNECTORS.filter((tool) => {
+      if (toolConnectorCategoryFilter !== 'all' && tool.categoryId !== toolConnectorCategoryFilter) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        tool.name.toLowerCase().includes(q) ||
+        tool.category.toLowerCase().includes(q) ||
+        tool.description.toLowerCase().includes(q) ||
+        tool.id.toLowerCase().includes(q)
+      );
+    });
+  });
+
   async function saveSettings() {
     isSaving = true;
     saveFeedback = '';
@@ -655,6 +709,7 @@
         channelsCeoEnabled,
         modelsEnabled,
         providersAllowed,
+        enabledToolConnectors,
         plans: {
           ...editablePlans,
           byok: editablePlans.byok_starter
@@ -711,6 +766,15 @@
           hasTelegramBot = !!s.hasTelegramBot;
           if (s.modelsEnabled) modelsEnabled = { ...s.modelsEnabled };
           if (s.providersAllowed) providersAllowed = { ...providersAllowed, ...s.providersAllowed };
+          if (s.enabledToolConnectors && Array.isArray(s.enabledToolConnectors)) {
+            enabledToolConnectors = [...s.enabledToolConnectors];
+          }
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('ezbo_enabled_tool_connectors', JSON.stringify(enabledToolConnectors));
+              window.dispatchEvent(new CustomEvent('ezbo:tools-settings-updated'));
+            } catch {}
+          }
         }
       } else {
         saveFeedback = data.error || 'Failed to update settings. Please check your admin secret.';
@@ -1010,7 +1074,11 @@
                   <span class="truncate">{nav.label}</span>
                 </div>
                 <span class="px-2 py-0.5 rounded-md text-[9px] font-bold tracking-tight uppercase shrink-0 {activeAdminTab === nav.id ? 'bg-white/20 text-white' : 'bg-[#F3F8FF] text-[#4B6382] border border-[#E3ECF7] group-hover:text-[#1677FF]'}">
-                  {nav.badge}
+                  {#if nav.id === 'tools'}
+                    {enabledToolConnectors.length}/{TOOL_CONNECTORS.length}
+                  {:else}
+                    {nav.badge}
+                  {/if}
                 </span>
               </button>
             {/each}
@@ -1069,6 +1137,7 @@
                 {#if activeAdminTab === 'overview'}Overview Dashboard
                 {:else if activeAdminTab === 'users'}User Access &amp; Bot Assignment
                 {:else if activeAdminTab === 'plans'}Plans &amp; Pricing Manager
+                {:else if activeAdminTab === 'tools'}Tool Connectors &amp; Integrations
                 {:else if activeAdminTab === 'payment'}OPayBD Payment Gateway
                 {:else if activeAdminTab === 'ai-keys'}AI Engines Vault
                 {:else if activeAdminTab === 'models'}AI Models Roster
@@ -1167,6 +1236,14 @@
                     </button>
                     <button
                       type="button"
+                      onclick={() => activeAdminTab = 'tools'}
+                      class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Icon name="Wrench" size={14} />
+                      <span>Tool Connectors ({enabledToolConnectors.length})</span>
+                    </button>
+                    <button
+                      type="button"
                       onclick={() => activeAdminTab = 'ai-keys'}
                       class="px-5 py-2.5 rounded-xl bg-white text-[#102A56] font-bold text-xs hover:bg-[#F3F8FF] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                     >
@@ -1185,8 +1262,8 @@
                 </div>
               </div>
 
-              <!-- Top KPI Metric Cards (5 Cards) -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <!-- Top KPI Metric Cards (6 Cards) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <!-- User Access & Bots KPI -->
                 <button
                   type="button"
@@ -1227,6 +1304,27 @@
                     ৳{editablePlans.byok.monthlyPrice} / ৳{editablePlans.managed.monthlyPrice}
                   </h3>
                   <p class="text-[11px] text-[#5E7694] mt-1">Click to Edit Price &amp; Details</p>
+                </button>
+
+                <!-- Tool Connectors KPI -->
+                <button
+                  type="button"
+                  onclick={() => activeAdminTab = 'tools'}
+                  class="p-5 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs hover:border-[#1677FF]/45 hover:shadow-md transition-all text-left group cursor-pointer"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] group-hover:scale-105 transition-transform">
+                      <Icon name="Wrench" size={20} />
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#F3F8FF] text-[#1677FF] border border-[#E3ECF7]">
+                      {enabledToolConnectors.length}/{TOOL_CONNECTORS.length} Active
+                    </span>
+                  </div>
+                  <p class="text-xs text-[#4B6382] font-medium">Tool Connectors</p>
+                  <h3 class="text-base font-extrabold text-[#102A56] mt-0.5 truncate">
+                    {enabledToolConnectors.length === TOOL_CONNECTORS.length ? 'All 100 Online' : `${enabledToolConnectors.length} Enabled`}
+                  </h3>
+                  <p class="text-[11px] text-[#5E7694] mt-1">Click to Toggle Tools</p>
                 </button>
 
                 <!-- Payment Gateway KPI -->
@@ -2391,6 +2489,255 @@
                 </div>
 
               </div>
+            </div>
+          {/if}
+
+          <!-- ======================================================== -->
+          <!-- TOOL CONNECTORS & ENTERPRISE INTEGRATIONS TAB -->
+          <!-- ======================================================== -->
+          {#if activeAdminTab === 'tools'}
+            <div class="ui-card-static rounded-3xl p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200">
+              
+              <!-- Header & Summary -->
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-5">
+                <div class="flex items-start gap-3">
+                  <div class="w-11 h-11 rounded-2xl bg-[#1677FF]/10 border border-[#1677FF]/20 flex items-center justify-center text-[#1677FF] shrink-0">
+                    <Icon name="Wrench" size={22} />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1677FF]/10 text-[#1677FF] border border-[#1677FF]/20 uppercase">
+                        Admin Controls
+                      </span>
+                      <h2 class="text-lg sm:text-xl font-black text-[#102A56]">
+                        Enterprise Tool Connectors &amp; Integrations
+                      </h2>
+                    </div>
+                    <p class="text-xs text-[#4B6382] mt-1 max-w-2xl leading-relaxed">
+                      Toggle any of the {TOOL_CONNECTORS.length} enterprise tool connectors ON or OFF. Disabled connectors are immediately hidden from user dashboards, workflow studios, and catalog pickers in real time.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Stats Badges & Save CTA -->
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <div class="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                    <span class="text-[10px] uppercase font-bold text-emerald-700 tracking-wider block">Active</span>
+                    <span class="text-sm font-black text-emerald-800">{enabledToolConnectors.length} Tools</span>
+                  </div>
+                  <div class="px-3.5 py-1.5 rounded-xl {TOOL_CONNECTORS.length - enabledToolConnectors.length > 0 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-gray-50 border border-gray-200 text-gray-500'} text-center">
+                    <span class="text-[10px] uppercase font-bold tracking-wider block">Hidden</span>
+                    <span class="text-sm font-black">{TOOL_CONNECTORS.length - enabledToolConnectors.length} Tools</span>
+                  </div>
+                  <button
+                    type="button"
+                    onclick={saveSettings}
+                    disabled={isSaving}
+                    class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-xs"
+                  >
+                    {#if isSaving}
+                      <Icon name="Loader2" size={14} class="animate-spin" />
+                      <span>Saving...</span>
+                    {:else}
+                      <Icon name="Save" size={14} />
+                      <span>Save Tool Settings</span>
+                    {/if}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Search and Quick Bulk Actions Bar -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <!-- Search Input -->
+                <div class="relative flex-1 max-w-md">
+                  <Icon name="Search" size={16} class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7B92AE]" />
+                  <input
+                    type="text"
+                    bind:value={toolConnectorSearch}
+                    placeholder="Search connectors by name, category, or service..."
+                    class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white border border-[#CFE2FA] focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 text-xs sm:text-sm text-[#102A56] placeholder-[#7B92AE] outline-none transition-all shadow-2xs"
+                  />
+                  {#if toolConnectorSearch}
+                    <button
+                      type="button"
+                      onclick={() => toolConnectorSearch = ''}
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                    >
+                      <Icon name="X" size={14} />
+                    </button>
+                  {/if}
+                </div>
+
+                <!-- Bulk Selection Buttons -->
+                <div class="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onclick={selectAllToolConnectors}
+                    class="px-3.5 py-2 rounded-xl bg-[#F3F8FF] hover:bg-[#E3ECF7] border border-[#CFE2FA] text-xs font-bold text-[#1677FF] flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Icon name="CheckSquare" size={14} />
+                    <span>Enable All ({TOOL_CONNECTORS.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick={clearAllToolConnectors}
+                    class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-bold text-rose-600 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Icon name="Ban" size={14} />
+                    <span>Disable All</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category Filter Chips -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onclick={() => toolConnectorCategoryFilter = 'all'}
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer {toolConnectorCategoryFilter === 'all' ? 'bg-[#1677FF] text-white shadow-xs' : 'bg-[#F3F8FF] text-[#4B6382] hover:bg-[#E3ECF7]'}"
+                >
+                  <span>All Categories</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-full {toolConnectorCategoryFilter === 'all' ? 'bg-white/20 text-white' : 'bg-white border border-[#E3ECF7] text-gray-600'}">
+                    {enabledToolConnectors.length}/{TOOL_CONNECTORS.length}
+                  </span>
+                </button>
+
+                {#each TOOL_CONNECTOR_CATEGORIES as cat}
+                  {@const catTools = TOOL_CONNECTORS.filter((t) => t.categoryId === cat.id)}
+                  {@const enabledInCat = catTools.filter((t) => enabledToolConnectors.includes(t.id)).length}
+                  <button
+                    type="button"
+                    onclick={() => toolConnectorCategoryFilter = cat.id}
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer {toolConnectorCategoryFilter === cat.id ? 'bg-[#1677FF] text-white shadow-xs' : 'bg-[#F3F8FF] text-[#4B6382] hover:bg-[#E3ECF7]'}"
+                  >
+                    <Icon name={cat.icon} size={13} class={toolConnectorCategoryFilter === cat.id ? 'text-white' : 'text-[#5E7694]'} />
+                    <span>{cat.name}</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-full {toolConnectorCategoryFilter === cat.id ? 'bg-white/20 text-white' : 'bg-white border border-[#E3ECF7] text-gray-600'}">
+                      {enabledInCat}/{catTools.length}
+                    </span>
+                  </button>
+                {/each}
+              </div>
+
+              <!-- Category Quick Batch Actions (if specific category selected) -->
+              {#if toolConnectorCategoryFilter !== 'all'}
+                {@const activeCat = TOOL_CONNECTOR_CATEGORIES.find((c: ToolConnectorCategory) => c.id === toolConnectorCategoryFilter)}
+                {@const catTools = TOOL_CONNECTORS.filter((t) => t.categoryId === toolConnectorCategoryFilter)}
+                {@const enabledInCat = catTools.filter((t) => enabledToolConnectors.includes(t.id)).length}
+                <div class="p-3 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div class="flex items-center gap-2">
+                    <Icon name={activeCat?.icon || 'Folder'} size={16} class="text-[#1677FF]" />
+                    <span class="font-bold text-[#102A56]">{activeCat?.name}:</span>
+                    <span class="text-[#4B6382]">{enabledInCat} of {catTools.length} active</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onclick={() => enableCategoryTools(toolConnectorCategoryFilter)}
+                      class="px-3 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[11px] cursor-pointer transition-colors"
+                    >
+                      Enable All in {activeCat?.name}
+                    </button>
+                    <button
+                      type="button"
+                      onclick={() => disableCategoryTools(toolConnectorCategoryFilter)}
+                      class="px-3 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[11px] cursor-pointer transition-colors"
+                    >
+                      Disable All in {activeCat?.name}
+                    </button>
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Connectors Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-2">
+                {#each filteredToolConnectors as tool}
+                  {@const isEnabled = enabledToolConnectors.includes(tool.id)}
+                  <div
+                    class="rounded-2xl p-4 transition-all border {isEnabled ? 'bg-white border-[#CFE2FA] shadow-2xs hover:border-[#1677FF]/50 hover:shadow-xs' : 'bg-gray-50/80 border-gray-200/90 opacity-70 hover:opacity-100'}"
+                  >
+                    <!-- Top row: BrandIcon, Name, and Toggle Switch -->
+                    <div class="flex items-start justify-between gap-3 mb-2.5">
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center shrink-0 p-1.5 shadow-2xs">
+                          <BrandIcon name={tool.name} modelId={tool.id} icon={tool.icon} size={24} />
+                        </div>
+                        <div class="min-w-0">
+                          <h4 class="text-xs sm:text-sm font-bold text-[#102A56] truncate">
+                            {tool.name}
+                          </h4>
+                          <span class="text-[10px] font-semibold text-[#5E7694] block truncate">
+                            {tool.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Toggle Switch Button -->
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isEnabled}
+                        onclick={() => toggleToolConnector(tool.id)}
+                        class="shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none {isEnabled ? 'bg-[#1677FF]' : 'bg-gray-300'}"
+                        title={isEnabled ? 'Click to disable' : 'Click to enable'}
+                      >
+                        <span
+                          class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform {isEnabled ? 'translate-x-6' : 'translate-x-1'}"
+                        ></span>
+                      </button>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="text-[11px] text-[#4B6382] leading-relaxed line-clamp-2 mb-3 min-h-[32px]">
+                      {tool.description}
+                    </p>
+
+                    <!-- Footer: Status Pill & Auth Type -->
+                    <div class="flex items-center justify-between pt-2.5 border-t border-[#E3ECF7]/80 text-[10px]">
+                      <span class="px-2 py-0.5 rounded-md font-bold uppercase tracking-wider {isEnabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-gray-100 text-gray-500 border border-gray-200'}">
+                        {isEnabled ? 'Active' : 'Hidden'}
+                      </span>
+                      <span class="text-[#7B92AE] font-mono">
+                        {tool.authType === 'oauth2' ? 'OAuth 2.0' : tool.authType === 'api_key' ? 'API Key' : 'Webhook'}
+                      </span>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+
+              {#if filteredToolConnectors.length === 0}
+                <div class="p-12 text-center rounded-2xl bg-gray-50 border border-dashed border-gray-200">
+                  <Icon name="Search" size={32} class="mx-auto text-gray-400 mb-2" />
+                  <p class="text-sm font-bold text-[#102A56]">No tool connectors matched your search</p>
+                  <p class="text-xs text-[#5E7694] mt-1">Try clearing your search query or choosing another category.</p>
+                </div>
+              {/if}
+
+              <!-- Bottom Sticky/Action Banner -->
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+                <div class="flex items-center gap-2 text-xs text-[#102A56]">
+                  <Icon name="CheckCircle2" size={16} class="text-[#1677FF] shrink-0" />
+                  <span>
+                    Currently <strong>{enabledToolConnectors.length} of {TOOL_CONNECTORS.length}</strong> connectors are active.
+                    Click <strong>"Save Tool Settings"</strong> to persist changes.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onclick={saveSettings}
+                  disabled={isSaving}
+                  class="w-full sm:w-auto px-6 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  {#if isSaving}
+                    <Icon name="Loader2" size={14} class="animate-spin" />
+                    <span>Saving Changes...</span>
+                  {:else}
+                    <Icon name="Save" size={14} />
+                    <span>Save Tool Settings</span>
+                  {/if}
+                </button>
+              </div>
+
             </div>
           {/if}
 

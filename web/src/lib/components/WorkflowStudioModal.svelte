@@ -3,6 +3,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import BrandIcon from '$lib/components/BrandIcon.svelte';
   import { TOOL_CONNECTORS, type ToolConnector } from '$lib/config/toolConnectors';
+  import { enabledToolConnectorsStore } from '$lib/stores/plansStore';
   import {
     apiKey,
     subscription,
@@ -95,6 +96,10 @@
     isCloudManaged ||
     $apiVault.some((k) => k.isEnabled !== false && !!k.encryptedKey) ||
     (!!$apiKey && $apiKey.trim().length > 5)
+  );
+
+  const enabledConnectors = $derived(
+    TOOL_CONNECTORS.filter((t) => $enabledToolConnectorsStore.includes(t.id))
   );
 
   const DEFAULT_NODES: WorkflowNode[] = [
@@ -1464,8 +1469,8 @@
                   onchange={(e) => changeSelectedTool((e.target as HTMLSelectElement).value)}
                   class="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs text-[#102A56] outline-none focus:border-[#1677FF] bg-white cursor-pointer"
                 >
-                  <option value="">-- Choose from 100+ Connectors --</option>
-                  {#each TOOL_CONNECTORS as tool}
+                  <option value="">-- Choose Connector --</option>
+                  {#each enabledConnectors as tool}
                     <option value={tool.id}>{tool.name} ({tool.category})</option>
                   {/each}
                 </select>
@@ -1668,13 +1673,13 @@
           <input
             type="text"
             bind:value={paletteSearch}
-            placeholder="Search 100+ tools to add as node..."
+            placeholder="Search tools to add as node..."
             class="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs text-[#102A56] outline-none focus:border-[#1677FF]"
           />
 
-          <!-- 100+ Tools List with Official Brand Icons -->
+          <!-- Tools List with Official Brand Icons -->
           <div class="flex-1 overflow-y-auto space-y-2 pr-1">
-            {#each TOOL_CONNECTORS.filter((t) => !paletteSearch || t.name.toLowerCase().includes(paletteSearch.toLowerCase()) || t.category.toLowerCase().includes(paletteSearch.toLowerCase())) as tool}
+            {#each enabledConnectors.filter((t) => !paletteSearch || t.name.toLowerCase().includes(paletteSearch.toLowerCase()) || t.category.toLowerCase().includes(paletteSearch.toLowerCase())) as tool}
               <button
                 type="button"
                 onclick={() => addNodeFromPalette(tool)}

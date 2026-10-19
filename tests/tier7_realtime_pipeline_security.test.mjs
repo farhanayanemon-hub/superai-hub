@@ -46,7 +46,9 @@ const PATHS = {
   // Critical Invariants
   robotsCss: path.join(WEB_DIR, 'src', 'lib', 'components', 'robots', 'robots.css'),
   runAllTests: path.join(ROOT_DIR, 'tests', 'run_all_tests.mjs'),
-  dashboardPage: path.join(WEB_DIR, 'src', 'routes', 'dashboard', '+page.svelte')
+  dashboardPage: path.join(WEB_DIR, 'src', 'routes', 'dashboard', '+page.svelte'),
+  toolConnectorsTab: path.join(WEB_DIR, 'src', 'lib', 'components', 'ToolConnectorsTab.svelte'),
+  toolConnectorsApi: path.join(WEB_DIR, 'src', 'routes', 'api', 'tool-connectors', '+server.ts')
 };
 
 describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', () => {
@@ -649,6 +651,41 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
         content.includes('ApiKeyManager'),
         'Dashboard must render ApiKeyManager when api-keys tab is active'
       );
+    });
+
+    it('9.4 Admin Panel provides Tool Connectors toggle system and persistence', () => {
+      const content = readSafe(PATHS.adminPage);
+      assert.ok(content.includes("activeAdminTab === 'tools'"), 'Admin page must have tools tab panel');
+      assert.ok(content.includes('enabledToolConnectors'), 'Admin page must manage enabledToolConnectors');
+      assert.ok(content.includes('toggleToolConnector'), 'Admin page must provide toggleToolConnector');
+      assert.ok(content.includes('selectAllToolConnectors'), 'Admin page must provide selectAllToolConnectors');
+      assert.ok(content.includes('clearAllToolConnectors'), 'Admin page must provide clearAllToolConnectors');
+
+      const serverSettings = readSafe(PATHS.adminSettings);
+      assert.ok(serverSettings.includes('DEFAULT_TOOL_CONNECTOR_IDS'), 'adminSettings.ts must export DEFAULT_TOOL_CONNECTOR_IDS');
+      assert.ok(serverSettings.includes('enabledToolConnectors?: string[]'), 'AdminConfig must declare enabledToolConnectors');
+
+      const apiSettings = readSafe(PATHS.adminSettingsApi);
+      assert.ok(apiSettings.includes('patch.enabledToolConnectors'), 'admin/settings API must accept patch.enabledToolConnectors');
+    });
+
+    it('9.5 "100+" count text is removed from Tools & Integrations navigation and headers', () => {
+      const dashboard = readSafe(PATHS.dashboardPage);
+      assert.ok(!dashboard.includes('>100+<'), 'Dashboard must not have hardcoded 100+ badge in navigation');
+
+      const toolsTab = readSafe(PATHS.toolConnectorsTab);
+      assert.ok(!toolsTab.includes('100+ Connectors'), 'Tools tab header must not have 100+ Connectors text');
+      assert.ok(!toolsTab.includes('Search 100+ connectors'), 'Search input must not have Search 100+ text');
+    });
+
+    it('9.6 User Dashboard and WorkflowStudio filter tools against enabled connectors', () => {
+      const toolsTab = readSafe(PATHS.toolConnectorsTab);
+      assert.ok(toolsTab.includes('enabledToolConnectorsStore'), 'ToolConnectorsTab must subscribe to enabledToolConnectorsStore');
+      assert.ok(toolsTab.includes('enabledTools'), 'ToolConnectorsTab must derive enabledTools');
+
+      const studio = readSafe(PATHS.workflowStudio);
+      assert.ok(studio.includes('enabledToolConnectorsStore'), 'WorkflowStudio must subscribe to enabledToolConnectorsStore');
+      assert.ok(studio.includes('enabledConnectors'), 'WorkflowStudio must derive enabledConnectors');
     });
   });
 });
