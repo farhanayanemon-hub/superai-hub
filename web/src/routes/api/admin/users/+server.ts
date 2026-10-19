@@ -3,29 +3,16 @@ import {
   getAdminConfig,
   upsertUserGrant,
   deleteUserGrant,
-  recordRegisteredUser
+  recordRegisteredUser,
+  verifyAdminPassphrase
 } from '$lib/server/adminSettings';
-
-function verifyAdminSecret(adminSecret?: string): boolean {
-  const currentConfig = getAdminConfig();
-  const expectedSecret = currentConfig.adminPassphrase || 'ezbo-admin-2026';
-  const incomingSecret = (adminSecret || '').trim();
-
-  return (
-    incomingSecret.length > 0 &&
-    (incomingSecret === expectedSecret.trim() ||
-      incomingSecret === 'ezbo-admin-2026' ||
-      incomingSecret === 'ezboadmin2026' ||
-      incomingSecret === (process.env.ADMIN_SECRET || '').trim())
-  );
-}
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json();
     const { adminSecret, action, email, name, isSubscribed, tier, interval, unlockedStoreBots, note, localUsers } = body;
 
-    if (!verifyAdminSecret(adminSecret)) {
+    if (!verifyAdminPassphrase(adminSecret)) {
       return json({ success: false, error: 'Unauthorized: Invalid Admin Secret Passphrase' }, { status: 401 });
     }
 

@@ -77,7 +77,7 @@
   let grantEmail = $state('');
   let grantName = $state('');
   let grantIsSubscribed = $state(true);
-  let grantTier = $state<'byok' | 'managed'>('managed');
+  let grantTier = $state<'byok_starter' | 'byok_pro' | 'managed' | 'byok'>('byok_pro');
   let grantInterval = $state<'monthly' | 'yearly'>('yearly');
   let grantSelectedBots = $state<string[]>(STORE_BOTS.map((b) => b.id));
   let grantNote = $state('');
@@ -372,20 +372,33 @@
     if (existingGrant) {
       grantName = existingGrant.name || existingReg?.name || fallbackName || '';
       grantIsSubscribed = existingGrant.isSubscribed;
-      grantTier = existingGrant.tier === 'managed' ? 'managed' : 'byok';
+      if (existingGrant.tier === 'managed') {
+        grantTier = 'managed';
+      } else if (existingGrant.tier === 'byok_starter') {
+        grantTier = 'byok_starter';
+      } else {
+        grantTier = 'byok_pro';
+      }
       grantInterval = existingGrant.interval === 'yearly' ? 'yearly' : 'monthly';
       grantSelectedBots = [...(existingGrant.unlockedStoreBots || [])];
       grantNote = existingGrant.note || '';
     } else if (existingReg) {
       grantName = existingReg.name || fallbackName || '';
       grantIsSubscribed = existingReg.isSubscribed ?? true;
-      grantTier = existingReg.tier === 'managed' ? 'managed' : 'byok';
+      if (existingReg.tier === 'managed') {
+        grantTier = 'managed';
+      } else if (existingReg.tier === 'byok_starter') {
+        grantTier = 'byok_starter';
+      } else {
+        grantTier = 'byok_pro';
+      }
       grantInterval = 'yearly';
       grantSelectedBots = [...(existingReg.unlockedStoreBots || [])];
       grantNote = '';
     } else {
       grantName = fallbackName || '';
       grantIsSubscribed = true;
+      grantTier = 'byok_pro';
     }
   }
 
@@ -1538,41 +1551,59 @@
                     </div>
 
                     <!-- Plan Tier Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <!-- BYOK Tier -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <!-- Starter Plan (byok_starter) -->
                       <button
                         type="button"
-                        onclick={() => { grantTier = 'byok'; grantIsSubscribed = true; }}
-                        class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer {grantTier === 'byok' && grantIsSubscribed ? 'border-[#1677FF] bg-[#F3F8FF] shadow-2xs' : 'border-[#E3ECF7] bg-white hover:border-[#C8D8EC]'}"
+                        onclick={() => { grantTier = 'byok_starter'; grantIsSubscribed = true; }}
+                        class="p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer {grantTier === 'byok_starter' && grantIsSubscribed ? 'border-[#1677FF] bg-[#F3F8FF] shadow-2xs' : 'border-[#E3ECF7] bg-white hover:border-[#C8D8EC]'}"
                       >
                         <div class="flex items-center justify-between mb-1.5">
                           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F3F8FF] text-[#102A56] border border-[#E3ECF7]">
-                            {editablePlans.byok.badge}
+                            {editablePlans.byok_starter?.badge || 'STARTER'}
                           </span>
-                          {#if grantTier === 'byok' && grantIsSubscribed}
+                          {#if grantTier === 'byok_starter' && grantIsSubscribed}
                             <Icon name="CheckCircle2" size={16} class="text-[#1677FF]" />
                           {/if}
                         </div>
-                        <h5 class="text-sm font-extrabold text-[#102A56]">{editablePlans.byok.name}</h5>
-                        <p class="text-[11px] text-[#4B6382] mt-0.5">BDT {editablePlans.byok.monthlyPrice}/mo • Multi-Engine BYOK</p>
+                        <h5 class="text-xs sm:text-sm font-extrabold text-[#102A56]">{editablePlans.byok_starter?.name || 'Starter Plan'}</h5>
+                        <p class="text-[10px] text-[#4B6382] mt-0.5">BDT {editablePlans.byok_starter?.monthlyPrice || 499}/mo • Single Key BYOK</p>
+                      </button>
+
+                      <!-- Pro Plan (byok_pro) -->
+                      <button
+                        type="button"
+                        onclick={() => { grantTier = 'byok_pro'; grantIsSubscribed = true; }}
+                        class="p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer {(grantTier === 'byok_pro' || grantTier === 'byok') && grantIsSubscribed ? 'border-[#1677FF] bg-[#F3F8FF] shadow-2xs' : 'border-[#E3ECF7] bg-white hover:border-[#C8D8EC]'}"
+                      >
+                        <div class="flex items-center justify-between mb-1.5">
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1677FF]/10 text-[#1677FF] border border-[#1677FF]/20">
+                            {editablePlans.byok_pro?.badge || 'PRO'}
+                          </span>
+                          {#if (grantTier === 'byok_pro' || grantTier === 'byok') && grantIsSubscribed}
+                            <Icon name="CheckCircle2" size={16} class="text-[#1677FF]" />
+                          {/if}
+                        </div>
+                        <h5 class="text-xs sm:text-sm font-extrabold text-[#102A56]">{editablePlans.byok_pro?.name || 'Pro Plan'}</h5>
+                        <p class="text-[10px] text-[#4B6382] mt-0.5">BDT {editablePlans.byok_pro?.monthlyPrice || 899}/mo • Multi-Key & Failover</p>
                       </button>
 
                       <!-- Managed All-Inclusive Tier -->
                       <button
                         type="button"
                         onclick={() => { grantTier = 'managed'; grantIsSubscribed = true; }}
-                        class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer {grantTier === 'managed' && grantIsSubscribed ? 'border-[#1677FF] bg-[#F3F8FF] shadow-2xs' : 'border-[#E3ECF7] bg-white hover:border-[#C8D8EC]'}"
+                        class="p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer {grantTier === 'managed' && grantIsSubscribed ? 'border-[#1677FF] bg-[#F3F8FF] shadow-2xs' : 'border-[#E3ECF7] bg-white hover:border-[#C8D8EC]'}"
                       >
                         <div class="flex items-center justify-between mb-1.5">
-                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1677FF]/10 text-[#1677FF] border border-[#1677FF]/20">
-                            {editablePlans.managed.badge}
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#38CFFF]/20 text-[#102A56] border border-[#38CFFF]/30">
+                            {editablePlans.managed?.badge || 'MANAGED'}
                           </span>
                           {#if grantTier === 'managed' && grantIsSubscribed}
                             <Icon name="CheckCircle2" size={16} class="text-[#1677FF]" />
                           {/if}
                         </div>
-                        <h5 class="text-sm font-extrabold text-[#102A56]">{editablePlans.managed.name}</h5>
-                        <p class="text-[11px] text-[#4B6382] mt-0.5">BDT {editablePlans.managed.monthlyPrice}/mo • Zero API Keys Needed</p>
+                        <h5 class="text-xs sm:text-sm font-extrabold text-[#102A56]">{editablePlans.managed?.name || 'Cloud Managed'}</h5>
+                        <p class="text-[10px] text-[#4B6382] mt-0.5">BDT {editablePlans.managed?.monthlyPrice || 1499}/mo • Zero API Keys</p>
                       </button>
                     </div>
 

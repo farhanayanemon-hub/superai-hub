@@ -74,8 +74,11 @@ export const POST: RequestHandler = async ({ request, url }) => {
     formParams.set('cus_name', customerName.trim() || 'Valued Customer');
     formParams.set('cus_email', customerEmail.trim() || 'customer@ezboagents.com');
     formParams.set('amount', String(amount));
+    const webhookUrl = `${origin}/api/payment/webhook`;
     formParams.set('success_url', successUrl);
     formParams.set('cancel_url', cancelUrl);
+    formParams.set('webhook_url', webhookUrl);
+    formParams.set('ipn_url', webhookUrl);
     formParams.set('meta_data', JSON.stringify({
       type,
       plan,

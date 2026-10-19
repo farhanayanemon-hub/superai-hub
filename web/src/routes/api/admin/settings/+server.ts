@@ -1,5 +1,11 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { getAdminConfig, updateAdminConfig, getMaskedAdminConfig, type AdminConfig } from '$lib/server/adminSettings';
+import {
+  getAdminConfig,
+  updateAdminConfig,
+  getMaskedAdminConfig,
+  verifyAdminPassphrase,
+  type AdminConfig
+} from '$lib/server/adminSettings';
 
 export const GET: RequestHandler = async () => {
   try {
@@ -18,18 +24,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();
     const { adminSecret, patch } = body;
 
-    const currentConfig = getAdminConfig();
-    const expectedSecret = currentConfig.adminPassphrase || 'ezbo-admin-2026';
-    const incomingSecret = (adminSecret || '').trim();
-
-    const isAuthorized =
-      incomingSecret.length > 0 &&
-      (incomingSecret === expectedSecret.trim() ||
-       incomingSecret === 'ezbo-admin-2026' ||
-       incomingSecret === 'ezboadmin2026' ||
-       incomingSecret === (process.env.ADMIN_SECRET || '').trim());
-
-    if (!isAuthorized) {
+    if (!verifyAdminPassphrase(adminSecret)) {
       return json({ success: false, error: 'Unauthorized: Invalid Admin Secret Passphrase' }, { status: 401 });
     }
 
@@ -62,7 +57,8 @@ export const POST: RequestHandler = async ({ request }) => {
       'smtpPass',
       'smtpFrom',
       'telegramBotToken',
-      'telegramBotUsername'
+      'telegramBotUsername',
+      'telegramWebhookSecret'
     ];
 
     for (const key of stringKeys) {

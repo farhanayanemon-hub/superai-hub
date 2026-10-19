@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { getAdminConfig } from '$lib/server/adminSettings';
+import { getAdminConfig, verifyAdminPassphrase } from '$lib/server/adminSettings';
 import {
   setTelegramWebhook,
   getTelegramMe,
@@ -11,21 +11,11 @@ export const POST: RequestHandler = async ({ request, url }) => {
     const body = await request.json();
     const { adminSecret, action, webhookUrl } = body;
 
-    const currentConfig = getAdminConfig();
-    const expectedSecret = currentConfig.adminPassphrase || 'ezbo-admin-2026';
-    const incomingSecret = (adminSecret || '').trim();
-
-    const isAuthorized =
-      incomingSecret.length > 0 &&
-      (incomingSecret === expectedSecret.trim() ||
-       incomingSecret === 'ezbo-admin-2026' ||
-       incomingSecret === 'ezboadmin2026' ||
-       incomingSecret === (process.env.ADMIN_SECRET || '').trim());
-
-    if (!isAuthorized) {
+    if (!verifyAdminPassphrase(adminSecret)) {
       return json({ success: false, error: 'Unauthorized: Invalid Admin Secret Passphrase' }, { status: 401 });
     }
 
+    const currentConfig = getAdminConfig();
     const token = currentConfig.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN || '';
     if (!token) {
       return json({
@@ -56,7 +46,8 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
     // Default: 'set' webhook
     const targetUrl = webhookUrl || `${url.origin || 'https://ezboagents.com'}/api/telegram/webhook`;
-    const setRes = await setTelegramWebhook(token, targetUrl);
+    const secretToken = currentConfig.telegramWebhookSecret || process.env.TELEGRAM_WEBHOOK_SECRET || undefined;
+    const setRes = await setTelegramWebhook(token, targetUrl, secretToken);
 
     if (setRes.ok) {
       return json({

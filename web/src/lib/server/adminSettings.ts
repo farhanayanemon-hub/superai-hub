@@ -62,6 +62,7 @@ export interface AdminConfig {
   smtpSecure?: boolean;
   telegramBotToken?: string;
   telegramBotUsername?: string;
+  telegramWebhookSecret?: string;
   channelsCeoEnabled: boolean;
   plans?: PlansSettings;
   userGrants?: Record<string, UserAccessGrant>;
@@ -117,6 +118,7 @@ function loadConfigFromStorage(): AdminConfig {
     smtpSecure: process.env.SMTP_SECURE === 'true',
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
     telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'EzboAgentsBot',
+    telegramWebhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET || '',
     channelsCeoEnabled: true,
     providersAllowed: { ...DEFAULT_PROVIDERS_ALLOWED },
     plans: DEFAULT_PLANS,
@@ -236,6 +238,7 @@ function loadConfigFromStorage(): AdminConfig {
         smtpSecure: saved.smtpSecure ?? envConfig.smtpSecure,
         telegramBotToken: saved.telegramBotToken ?? envConfig.telegramBotToken,
         telegramBotUsername: saved.telegramBotUsername ?? envConfig.telegramBotUsername,
+        telegramWebhookSecret: saved.telegramWebhookSecret ?? envConfig.telegramWebhookSecret,
         channelsCeoEnabled: saved.channelsCeoEnabled ?? true,
         plans: mergedPlans,
         userGrants: migratedGrants,
@@ -498,9 +501,36 @@ export function getMaskedAdminConfig(includeUsers = false) {
     telegramBotToken: maskKey(config.telegramBotToken),
     telegramBotUsername: config.telegramBotUsername || 'EzboAgentsBot',
     hasTelegramBot: !!config.telegramBotToken,
+    telegramWebhookSecret: maskKey(config.telegramWebhookSecret),
+    hasTelegramWebhookSecret: !!config.telegramWebhookSecret,
     channelsCeoEnabled: config.channelsCeoEnabled !== false,
     plans: config.plans || DEFAULT_PLANS,
     userGrants: includeUsers ? (config.userGrants || {}) : {},
     registeredUsers: includeUsers ? (config.registeredUsers || {}) : {}
   };
+}
+
+/**
+ * Validates the provided secret against the configured admin passphrase or ADMIN_SECRET env var.
+ * If a custom admin passphrase has been explicitly set, default hardcoded passphrases are disabled.
+ */
+export function verifyAdminPassphrase(secret?: string): boolean {
+  const currentConfig = getAdminConfig();
+  const configuredSecret = (currentConfig.adminPassphrase || process.env.ADMIN_SECRET || '').trim();
+  const incomingSecret = (secret || '').trim();
+
+  if (!incomingSecret) return false;
+
+  const isDefaultConfig = !configuredSecret || configuredSecret === 'ezbo-admin-2026' || configuredSecret === 'ezboadmin2026';
+
+  if (!isDefaultConfig) {
+    return incomingSecret === configuredSecret || incomingSecret === (process.env.ADMIN_SECRET || '').trim();
+  }
+
+  return (
+    incomingSecret === configuredSecret ||
+    incomingSecret === 'ezbo-admin-2026' ||
+    incomingSecret === 'ezboadmin2026' ||
+    incomingSecret === (process.env.ADMIN_SECRET || '').trim()
+  );
 }

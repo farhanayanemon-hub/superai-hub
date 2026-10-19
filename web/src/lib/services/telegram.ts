@@ -99,7 +99,8 @@ export async function sendTelegramChatAction(
 
 export async function setTelegramWebhook(
   token: string,
-  webhookUrl: string
+  webhookUrl: string,
+  secretToken?: string
 ): Promise<{ ok: boolean; description?: string }> {
   if (!token) {
     return { ok: false, description: 'Telegram bot token is missing.' };
@@ -107,14 +108,19 @@ export async function setTelegramWebhook(
 
   try {
     const url = `${TELEGRAM_API_BASE}/bot${token}/setWebhook`;
+    const payload: Record<string, any> = {
+      url: webhookUrl,
+      drop_pending_updates: true,
+      allowed_updates: ['message', 'callback_query']
+    };
+    if (secretToken && secretToken.trim()) {
+      payload.secret_token = secretToken.trim();
+    }
+
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: webhookUrl,
-        drop_pending_updates: true,
-        allowed_updates: ['message', 'callback_query']
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();

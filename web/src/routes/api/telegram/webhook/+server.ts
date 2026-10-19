@@ -22,6 +22,15 @@ import {
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const config = getAdminConfig();
+    const expectedSecretToken = (process.env.TELEGRAM_WEBHOOK_SECRET || config.telegramWebhookSecret || '').trim();
+    if (expectedSecretToken) {
+      const incomingSecretToken = request.headers.get('x-telegram-bot-api-secret-token');
+      if (incomingSecretToken !== expectedSecretToken) {
+        console.warn('Telegram Webhook: Invalid or missing secret token header.');
+        return json({ ok: false, error: 'Unauthorized: Invalid secret token' }, { status: 401 });
+      }
+    }
+
     const botToken = config.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN || '';
 
     if (!botToken) {
