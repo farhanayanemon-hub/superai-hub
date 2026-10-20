@@ -60,4 +60,15 @@ describe('Plan-Based Agent & Tool Filtering Suite', () => {
     assert.ok(content.includes('allHelpersEnabled: boolean;'), 'PlanFeatureToggles must define allHelpersEnabled');
     assert.ok(content.includes('enabledHelpers: string[];'), 'PlanFeatureToggles must define enabledHelpers');
   });
+
+  it('1.7 dashboard closes drawer if active tool disabled and draggableScroll is enhanced', () => {
+    const dashContent = readSafe(dashboardPath);
+    assert.ok(dashContent.includes('closeToolDrawer()'), 'Dashboard must auto-close drawer for disabled tools');
+    const adminPath = path.join(WEB_DIR, 'src', 'routes', 'admin', '+page.svelte');
+    const adminContent = readSafe(adminPath);
+    assert.ok(adminContent.includes('use:draggableScroll'), 'Admin helper chips must use draggableScroll');
+    const docsPath = path.join(WEB_DIR, 'src', 'routes', 'docs', 'channels', '+page.svelte');
+    const docsContent = readSafe(docsPath);
+    assert.ok(docsContent.includes('use:draggableScroll'), 'Docs channel tabs must use draggableScroll');
+  });
 });

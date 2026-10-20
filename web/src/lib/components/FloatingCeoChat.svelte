@@ -311,7 +311,7 @@
   const accessibleTools = $derived.by(() => {
     const isUserAdmin = typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true';
     if (isUserAdmin) return TOOLS;
-    const tier = $subscription?.tier || 'byok_starter';
+    const tier = $subscription?.tier || $currentUser?.tier || 'byok_starter';
     const effective = getEffectivePlanTier(tier);
     const planKey = effective === 'free' ? 'byok_starter' : effective;
     const plan =
@@ -408,8 +408,9 @@
 
   // Selecting a helper inserts visual mention chip: [⚡ #01 Facebook Ad Copy]
   function selectHelper(helper: AITool) {
-    const isUnlocked = isHelperUnlocked(helper.id, $subscription?.tier, $plansStore);
-    if (!isUnlocked) {
+    const isUserAdmin = typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true';
+    const isUnlocked = isHelperUnlocked(helper.id, $subscription?.tier || $currentUser?.tier || 'byok_starter', $plansStore);
+    if (!isUserAdmin && !isUnlocked) {
       isSlashOpen = false;
       activeDashboardTab.set('billing');
       return;

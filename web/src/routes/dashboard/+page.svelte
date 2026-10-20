@@ -37,6 +37,7 @@
     reactivateSubscription,
     switchPlan,
     syncUserAccessWithServer,
+    activeTool,
     closeToolDrawer,
     apiVault,
     ceoCustomPrompt,
@@ -373,7 +374,7 @@
   // Accessible AI helpers for current user based on plan feature toggles & admin status
   const accessibleTools = $derived.by(() => {
     if (isAdmin) return TOOLS;
-    const tier = $subscription?.tier || 'byok_starter';
+    const tier = $subscription?.tier || $currentUser?.tier || 'byok_starter';
     const effective = getEffectivePlanTier(tier);
     const planKey = effective === 'free' ? 'byok_starter' : effective;
     const plan =
@@ -386,6 +387,13 @@
     }
     const enabledList = toggles.enabledHelpers || [];
     return TOOLS.filter((t) => enabledList.includes(t.id));
+  });
+
+  // Automatically close active tool drawer if tool was turned off for user's plan
+  $effect(() => {
+    if (!isAdmin && $activeTool && !accessibleTools.some((t) => t.id === $activeTool.id)) {
+      closeToolDrawer();
+    }
   });
 
   // Dynamic category counts reflecting accessible tools

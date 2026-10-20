@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import BrandIcon from '$lib/components/BrandIcon.svelte';
+  import { draggableScroll } from '$lib/utils/draggableScroll';
 
   let copiedField = $state<string | null>(null);
   let activeChannel = $state<'whatsapp' | 'messenger' | 'instagram' | 'telegram'>('whatsapp');
@@ -141,7 +142,7 @@
 
   <!-- Channel Navigation Tabs -->
   <section class="max-w-7xl mx-auto px-4 sm:px-8 py-3">
-    <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+    <div use:draggableScroll class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar cursor-grab active:cursor-grabbing select-none">
       {#each CHANNELS as ch}
         <button
           type="button"

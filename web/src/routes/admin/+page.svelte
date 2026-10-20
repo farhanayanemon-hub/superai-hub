@@ -13,6 +13,7 @@
     type ServerUserGrant
   } from '$lib/stores/userStore';
   import { plansStore, normalizePlans, workflowCustomizationUserStore } from '$lib/stores/plansStore';
+  import { draggableScroll } from '$lib/utils/draggableScroll';
 
   type AdminTab = 'overview' | 'users' | 'plans' | 'tools' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
 
@@ -639,11 +640,16 @@
         commercialImages: true,
         customPrompts: true,
         prioritySupport: planId !== 'byok_starter',
-        allHelpersEnabled: true,
-        enabledHelpers: []
+        allHelpersEnabled: false,
+        enabledHelpers: ALL_TOOLS.map((t) => t.id)
       };
     }
-    const currentList = plan.featureToggles.enabledHelpers || [];
+    let currentList = plan.featureToggles.enabledHelpers;
+    // If all helpers were active or list was empty, initialize with all tools first
+    if (plan.featureToggles.allHelpersEnabled !== false || !currentList || currentList.length === 0) {
+      currentList = ALL_TOOLS.map((t) => t.id);
+    }
+    plan.featureToggles.allHelpersEnabled = false;
     if (currentList.includes(helperId)) {
       plan.featureToggles.enabledHelpers = currentList.filter((id) => id !== helperId);
     } else {
@@ -2437,7 +2443,14 @@
                       <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] cursor-pointer shrink-0">
                         <input
                           type="checkbox"
-                          bind:checked={editablePlans[activePlanTab].featureToggles.allHelpersEnabled}
+                          checked={editablePlans[activePlanTab].featureToggles.allHelpersEnabled}
+                          onchange={(e) => {
+                            const checked = e.currentTarget.checked;
+                            editablePlans[activePlanTab].featureToggles.allHelpersEnabled = checked;
+                            if (!checked && (!editablePlans[activePlanTab].featureToggles.enabledHelpers || editablePlans[activePlanTab].featureToggles.enabledHelpers.length === 0)) {
+                              editablePlans[activePlanTab].featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id);
+                            }
+                          }}
                           class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
                         />
                         <span class="text-xs font-extrabold text-[#102A56]">All {ALL_TOOLS.length} Helpers Enabled</span>
@@ -2476,7 +2489,7 @@
                         </div>
 
                         <!-- Category Filter Chips -->
-                        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                        <div use:draggableScroll class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar cursor-grab active:cursor-grabbing select-none">
                           <button
                             type="button"
                             onclick={() => helperCategoryFilter = 'all'}
