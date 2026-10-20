@@ -99,6 +99,8 @@
   let previewBillingInterval = $state<'monthly' | 'yearly'>('monthly');
   let helperSearch = $state('');
   let helperCategoryFilter = $state('all');
+  let planToolSearch = $state('');
+  let planToolCategoryFilter = $state('all');
 
   // Form state - Tool Connectors (100 Enterprise Connectors)
   let enabledToolConnectors = $state<string[]>(TOOL_CONNECTORS.map((t) => t.id));
@@ -325,7 +327,7 @@
           };
         }
         if (s.plans) {
-          editablePlans = JSON.parse(JSON.stringify(s.plans));
+          editablePlans = JSON.parse(JSON.stringify(normalizePlans(s.plans)));
         }
         if (s.userGrants) {
           userGrantsMap = s.userGrants;
@@ -641,15 +643,23 @@
         customPrompts: true,
         prioritySupport: planId !== 'byok_starter',
         allHelpersEnabled: false,
-        enabledHelpers: ALL_TOOLS.map((t) => t.id)
+        enabledHelpers: [helperId],
+        allToolsEnabled: true,
+        enabledTools: []
       };
+      return;
     }
-    let currentList = plan.featureToggles.enabledHelpers;
-    // If all helpers were active or list was empty, initialize with all tools first
-    if (plan.featureToggles.allHelpersEnabled !== false || !currentList || currentList.length === 0) {
-      currentList = ALL_TOOLS.map((t) => t.id);
+    if (!Array.isArray(plan.featureToggles.enabledHelpers)) {
+      plan.featureToggles.enabledHelpers = [];
+    }
+    // If all helpers were active, transition to explicit list excluding this one
+    if (plan.featureToggles.allHelpersEnabled !== false) {
+      plan.featureToggles.allHelpersEnabled = false;
+      plan.featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id).filter((id) => id !== helperId);
+      return;
     }
     plan.featureToggles.allHelpersEnabled = false;
+    const currentList = plan.featureToggles.enabledHelpers;
     if (currentList.includes(helperId)) {
       plan.featureToggles.enabledHelpers = currentList.filter((id) => id !== helperId);
     } else {
@@ -689,7 +699,61 @@
     return list;
   });
 
+  function toggleToolForPlan(planId: PlanTierId, toolId: string) {
+    const plan = editablePlans[planId];
+    if (!plan.featureToggles) return;
+    if (!Array.isArray(plan.featureToggles.enabledTools)) {
+      plan.featureToggles.enabledTools = [];
+    }
+    // If all tools were active, transition to explicit list excluding this one
+    if (plan.featureToggles.allToolsEnabled !== false) {
+      plan.featureToggles.allToolsEnabled = false;
+      plan.featureToggles.enabledTools = TOOL_CONNECTORS.map((t) => t.id).filter((id) => id !== toolId);
+      return;
+    }
+    plan.featureToggles.allToolsEnabled = false;
+    const currentList = plan.featureToggles.enabledTools;
+    if (currentList.includes(toolId)) {
+      plan.featureToggles.enabledTools = currentList.filter((id) => id !== toolId);
+    } else {
+      plan.featureToggles.enabledTools = [...currentList, toolId];
+    }
+  }
+
+  function selectAllToolsForPlan(planId: PlanTierId) {
+    const plan = editablePlans[planId];
+    if (!plan.featureToggles) return;
+    plan.featureToggles.allToolsEnabled = false;
+    plan.featureToggles.enabledTools = TOOL_CONNECTORS.map((t) => t.id);
+  }
+
+  function clearAllToolsForPlan(planId: PlanTierId) {
+    const plan = editablePlans[planId];
+    if (!plan.featureToggles) return;
+    plan.featureToggles.allToolsEnabled = false;
+    plan.featureToggles.enabledTools = [];
+  }
+
+  const filteredPlanTools = $derived.by(() => {
+    let list = TOOL_CONNECTORS;
+    if (planToolCategoryFilter !== 'all') {
+      list = list.filter((t) => t.categoryId === planToolCategoryFilter);
+    }
+    if (planToolSearch.trim()) {
+      const q = planToolSearch.trim().toLowerCase();
+      list = list.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q) ||
+          t.id.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  });
+
   function toggleToolConnector(id: string) {
+    toggleToolForPlan(activePlanTab, id);
     if (enabledToolConnectors.includes(id)) {
       enabledToolConnectors = enabledToolConnectors.filter((t) => t !== id);
     } else {
@@ -698,10 +762,12 @@
   }
 
   function selectAllToolConnectors() {
+    selectAllToolsForPlan(activePlanTab);
     enabledToolConnectors = TOOL_CONNECTORS.map((t) => t.id);
   }
 
   function clearAllToolConnectors() {
+    clearAllToolsForPlan(activePlanTab);
     enabledToolConnectors = [];
   }
 
@@ -829,7 +895,7 @@
             enabledToolConnectors = [...s.enabledToolConnectors];
           }
           if (s.plans) {
-            editablePlans = JSON.parse(JSON.stringify(s.plans));
+            editablePlans = JSON.parse(JSON.stringify(normalizePlans(s.plans)));
           }
           if (typeof window !== 'undefined') {
             try {
@@ -2447,7 +2513,7 @@
                           onchange={(e) => {
                             const checked = e.currentTarget.checked;
                             editablePlans[activePlanTab].featureToggles.allHelpersEnabled = checked;
-                            if (!checked && (!editablePlans[activePlanTab].featureToggles.enabledHelpers || editablePlans[activePlanTab].featureToggles.enabledHelpers.length === 0)) {
+                            if (!checked && !Array.isArray(editablePlans[activePlanTab].featureToggles.enabledHelpers)) {
                               editablePlans[activePlanTab].featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id);
                             }
                           }}
@@ -2541,10 +2607,121 @@
                     {/if}
                   </div>
 
-                  <!-- 5. Features List Group -->
+                  <!-- 5. Tool Connectors Access Matrix -->
+                  <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">5. Tool Connectors Access Matrix ({TOOL_CONNECTORS.length} Total)</h4>
+                        <p class="text-[11px] text-[#4B6382]">Control which enterprise tool connectors are unlocked for this subscription tier.</p>
+                      </div>
+
+                      <!-- Master Toggle -->
+                      <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={editablePlans[activePlanTab].featureToggles.allToolsEnabled !== false}
+                          onchange={(e) => {
+                            const checked = e.currentTarget.checked;
+                            editablePlans[activePlanTab].featureToggles.allToolsEnabled = checked;
+                            if (!checked && !Array.isArray(editablePlans[activePlanTab].featureToggles.enabledTools)) {
+                              editablePlans[activePlanTab].featureToggles.enabledTools = TOOL_CONNECTORS.map((t) => t.id);
+                            }
+                          }}
+                          class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
+                        />
+                        <span class="text-xs font-extrabold text-[#102A56]">All {TOOL_CONNECTORS.length} Connectors Enabled</span>
+                      </label>
+                    </div>
+
+                    {#if editablePlans[activePlanTab].featureToggles.allToolsEnabled === false}
+                      <div class="space-y-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CFE2FA] animate-in fade-in duration-200">
+                        <!-- Controls: Search, Category Filter, Select All / Clear All -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div class="relative flex-1">
+                            <Icon name="Search" size={14} class="absolute left-3 top-1/2 -translate-y-1/2 text-[#5E7694]" />
+                            <input
+                              type="text"
+                              bind:value={planToolSearch}
+                              placeholder="Search connectors by name, category, or service..."
+                              class="w-full ui-input bg-white pl-8 pr-3 py-2 text-xs"
+                            />
+                          </div>
+                          <div class="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onclick={() => selectAllToolsForPlan(activePlanTab)}
+                              class="px-2.5 py-1.5 rounded-lg bg-white border border-[#CFE2FA] text-[#1677FF] text-[11px] font-bold hover:bg-[#F3F8FF] transition-all cursor-pointer"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onclick={() => clearAllToolsForPlan(activePlanTab)}
+                              class="px-2.5 py-1.5 rounded-lg bg-white border border-rose-200 text-rose-600 text-[11px] font-bold hover:bg-rose-50 transition-all cursor-pointer"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Category Filter Chips -->
+                        <div use:draggableScroll class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar cursor-grab active:cursor-grabbing select-none">
+                          <button
+                            type="button"
+                            onclick={() => planToolCategoryFilter = 'all'}
+                            class="px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-all {planToolCategoryFilter === 'all' ? 'bg-[#102A56] text-white' : 'bg-white text-[#4B6382] border border-[#CFE2FA]'}"
+                          >
+                            All ({TOOL_CONNECTORS.length})
+                          </button>
+                          {#each TOOL_CONNECTOR_CATEGORIES as cat}
+                            {@const catCount = TOOL_CONNECTORS.filter((t) => t.categoryId === cat.id).length}
+                            <button
+                              type="button"
+                              onclick={() => planToolCategoryFilter = cat.id}
+                              class="px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-all {planToolCategoryFilter === cat.id ? 'bg-[#1677FF] text-white' : 'bg-white text-[#4B6382] border border-[#CFE2FA]'}"
+                            >
+                              {cat.name} ({catCount})
+                            </button>
+                          {/each}
+                        </div>
+
+                        <!-- Tool Connectors Checklist Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
+                          {#each filteredPlanTools as tool (tool.id)}
+                            {@const isEnabled = editablePlans[activePlanTab].featureToggles.enabledTools?.includes(tool.id)}
+                            <button
+                              type="button"
+                              onclick={() => toggleToolForPlan(activePlanTab, tool.id)}
+                              class="p-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer {isEnabled ? 'bg-white border-[#1677FF] shadow-2xs' : 'bg-white/60 border-[#E3ECF7] opacity-60'}"
+                            >
+                              <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-6 h-6 rounded-lg bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center shrink-0 p-1">
+                                  <BrandIcon name={tool.name} modelId={tool.id} icon={tool.icon} size={14} />
+                                </div>
+                                <div class="min-w-0">
+                                  <p class="text-xs font-bold text-[#102A56] truncate">{tool.name}</p>
+                                  <p class="text-[10px] text-[#5E7694] truncate">{tool.category}</p>
+                                </div>
+                              </div>
+                              <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 {isEnabled ? 'border-[#1677FF] bg-[#1677FF] text-white' : 'border-[#CFE2FA]'}">
+                                {#if isEnabled}
+                                  <Icon name="Check" size={10} />
+                                {/if}
+                              </span>
+                            </button>
+                          {/each}
+                        </div>
+                        <p class="text-[10px] text-[#5E7694] text-right">
+                          Currently Enabled: {editablePlans[activePlanTab].featureToggles.enabledTools?.length || 0} of {TOOL_CONNECTORS.length} connectors
+                        </p>
+                      </div>
+                    {/if}
+                  </div>
+
+                  <!-- 6. Features List Group -->
                   <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
                     <div class="flex items-center justify-between">
-                      <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">5. Features &amp; Bullet Points</h4>
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">6. Features &amp; Bullet Points</h4>
                       <span class="text-[11px] font-semibold text-[#4B6382]">{editablePlans[activePlanTab].features.length} features</span>
                     </div>
 
@@ -2671,12 +2848,22 @@
                     </p>
 
                     <!-- Helper Count Preview Badge -->
-                    <div class="mb-4 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-bold text-[#102A56] flex items-center gap-1.5">
+                    <div class="mb-2 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-bold text-[#102A56] flex items-center gap-1.5">
                       <Icon name="Bot" size={14} class="text-[#1677FF]" />
                       {#if editablePlans[activePlanTab].featureToggles?.allHelpersEnabled !== false}
                         <span>All {ALL_TOOLS.length}+ AI Helpers Included</span>
                       {:else}
                         <span>{editablePlans[activePlanTab].featureToggles?.enabledHelpers?.length || 0} of {ALL_TOOLS.length} AI Helpers Included</span>
+                      {/if}
+                    </div>
+
+                    <!-- Tool Connectors Count Preview Badge -->
+                    <div class="mb-4 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-bold text-[#102A56] flex items-center gap-1.5">
+                      <Icon name="Wrench" size={14} class="text-[#1677FF]" />
+                      {#if editablePlans[activePlanTab].featureToggles?.allToolsEnabled !== false}
+                        <span>All {TOOL_CONNECTORS.length}+ Enterprise Connectors</span>
+                      {:else}
+                        <span>{editablePlans[activePlanTab].featureToggles?.enabledTools?.length || 0} of {TOOL_CONNECTORS.length} Enterprise Connectors</span>
                       {/if}
                     </div>
 
@@ -2718,6 +2905,27 @@
           {#if activeAdminTab === 'tools'}
             <div class="ui-card-static rounded-3xl p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200">
               
+              <!-- Per-Plan Notice & Switcher Banner -->
+              <div class="p-4 rounded-2xl bg-[#F3F8FF] border border-[#CFE2FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <Icon name="Info" size={18} class="text-[#1677FF] shrink-0" />
+                  <div>
+                    <p class="text-xs font-bold text-[#102A56]">Per-Plan Tool Configuration Active</p>
+                    <p class="text-[11px] text-[#4B6382]">Tool connectors are now configured directly inside each plan's tier settings under <strong>Plans &amp; Pricing</strong>.</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onclick={() => activeAdminTab = 'plans'}
+                    class="px-3.5 py-1.5 rounded-xl bg-white border border-[#1677FF] text-[#1677FF] text-xs font-bold hover:bg-[#F3F8FF] transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <Icon name="Receipt" size={13} />
+                    <span>Configure in Plan Settings</span>
+                  </button>
+                </div>
+              </div>
+
               <!-- Header & Summary -->
               <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-5">
                 <div class="flex items-start gap-3">

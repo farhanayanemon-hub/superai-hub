@@ -11,6 +11,8 @@ export interface PlanFeatureToggles {
   prioritySupport: boolean;
   allHelpersEnabled: boolean;
   enabledHelpers: string[];
+  allToolsEnabled: boolean;
+  enabledTools: string[];
 }
 
 export interface PlanConfig {
@@ -64,7 +66,9 @@ const DEFAULT_BYOK_STARTER: PlanConfig = {
     customPrompts: true,
     prioritySupport: false,
     allHelpersEnabled: true,
-    enabledHelpers: []
+    enabledHelpers: [],
+    allToolsEnabled: true,
+    enabledTools: []
   },
   isEnabled: true
 };
@@ -99,7 +103,9 @@ const DEFAULT_BYOK_PRO: PlanConfig = {
     customPrompts: true,
     prioritySupport: true,
     allHelpersEnabled: true,
-    enabledHelpers: []
+    enabledHelpers: [],
+    allToolsEnabled: true,
+    enabledTools: []
   },
   isEnabled: true
 };
@@ -134,7 +140,9 @@ const DEFAULT_MANAGED: PlanConfig = {
     customPrompts: true,
     prioritySupport: true,
     allHelpersEnabled: true,
-    enabledHelpers: []
+    enabledHelpers: [],
+    allToolsEnabled: true,
+    enabledTools: []
   },
   isEnabled: false
 };

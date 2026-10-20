@@ -152,7 +152,13 @@ function loadConfigFromStorage(): AdminConfig {
           isEnabled: savedStarter.isEnabled !== undefined ? savedStarter.isEnabled : DEFAULT_PLANS.byok_starter.isEnabled,
           featureToggles: {
             ...DEFAULT_PLANS.byok_starter.featureToggles,
-            ...(savedStarter.featureToggles || {})
+            ...(savedStarter.featureToggles || {}),
+            allToolsEnabled: savedStarter.featureToggles?.allToolsEnabled !== undefined
+              ? savedStarter.featureToggles.allToolsEnabled
+              : DEFAULT_PLANS.byok_starter.featureToggles.allToolsEnabled,
+            enabledTools: Array.isArray(savedStarter.featureToggles?.enabledTools)
+              ? savedStarter.featureToggles.enabledTools
+              : [...(DEFAULT_PLANS.byok_starter.featureToggles.enabledTools || [])]
           }
         };
 
@@ -163,7 +169,13 @@ function loadConfigFromStorage(): AdminConfig {
           isEnabled: savedPro.isEnabled !== undefined ? savedPro.isEnabled : DEFAULT_PLANS.byok_pro.isEnabled,
           featureToggles: {
             ...DEFAULT_PLANS.byok_pro.featureToggles,
-            ...(savedPro.featureToggles || {})
+            ...(savedPro.featureToggles || {}),
+            allToolsEnabled: savedPro.featureToggles?.allToolsEnabled !== undefined
+              ? savedPro.featureToggles.allToolsEnabled
+              : DEFAULT_PLANS.byok_pro.featureToggles.allToolsEnabled,
+            enabledTools: Array.isArray(savedPro.featureToggles?.enabledTools)
+              ? savedPro.featureToggles.enabledTools
+              : [...(DEFAULT_PLANS.byok_pro.featureToggles.enabledTools || [])]
           }
         };
 
@@ -174,7 +186,13 @@ function loadConfigFromStorage(): AdminConfig {
           isEnabled: savedManaged.isEnabled !== undefined ? savedManaged.isEnabled : DEFAULT_PLANS.managed.isEnabled,
           featureToggles: {
             ...DEFAULT_PLANS.managed.featureToggles,
-            ...(savedManaged.featureToggles || {})
+            ...(savedManaged.featureToggles || {}),
+            allToolsEnabled: savedManaged.featureToggles?.allToolsEnabled !== undefined
+              ? savedManaged.featureToggles.allToolsEnabled
+              : DEFAULT_PLANS.managed.featureToggles.allToolsEnabled,
+            enabledTools: Array.isArray(savedManaged.featureToggles?.enabledTools)
+              ? savedManaged.featureToggles.enabledTools
+              : [...(DEFAULT_PLANS.managed.featureToggles.enabledTools || [])]
           }
         };
 
@@ -292,7 +310,13 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
         : (base.byok_starter.isEnabled !== undefined ? base.byok_starter.isEnabled : DEFAULT_PLANS.byok_starter.isEnabled),
       featureToggles: {
         ...base.byok_starter.featureToggles,
-        ...(starterPatch.featureToggles || {})
+        ...(starterPatch.featureToggles || {}),
+        allToolsEnabled: starterPatch.featureToggles?.allToolsEnabled !== undefined
+          ? starterPatch.featureToggles.allToolsEnabled
+          : base.byok_starter.featureToggles.allToolsEnabled,
+        enabledTools: Array.isArray(starterPatch.featureToggles?.enabledTools)
+          ? starterPatch.featureToggles.enabledTools
+          : [...(base.byok_starter.featureToggles.enabledTools || [])]
       }
     };
 
@@ -305,7 +329,13 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
         : (base.byok_pro.isEnabled !== undefined ? base.byok_pro.isEnabled : DEFAULT_PLANS.byok_pro.isEnabled),
       featureToggles: {
         ...base.byok_pro.featureToggles,
-        ...(proPatch.featureToggles || {})
+        ...(proPatch.featureToggles || {}),
+        allToolsEnabled: proPatch.featureToggles?.allToolsEnabled !== undefined
+          ? proPatch.featureToggles.allToolsEnabled
+          : base.byok_pro.featureToggles.allToolsEnabled,
+        enabledTools: Array.isArray(proPatch.featureToggles?.enabledTools)
+          ? proPatch.featureToggles.enabledTools
+          : [...(base.byok_pro.featureToggles.enabledTools || [])]
       }
     };
 
@@ -318,7 +348,13 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
         : (base.managed.isEnabled !== undefined ? base.managed.isEnabled : DEFAULT_PLANS.managed.isEnabled),
       featureToggles: {
         ...base.managed.featureToggles,
-        ...(managedPatch.featureToggles || {})
+        ...(managedPatch.featureToggles || {}),
+        allToolsEnabled: managedPatch.featureToggles?.allToolsEnabled !== undefined
+          ? managedPatch.featureToggles.allToolsEnabled
+          : base.managed.featureToggles.allToolsEnabled,
+        enabledTools: Array.isArray(managedPatch.featureToggles?.enabledTools)
+          ? managedPatch.featureToggles.enabledTools
+          : [...(base.managed.featureToggles.enabledTools || [])]
       }
     };
 

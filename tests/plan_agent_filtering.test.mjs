@@ -71,4 +71,27 @@ describe('Plan-Based Agent & Tool Filtering Suite', () => {
     const docsContent = readSafe(docsPath);
     assert.ok(docsContent.includes('use:draggableScroll'), 'Docs channel tabs must use draggableScroll');
   });
+
+  it('1.8 plans.ts defines allToolsEnabled and enabledTools for every plan tier', () => {
+    const content = readSafe(plansConfigPath);
+    assert.ok(content.includes('allToolsEnabled: boolean;'), 'PlanFeatureToggles must define allToolsEnabled');
+    assert.ok(content.includes('enabledTools: string[];'), 'PlanFeatureToggles must define enabledTools');
+  });
+
+  it('1.9 admin page provides per-plan tool connectors matrix and safe helper toggling', () => {
+    const adminPath = path.join(WEB_DIR, 'src', 'routes', 'admin', '+page.svelte');
+    const adminContent = readSafe(adminPath);
+    assert.ok(adminContent.includes('toggleToolForPlan'), 'Admin page must have toggleToolForPlan');
+    assert.ok(adminContent.includes('selectAllToolsForPlan'), 'Admin page must have selectAllToolsForPlan');
+    assert.ok(adminContent.includes('clearAllToolsForPlan'), 'Admin page must have clearAllToolsForPlan');
+    assert.ok(adminContent.includes('allToolsEnabled'), 'Admin page must bind allToolsEnabled');
+    assert.ok(adminContent.includes('enabledTools'), 'Admin page must bind enabledTools');
+  });
+
+  it('1.10 ToolConnectorsTab.svelte filters by plan featureToggles allToolsEnabled and enabledTools', () => {
+    const tabContent = readSafe(toolConnectorsTabPath);
+    assert.ok(tabContent.includes('allToolsEnabled === false'), 'ToolConnectorsTab must check allToolsEnabled');
+    assert.ok(tabContent.includes('enabledTools'), 'ToolConnectorsTab must check enabledTools');
+    assert.ok(tabContent.includes('isAdmin'), 'Admin users must bypass restrictions in ToolConnectorsTab');
+  });
 });

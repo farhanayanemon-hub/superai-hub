@@ -92,7 +92,13 @@ export function normalizePlans(raw: any): PlansSettings {
     isEnabled: starterSource.isEnabled !== undefined ? starterSource.isEnabled : DEFAULT_PLANS.byok_starter.isEnabled,
     featureToggles: {
       ...DEFAULT_PLANS.byok_starter.featureToggles,
-      ...(starterSource.featureToggles || {})
+      ...(starterSource.featureToggles || {}),
+      allToolsEnabled: starterSource.featureToggles?.allToolsEnabled !== undefined
+        ? starterSource.featureToggles.allToolsEnabled
+        : DEFAULT_PLANS.byok_starter.featureToggles.allToolsEnabled,
+      enabledTools: Array.isArray(starterSource.featureToggles?.enabledTools)
+        ? starterSource.featureToggles.enabledTools
+        : [...(DEFAULT_PLANS.byok_starter.featureToggles.enabledTools || [])]
     }
   };
 
@@ -104,7 +110,13 @@ export function normalizePlans(raw: any): PlansSettings {
     isEnabled: proSource.isEnabled !== undefined ? proSource.isEnabled : DEFAULT_PLANS.byok_pro.isEnabled,
     featureToggles: {
       ...DEFAULT_PLANS.byok_pro.featureToggles,
-      ...(proSource.featureToggles || {})
+      ...(proSource.featureToggles || {}),
+      allToolsEnabled: proSource.featureToggles?.allToolsEnabled !== undefined
+        ? proSource.featureToggles.allToolsEnabled
+        : DEFAULT_PLANS.byok_pro.featureToggles.allToolsEnabled,
+      enabledTools: Array.isArray(proSource.featureToggles?.enabledTools)
+        ? proSource.featureToggles.enabledTools
+        : [...(DEFAULT_PLANS.byok_pro.featureToggles.enabledTools || [])]
     }
   };
 
@@ -116,7 +128,13 @@ export function normalizePlans(raw: any): PlansSettings {
     isEnabled: managedSource.isEnabled !== undefined ? managedSource.isEnabled : DEFAULT_PLANS.managed.isEnabled,
     featureToggles: {
       ...DEFAULT_PLANS.managed.featureToggles,
-      ...(managedSource.featureToggles || {})
+      ...(managedSource.featureToggles || {}),
+      allToolsEnabled: managedSource.featureToggles?.allToolsEnabled !== undefined
+        ? managedSource.featureToggles.allToolsEnabled
+        : DEFAULT_PLANS.managed.featureToggles.allToolsEnabled,
+      enabledTools: Array.isArray(managedSource.featureToggles?.enabledTools)
+        ? managedSource.featureToggles.enabledTools
+        : [...(DEFAULT_PLANS.managed.featureToggles.enabledTools || [])]
     }
   };
 

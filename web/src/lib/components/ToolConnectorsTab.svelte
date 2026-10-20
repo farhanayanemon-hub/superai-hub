@@ -16,7 +16,9 @@
     type ConnectedToolState,
     type BusinessChannelConfig
   } from '$lib/config/toolConnectors';
-  import { enabledToolConnectorsStore, loadPublicPlans } from '$lib/stores/plansStore';
+  import { enabledToolConnectorsStore, plansStore, loadPublicPlans } from '$lib/stores/plansStore';
+  import { subscription, currentUser, getEffectivePlanTier } from '$lib/stores/userStore';
+  import { DEFAULT_PLANS, type PlansSettings } from '$lib/config/plans';
   import { draggableScroll } from '$lib/utils/draggableScroll';
 
   let searchQuery = $state('');
@@ -63,9 +65,33 @@
     Object.values(connectedMap).filter((item) => item?.status === 'connected').length
   );
 
-  const enabledTools = $derived(
-    TOOL_CONNECTORS.filter((tool) => $enabledToolConnectorsStore.includes(tool.id))
+  const isAdmin = $derived(
+    typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true'
   );
+
+  const enabledTools = $derived.by(() => {
+    // Admin users continue to bypass restrictions to inspect all tools
+    if (isAdmin) {
+      return TOOL_CONNECTORS;
+    }
+
+    const tier = $subscription?.tier || $currentUser?.tier || 'byok_starter';
+    const effective = getEffectivePlanTier(tier);
+    const planKey = (effective === 'free' ? 'byok_starter' : effective) as keyof PlansSettings;
+    const plan =
+      $plansStore?.[planKey] ||
+      DEFAULT_PLANS[planKey] ||
+      DEFAULT_PLANS.byok_starter;
+    const toggles = plan?.featureToggles;
+
+    let baseList = TOOL_CONNECTORS;
+    if (toggles && toggles.allToolsEnabled === false) {
+      const allowed = Array.isArray(toggles.enabledTools) ? toggles.enabledTools : [];
+      baseList = TOOL_CONNECTORS.filter((tool) => allowed.includes(tool.id));
+    }
+
+    return baseList.filter((tool) => $enabledToolConnectorsStore.includes(tool.id));
+  });
 
   const categoryCounts = $derived.by(() => {
     const counts: Record<string, number> = {};
