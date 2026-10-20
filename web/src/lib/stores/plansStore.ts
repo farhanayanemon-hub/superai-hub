@@ -41,14 +41,40 @@ export const workflowCustomizationUserStore = writable<boolean>(getInitialWorkfl
 
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY && event.newValue) {
+      try {
+        const parsed = JSON.parse(event.newValue);
+        plansStore.set(normalizePlans(parsed));
+      } catch {}
+    }
     if (event.key === WORKFLOW_USER_STORAGE_KEY && event.newValue !== null) {
       workflowCustomizationUserStore.set(event.newValue === 'true');
+    }
+    if (event.key === TOOLS_STORAGE_KEY && event.newValue) {
+      try {
+        const parsed = JSON.parse(event.newValue);
+        if (Array.isArray(parsed)) enabledToolConnectorsStore.set(parsed);
+      } catch {}
+    }
+  });
+  window.addEventListener('ezbo:plans-settings-updated', (event: any) => {
+    if (event?.detail?.plans) {
+      plansStore.set(normalizePlans(event.detail.plans));
     }
   });
   window.addEventListener('ezbo:workflow-settings-updated', (event: any) => {
     if (event?.detail && typeof event.detail.enabled === 'boolean') {
       workflowCustomizationUserStore.set(event.detail.enabled);
     }
+  });
+  window.addEventListener('ezbo:tools-settings-updated', () => {
+    try {
+      const raw = localStorage.getItem(TOOLS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) enabledToolConnectorsStore.set(parsed);
+      }
+    } catch {}
   });
 }
 
@@ -138,14 +164,17 @@ export async function loadPublicPlans(force = false): Promise<PlansSettings> {
   const now = Date.now();
   // Throttle re-fetching to once every 30 seconds unless forced
   if (!force && now - lastFetched < 30000 && typeof window !== 'undefined') {
-    return getInitialPlans();
+    const cached = getInitialPlans();
+    plansStore.set(cached);
+    return cached;
   }
 
   if (isLoading) return getInitialPlans();
   isLoading = true;
 
   try {
-    const res = await fetch('/api/plans');
+    const url = force ? `/api/plans?_t=${now}` : '/api/plans';
+    const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.plans) {

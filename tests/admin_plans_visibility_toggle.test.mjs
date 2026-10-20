@@ -72,6 +72,17 @@ describe('Admin Plans Visibility, On/Off Toggles & Deletion Control Suite', () =
       assert.ok(content.includes('isEnabled: proSource.isEnabled !== undefined ? proSource.isEnabled'), 'Must preserve pro isEnabled');
       assert.ok(content.includes('isEnabled: managedSource.isEnabled !== undefined ? managedSource.isEnabled'), 'Must preserve managed isEnabled');
     });
+    it('3.3 plansStore provides real-time storage event and custom event cross-tab synchronization', () => {
+      const content = readSafe(plansStorePath);
+      assert.ok(content.includes('event.key === STORAGE_KEY'), 'Must listen for STORAGE_KEY on storage event');
+      assert.ok(content.includes('ezbo:plans-settings-updated'), 'Must listen for ezbo:plans-settings-updated custom event');
+    });
+
+    it('3.4 loadPublicPlans updates plansStore on throttled cache hit and supports cache-busting on force', () => {
+      const content = readSafe(plansStorePath);
+      assert.ok(content.includes('plansStore.set(cached)'), 'Throttled loadPublicPlans must update plansStore');
+      assert.ok(content.includes('/api/plans?_t='), 'Force reload must include cache-busting query parameter');
+    });
   });
 
   describe('4. Dynamic Pricing Cards Grid (PricingCardsGrid.svelte)', () => {
@@ -130,10 +141,26 @@ describe('Admin Plans Visibility, On/Off Toggles & Deletion Control Suite', () =
       const content = readSafe(adminPagePath);
       assert.ok(content.includes('This plan is currently HIDDEN from public users'), 'Must render hidden preview notification');
     });
+
+    it('5.5 Admin saveSettings dispatches ezbo:plans-settings-updated and syncs plansStore', () => {
+      const content = readSafe(adminPagePath);
+      assert.ok(content.includes('plansStore.set(normalizePlans(editablePlans))'), 'Admin save must update plansStore in memory');
+      assert.ok(content.includes('ezbo:plans-settings-updated'), 'Admin save must dispatch ezbo:plans-settings-updated custom event');
+    });
   });
 
-  describe('6. Quality Invariant: robots.css Integrity', () => {
-    it('6.1 robots.css byte-for-byte SHA256 checksum matches 549729f4c18443e871d09766d36b27fbf28ed91552139ff6fcb7a77f1ec009be', () => {
+  describe('6. Dashboard Billing Tab Integration', () => {
+    it('6.1 Dashboard billing tab dynamically integrates PricingCardsGrid', () => {
+      const dashboardPath = path.join(WEB_DIR, 'src', 'routes', 'dashboard', '+page.svelte');
+      const content = readSafe(dashboardPath);
+      assert.ok(content.includes('<PricingCardsGrid'), 'Dashboard must render PricingCardsGrid');
+      assert.ok(content.includes('context="billing"'), 'Dashboard must pass context="billing"');
+      assert.ok(content.includes('Explore available plans and switch tiers to elevate your AI capabilities.'), 'Dashboard must have universal available plans subtitle');
+    });
+  });
+
+  describe('7. Quality Invariant: robots.css Integrity', () => {
+    it('7.1 robots.css byte-for-byte SHA256 checksum matches 549729f4c18443e871d09766d36b27fbf28ed91552139ff6fcb7a77f1ec009be', () => {
       const buffer = fs.readFileSync(robotsCssPath);
       const hash = crypto.createHash('sha256').update(buffer).digest('hex');
       assert.strictEqual(

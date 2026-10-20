@@ -1202,7 +1202,7 @@
                 <Icon name="Layers" size={20} class="text-[#1677FF]" />
                 <span>Available Plans & Tiers</span>
               </h3>
-              <p class="text-xs text-[#4B6382] mt-0.5">Switch between Starter Plan and Pro Plan to upgrade your AI capabilities.</p>
+              <p class="text-xs text-[#4B6382] mt-0.5">Explore available plans and switch tiers to elevate your AI capabilities.</p>
             </div>
 
             <!-- Unified Dynamic Pricing Grid -->

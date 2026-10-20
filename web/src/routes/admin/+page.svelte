@@ -12,7 +12,7 @@
     applyAdminGrantLocally,
     type ServerUserGrant
   } from '$lib/stores/userStore';
-  import { workflowCustomizationUserStore } from '$lib/stores/plansStore';
+  import { plansStore, normalizePlans, workflowCustomizationUserStore } from '$lib/stores/plansStore';
 
   type AdminTab = 'overview' | 'users' | 'plans' | 'tools' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
 
@@ -603,6 +603,7 @@
       if (enabledCount <= 1) {
         saveFeedback = 'Cannot hide/delete this plan: At least 1 plan must remain active and visible to users!';
         saveFeedbackType = 'error';
+        setTimeout(() => { if (saveFeedback.startsWith('Cannot hide/delete')) saveFeedback = ''; }, 5000);
         return;
       }
       editablePlans[planId].isEnabled = false;
@@ -616,6 +617,7 @@
     if (enabledCount <= 1 && editablePlans[planId]?.isEnabled !== false) {
       saveFeedback = 'Cannot hide/delete this plan: At least 1 plan must remain active and visible to users!';
       saveFeedbackType = 'error';
+      setTimeout(() => { if (saveFeedback.startsWith('Cannot hide/delete')) saveFeedback = ''; }, 5000);
       return;
     }
     editablePlans[planId].isEnabled = false;
@@ -828,7 +830,9 @@
               localStorage.setItem('ezbo_enabled_tool_connectors', JSON.stringify(enabledToolConnectors));
               localStorage.setItem('ezbo_workflow_user_enabled', String(workflowCustomizationUserEnabled));
               localStorage.setItem('ezbo_public_plans', JSON.stringify(editablePlans));
+              plansStore.set(normalizePlans(editablePlans));
               workflowCustomizationUserStore.set(workflowCustomizationUserEnabled);
+              window.dispatchEvent(new CustomEvent('ezbo:plans-settings-updated', { detail: { plans: editablePlans } }));
               window.dispatchEvent(new CustomEvent('ezbo:tools-settings-updated'));
               window.dispatchEvent(new CustomEvent('ezbo:workflow-settings-updated', { detail: { enabled: workflowCustomizationUserEnabled } }));
             } catch {}
