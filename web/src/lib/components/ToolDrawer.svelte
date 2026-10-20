@@ -89,12 +89,17 @@
     closeToolDrawer();
     activeDashboardTab.set('tools');
     if (typeof window !== 'undefined') {
-      setTimeout(() => {
+      let attempts = 0;
+      const tryScroll = () => {
         const el = document.getElementById('core-business-channels');
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (attempts < 8) {
+          attempts++;
+          setTimeout(tryScroll, 60);
         }
-      }, 100);
+      };
+      setTimeout(tryScroll, 40);
     }
   }
 
@@ -570,7 +575,7 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <!-- WhatsApp -->
             <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
-              <BrandIcon modelId="whatsapp_cloud" size={16} />
+              <BrandIcon modelId="whatsapp_business" name="whatsapp" size={16} />
               <div class="min-w-0 flex-1">
                 <p class="text-[11px] font-bold text-[#102A56] truncate">WhatsApp</p>
                 {#if businessChannels['whatsapp_business']?.status === 'connected'}
@@ -586,7 +591,7 @@
 
             <!-- Messenger -->
             <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
-              <BrandIcon modelId="facebook_graph" size={16} />
+              <BrandIcon modelId="facebook_messenger" name="messenger" size={16} />
               <div class="min-w-0 flex-1">
                 <p class="text-[11px] font-bold text-[#102A56] truncate">Messenger</p>
                 {#if businessChannels['facebook_messenger']?.status === 'connected'}
@@ -602,7 +607,7 @@
 
             <!-- Instagram -->
             <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
-              <BrandIcon modelId="instagram_basic" size={16} />
+              <BrandIcon modelId="instagram_dm" name="instagram" size={16} />
               <div class="min-w-0 flex-1">
                 <p class="text-[11px] font-bold text-[#102A56] truncate">Instagram</p>
                 {#if businessChannels['instagram_dm']?.status === 'connected'}
@@ -618,7 +623,7 @@
 
             <!-- Telegram -->
             <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
-              <BrandIcon modelId="telegram_bot" size={16} />
+              <BrandIcon modelId="telegram_support_bot" name="telegram" size={16} />
               <div class="min-w-0 flex-1">
                 <p class="text-[11px] font-bold text-[#102A56] truncate">Telegram</p>
                 {#if businessChannels['telegram_support_bot']?.status === 'connected'}

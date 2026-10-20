@@ -1675,7 +1675,7 @@ export const BUSINESS_CHANNELS: BusinessChannelConfig[] = [
     id: 'facebook_messenger',
     name: 'Facebook Page Messenger',
     subtitle: 'Meta Messenger Graph API for 24/7 Facebook Page Messages',
-    brand: 'facebook',
+    brand: 'messenger',
     badge: 'High Conversion',
     icon: 'MessageSquare',
     description: 'Automate customer support on your Facebook Page inbox. Instant product replies, price answers, and lead qualification.',

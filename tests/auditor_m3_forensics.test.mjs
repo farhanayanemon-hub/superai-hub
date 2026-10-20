@@ -44,7 +44,7 @@ describe('Forensic Integrity Audit: Milestone M3 Components', () => {
 
     it('FloatingCeoChat: chat messages are not hardcoded dummy mock conversations', () => {
       // Must read from $chatMessages store
-      assert.match(floatingChatSource, /\{#each\s+\$chatMessages\s+as\s+msg\s*\(msg\.id\)\}/);
+      assert.match(floatingChatSource, /\{#each\s+(?:\$chatMessages|currentMessages)\s+as\s+msg\s*\(msg\.id\)\}/);
       // Must not contain pre-baked fake chat transcripts in state
       assert.doesNotMatch(floatingChatSource, /let\s+(?:chatMessages|messages)\s*=\s*\[\s*\{/);
     });

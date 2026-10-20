@@ -81,7 +81,12 @@ const KEYWORD_RULES: Array<{ helperId: string; keywords: string[] }> = [
   { helperId: 'hr_job_circular_interview', keywords: ['job circular', 'interview questions', 'hiring', 'নিয়োগ'] },
   { helperId: 'business_idea_swot_validator', keywords: ['swot', 'validate idea', 'business idea', 'বিজনেস আইডিয়া'] },
   { helperId: 'website_code_bug_wordpress_helper', keywords: ['wordpress bug', 'shopify liquid', 'css fix', 'html fix', 'কোড বাগ'] },
-  { helperId: 'weekly_productivity_goal_tracker', keywords: ['weekly review', 'okr', 'kpi', 'habit tracker'] }
+  { helperId: 'weekly_productivity_goal_tracker', keywords: ['weekly review', 'okr', 'kpi', 'habit tracker'] },
+  { helperId: 'omnichannel_customer_support', keywords: ['omnichannel support', 'omnichannel customer', 'omnichannel', 'customer support rep', 'auto reply customer', 'customer service bot', 'মাল্টি চ্যানেল সাপোর্ট', 'কাস্টমার সাপোর্ট'] },
+  { helperId: 'whatsapp_business_support', keywords: ['whatsapp business', 'whatsapp order', 'whatsapp customer', 'whatsapp concierge', 'whatsapp bot', 'হোয়াটসঅ্যাপ অর্ডার', 'হোয়াটসঅ্যাপ সাপোর্ট'] },
+  { helperId: 'messenger_customer_support', keywords: ['messenger support', 'facebook page messenger', 'page inbox', 'messenger customer', 'messenger bot', 'ফেসবুক পেজ মেসেজ', 'মেসেঞ্জার সাপোর্ট'] },
+  { helperId: 'instagram_dm_support', keywords: ['instagram dm', 'insta dm', 'story reply', 'instagram sales', 'dm sales closer', 'ইন্সটাগ্রাম ডিএম'] },
+  { helperId: 'telegram_customer_support', keywords: ['telegram support', 'telegram helpdesk', 'telegram community bot', 'telegram customer', 'টেলিগ্রাম সাপোর্ট', 'হেল্পডেস্ক'] }
 ];
 
 export function matchHelperForMessage(query: string, explicitHelperId?: string): ToolConfig | null {
@@ -409,6 +414,7 @@ You oversee 75 specialized Business & Freelancer AI Helpers (#01 to #75) across 
 5. SEO & Website Traffic (#42-#50)
 6. Freelancing — Upwork, Fiverr & Client Hunting (#51-#62)
 7. Business Operations, Sales & Productivity (#63-#75)
+8. Omnichannel Auto-Reply & Customer Channels (#76-#80)
 ${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
 }
 

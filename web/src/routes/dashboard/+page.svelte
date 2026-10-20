@@ -602,10 +602,10 @@
             <div class="space-y-1">
               <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38CFFF]/15 border border-[#38CFFF]/35 text-[#38CFFF] text-[10px] font-extrabold uppercase tracking-wider max-w-full flex-wrap">
                 <Icon name="Crown" size={12} class="shrink-0" />
-                <span class="break-words">1 Master AI CEO + 75 Business & Freelancer AI Helpers</span>
+                <span class="break-words">1 Master AI CEO + 80 Business & Freelancer AI Helpers</span>
               </div>
               <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
-                <span>75 Specialized AI Helpers</span>
+                <span>80 Specialized AI Helpers</span>
                 <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
                   {filteredTools.length} Ready
                 </span>
@@ -620,7 +620,7 @@
                 <input
                   type="text"
                   bind:value={$searchQuery}
-                  placeholder="Search #01-#75 or helper name..."
+                  placeholder="Search #01-#80 or helper name..."
                   class="w-full sm:w-60 bg-[#0B1F42]/70 border border-[#38CFFF]/30 focus:border-[#38CFFF] focus:bg-[#0B1F42] rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/60 outline-none transition-all"
                 />
               </div>
@@ -662,7 +662,7 @@
                 onclick={() => { $searchQuery = ''; activeCategory.set('all'); }}
                 class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer"
               >
-                <span>Show All 75 Helpers</span>
+                <span>Show All 80 Helpers</span>
               </button>
             </div>
           {:else if filteredTools.length > 0}
