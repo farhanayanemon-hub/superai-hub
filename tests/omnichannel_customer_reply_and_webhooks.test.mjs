@@ -203,9 +203,9 @@ describe('Omnichannel Customer Reply Agents & Core Business Channels Suite', () 
       assert.ok(content.includes('core-business-channels'), 'Must scroll to core-business-channels');
     });
 
-    it('6.3 dashboard/+page.svelte displays 80 Specialized AI Helpers and Search #01-#80', () => {
+    it('6.3 dashboard/+page.svelte displays clean My Agents header and Search #01-#80', () => {
       const content = readSafe(dashboardPath);
-      assert.ok(content.includes('80 Specialized AI Helpers'), 'Must display 80 Specialized AI Helpers');
+      assert.ok(content.includes('My Agents'), 'Must display My Agents header');
       assert.ok(content.includes('Search #01-#80 or helper name...'), 'Must search up to #80');
       assert.ok(content.includes('Show All 80 Helpers'), 'Must show All 80 Helpers');
     });

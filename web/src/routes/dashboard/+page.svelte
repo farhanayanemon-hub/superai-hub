@@ -627,22 +627,12 @@
       <!-- ==================================================== -->
       {#if $activeDashboardTab === 'agents' || $activeDashboardTab === 'chat'}
         <div class="h-full flex flex-col space-y-4 overflow-y-auto pr-1">
-          <!-- Master AI CEO Banner + Search -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 ui-banner-navy text-white p-4 sm:p-6 rounded-3xl">
-            <div class="space-y-1">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38CFFF]/15 border border-[#38CFFF]/35 text-[#38CFFF] text-[10px] font-extrabold uppercase tracking-wider max-w-full flex-wrap">
-                <Icon name="Crown" size={12} class="shrink-0" />
-                <span class="break-words">1 Master AI CEO + 80 Business & Freelancer AI Helpers</span>
-              </div>
-              <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
-                <span>80 Specialized AI Helpers</span>
-                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
-                  {filteredTools.length} Ready
-                </span>
+          <!-- My Agents Header + Search -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 ui-banner-navy text-white p-4 sm:p-6 rounded-3xl">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+                My Agents
               </h2>
-              <p class="text-xs text-white/80 max-w-2xl">
-                Every helper includes custom input options and a dedicated chat studio — or skip individual chats and command the <strong class="text-white">Master AI CEO</strong> from Web, <strong class="text-white">WhatsApp</strong>, or <strong class="text-white">Telegram</strong>!
-              </p>
             </div>
 
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
