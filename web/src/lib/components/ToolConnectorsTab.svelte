@@ -199,31 +199,13 @@
     id="core-business-channels"
     class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white via-[#F8FAFD] to-[#EDF5FF] border border-[#CFE2FA] shadow-sm hover:border-[#1677FF]/50 transition-all space-y-6 scroll-mt-6"
   >
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-5">
+    <div class="border-b border-[#E3ECF7] pb-5">
       <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-[11px] font-bold uppercase tracking-wider mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Customer Touchpoints • Omnichannel 24/7</span>
-        </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#102A56] tracking-tight flex items-center gap-2 flex-wrap">
-          <span>⭐ Core Business Customer Channels</span>
-          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#1677FF]/10 text-[#1677FF] border border-[#1677FF]/20">
-            Omnichannel Auto-Reply
-          </span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#102A56] tracking-tight">
+          ⭐ Core Business Customer Channels
         </h2>
         <p class="text-xs sm:text-sm text-[#4B6382] mt-1 max-w-3xl leading-relaxed">
           Connect your customer-facing communication channels so your AI agents can automatically reply to inbound customer messages 24/7.
-        </p>
-      </div>
-
-      <!-- Distinction Banner -->
-      <div class="p-3.5 rounded-2xl bg-white border border-[#E3ECF7] shadow-2xs max-w-sm text-left shrink-0">
-        <div class="flex items-center gap-1.5 text-xs font-bold text-[#102A56]">
-          <Icon name="ShieldCheck" size={14} class="text-[#1677FF]" />
-          <span>Business Inbound vs Personal AI CEO</span>
-        </div>
-        <p class="text-[11px] text-[#5E7694] mt-0.5 leading-snug">
-          These connect to your public customer assets (Page, WABA, DM, Bot), distinct from your private Master AI CEO chat.
         </p>
       </div>
     </div>
@@ -293,10 +275,6 @@
   <div class="p-6 sm:p-8 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA]/70 shadow-xs hover:border-[#1677FF]/40 transition-all space-y-4">
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-5">
       <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1677FF]/10 text-[#1677FF] text-[11px] font-bold uppercase tracking-wider mb-2">
-          <Icon name="Sparkles" size={13} />
-          <span>Universal Integration Hub • Connectors</span>
-        </div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-[#102A56] tracking-tight">
           Tools &amp; Enterprise Integrations
         </h2>
