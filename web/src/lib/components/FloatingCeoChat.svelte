@@ -20,11 +20,13 @@
     activeDashboardTab,
     isHelperUnlocked,
     isProPlan,
+    getEffectivePlanTier,
     addVaultKey,
     setDefaultVaultKey,
     type ChatMessage,
     type AIProvider
   } from '$lib/stores/userStore';
+  import { DEFAULT_PLANS, type PlansSettings } from '$lib/config/plans';
   import { plansStore, workflowCustomizationUserStore } from '$lib/stores/plansStore';
   import { decryptVaultKey, encryptVaultKey } from '$lib/services/crypto';
   import { offlineStorage } from '$lib/services/offlineStorage';
@@ -305,11 +307,30 @@
     target.value = '';
   }
 
+  // Accessible AI helpers for slash command popover based on subscription tier & admin status
+  const accessibleTools = $derived.by(() => {
+    const isUserAdmin = typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true';
+    if (isUserAdmin) return TOOLS;
+    const tier = $subscription?.tier || 'byok_starter';
+    const effective = getEffectivePlanTier(tier);
+    const planKey = effective === 'free' ? 'byok_starter' : effective;
+    const plan =
+      ($plansStore && ($plansStore[planKey] || $plansStore[tier as keyof PlansSettings])) ||
+      DEFAULT_PLANS[planKey] ||
+      DEFAULT_PLANS.byok_starter;
+    const toggles = plan?.featureToggles;
+    if (!toggles || toggles.allHelpersEnabled !== false) {
+      return TOOLS;
+    }
+    const enabledList = toggles.enabledHelpers || [];
+    return TOOLS.filter((t) => enabledList.includes(t.id));
+  });
+
   // Filtered helpers for slash command popover
   const filteredTools = $derived.by(() => {
-    if (!slashQuery) return TOOLS.slice(0, 80);
+    if (!slashQuery) return accessibleTools.slice(0, 80);
     const q = slashQuery.toLowerCase().replace(/^#/, '');
-    return TOOLS.filter((t) => {
+    return accessibleTools.filter((t) => {
       const codeClean = t.code.toLowerCase().replace(/^#/, '');
       return (
         codeClean.includes(q) ||

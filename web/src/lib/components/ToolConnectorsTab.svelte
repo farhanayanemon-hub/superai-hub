@@ -17,6 +17,7 @@
     type BusinessChannelConfig
   } from '$lib/config/toolConnectors';
   import { enabledToolConnectorsStore, loadPublicPlans } from '$lib/stores/plansStore';
+  import { draggableScroll } from '$lib/utils/draggableScroll';
 
   let searchQuery = $state('');
   let selectedCategory = $state('all');
@@ -194,20 +195,30 @@
 </script>
 
 <div class="space-y-6 pb-12">
-  <!-- ⭐ Core Business Customer Channels (Omnichannel Auto-Reply) Hero Container -->
+  <!-- Connect Customer Support Channels (Omnichannel Auto-Reply) Hero Container -->
   <div
     id="core-business-channels"
     class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white via-[#F8FAFD] to-[#EDF5FF] border border-[#CFE2FA] shadow-sm hover:border-[#1677FF]/50 transition-all space-y-6 scroll-mt-6"
   >
-    <div class="border-b border-[#E3ECF7] pb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-5">
       <div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-[#102A56] tracking-tight">
-          ⭐ Core Business Customer Channels
+          Connect Customer Support Channels
         </h2>
         <p class="text-xs sm:text-sm text-[#4B6382] mt-1 max-w-3xl leading-relaxed">
           Connect your customer-facing communication channels so your AI agents can automatically reply to inbound customer messages 24/7.
         </p>
       </div>
+
+      <a
+        href="/docs/channels"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-[#CFE2FA] text-[#1677FF] hover:bg-[#F3F8FF] hover:border-[#1677FF] text-xs font-bold transition-all shadow-2xs hover:shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+      >
+        <Icon name="BookOpen" size={15} />
+        <span>Documentation ↗</span>
+      </a>
     </div>
 
     <!-- 4 Featured Cards Grid -->
@@ -239,17 +250,9 @@
               <h3 class="font-bold text-sm text-[#102A56] leading-snug">{ch.name}</h3>
               <p class="text-[11px] text-[#5E7694] mt-0.5 font-medium">{ch.subtitle}</p>
             </div>
-
-            <p class="text-xs text-[#4B6382] leading-relaxed line-clamp-3">
-              {ch.description}
-            </p>
           </div>
 
-          <div class="space-y-2 pt-2 border-t border-[#F1F5F9]">
-            <p class="text-[10px] font-semibold text-[#1677FF] truncate">
-              {ch.usedByAgents}
-            </p>
-
+          <div class="pt-2 border-t border-[#F1F5F9]">
             <button
               type="button"
               onclick={() => openBusinessChannelModal(ch)}
@@ -331,7 +334,7 @@
   </div>
 
   <!-- Category Filter Chips (All + Connected + 10 Categories) -->
-  <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar shrink-0">
+  <div use:draggableScroll class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar shrink-0 cursor-grab active:cursor-grabbing select-none">
     <!-- All Chip -->
     <button
       type="button"

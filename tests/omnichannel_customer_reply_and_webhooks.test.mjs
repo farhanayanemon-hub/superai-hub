@@ -190,7 +190,10 @@ describe('Omnichannel Customer Reply Agents & Core Business Channels Suite', () 
     it('6.1 ToolConnectorsTab.svelte contains #core-business-channels hero section with all 4 cards', () => {
       const content = readSafe(toolConnectorsTabPath);
       assert.ok(content.includes('id="core-business-channels"'), 'Must contain id="core-business-channels"');
-      assert.ok(content.includes('⭐ Core Business Customer Channels'), 'Must contain hero section title');
+      assert.ok(
+        content.includes('Connect Customer Support Channels') || content.includes('⭐ Core Business Customer Channels'),
+        'Must contain hero section title'
+      );
       assert.ok(content.includes('BUSINESS_CHANNELS'), 'Must loop over BUSINESS_CHANNELS');
     });
 
@@ -208,6 +211,30 @@ describe('Omnichannel Customer Reply Agents & Core Business Channels Suite', () 
       assert.ok(content.includes('My Agents'), 'Must display My Agents header');
       assert.ok(content.includes('Search #01-#80 or helper name...'), 'Must search up to #80');
       assert.ok(content.includes('Show All 80 Helpers'), 'Must show All 80 Helpers');
+    });
+
+    it('6.4 Documentation button and dedicated channels docs page exist', () => {
+      const tabContent = readSafe(toolConnectorsTabPath);
+      assert.ok(tabContent.includes('/docs/channels'), 'Must link to /docs/channels');
+      assert.ok(tabContent.includes('Documentation ↗'), 'Must render Documentation button');
+      const docsPagePath = path.join(WEB_DIR, 'src', 'routes', 'docs', 'channels', '+page.svelte');
+      assert.ok(fs.existsSync(docsPagePath), 'Channels documentation page must exist');
+      const docsContent = readSafe(docsPagePath);
+      assert.ok(docsContent.includes('WhatsApp Business Cloud API'), 'Must document WhatsApp');
+      assert.ok(docsContent.includes('Facebook Page Messenger'), 'Must document Messenger');
+      assert.ok(docsContent.includes('Instagram Direct (DM)'), 'Must document Instagram');
+      assert.ok(docsContent.includes('Telegram Customer Support Bot'), 'Must document Telegram');
+    });
+
+    it('6.5 draggableScroll utility and category bars mouse-drag integration', () => {
+      const draggablePath = path.join(WEB_DIR, 'src', 'lib', 'utils', 'draggableScroll.ts');
+      assert.ok(fs.existsSync(draggablePath), 'draggableScroll.ts must exist');
+      const dragContent = readSafe(draggablePath);
+      assert.ok(dragContent.includes('export function draggableScroll'), 'Must export draggableScroll action');
+      const dashContent = readSafe(dashboardPath);
+      assert.ok(dashContent.includes('use:draggableScroll'), 'Dashboard must use draggableScroll');
+      const tabContent = readSafe(toolConnectorsTabPath);
+      assert.ok(tabContent.includes('use:draggableScroll'), 'ToolConnectorsTab must use draggableScroll');
     });
   });
 

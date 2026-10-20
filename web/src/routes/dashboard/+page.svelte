@@ -10,13 +10,14 @@
   import ToolConnectorsTab from '$lib/components/ToolConnectorsTab.svelte';
   import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
   import WorkflowStudioModal from '$lib/components/WorkflowStudioModal.svelte';
-  import type { PlanTierId } from '$lib/config/plans';
+  import { DEFAULT_PLANS, type PlanTierId, type PlansSettings } from '$lib/config/plans';
   import { initiateSubscriptionPayment, verifyOpayTransaction } from '$lib/services/opay';
   import { plansStore, loadPublicPlans, workflowCustomizationUserStore } from '$lib/stores/plansStore';
   import { whatsappApi } from '$lib/services/whatsappApi';
   import { validateGeminiKey } from '$lib/services/gemini';
   import { goto } from '$app/navigation';
   import { onMount, onDestroy } from 'svelte';
+  import { draggableScroll } from '$lib/utils/draggableScroll';
 
   import { TOOLS, CATEGORIES, type AITool } from '$lib/config/tools';
   import {
@@ -41,6 +42,7 @@
     ceoCustomPrompt,
     setCeoCustomPrompt,
     isProPlan,
+    getEffectivePlanTier,
     type DashboardTab,
     type PlanTier
   } from '$lib/stores/userStore';
@@ -368,8 +370,40 @@
     }
   }
 
+  // Accessible AI helpers for current user based on plan feature toggles & admin status
+  const accessibleTools = $derived.by(() => {
+    if (isAdmin) return TOOLS;
+    const tier = $subscription?.tier || 'byok_starter';
+    const effective = getEffectivePlanTier(tier);
+    const planKey = effective === 'free' ? 'byok_starter' : effective;
+    const plan =
+      ($plansStore && ($plansStore[planKey] || $plansStore[tier as keyof PlansSettings])) ||
+      DEFAULT_PLANS[planKey] ||
+      DEFAULT_PLANS.byok_starter;
+    const toggles = plan?.featureToggles;
+    if (!toggles || toggles.allHelpersEnabled !== false) {
+      return TOOLS;
+    }
+    const enabledList = toggles.enabledHelpers || [];
+    return TOOLS.filter((t) => enabledList.includes(t.id));
+  });
+
+  // Dynamic category counts reflecting accessible tools
+  const dynamicCategories = $derived.by(() => {
+    const counts: Record<string, number> = {
+      all: accessibleTools.length
+    };
+    for (const tool of accessibleTools) {
+      counts[tool.category] = (counts[tool.category] || 0) + 1;
+    }
+    return CATEGORIES.map((cat) => ({
+      ...cat,
+      count: counts[cat.id] || 0
+    }));
+  });
+
   const filteredTools = $derived(
-    TOOLS.filter((tool) => {
+    accessibleTools.filter((tool) => {
       const matchCategory = $activeCategory === 'all' || tool.category === $activeCategory;
       const query = $searchQuery.toLowerCase().trim();
       if (!query) return matchCategory;
@@ -687,8 +721,8 @@
             </div>
           {:else if filteredTools.length > 0}
             <!-- Category Filter Tabs -->
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar shrink-0">
-              {#each CATEGORIES as cat}
+            <div use:draggableScroll class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar shrink-0 cursor-grab active:cursor-grabbing select-none">
+              {#each dynamicCategories as cat}
                 <button
                   type="button"
                   onclick={() => activeCategory.set(cat.id)}
