@@ -3,7 +3,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import BrandIcon from '$lib/components/BrandIcon.svelte';
   import { TOOL_CONNECTORS, type ToolConnector } from '$lib/config/toolConnectors';
-  import { enabledToolConnectorsStore } from '$lib/stores/plansStore';
+  import { enabledToolConnectorsStore, workflowCustomizationUserStore } from '$lib/stores/plansStore';
   import {
     apiKey,
     subscription,
@@ -101,6 +101,14 @@
   const enabledConnectors = $derived(
     TOOL_CONNECTORS.filter((t) => $enabledToolConnectorsStore.includes(t.id))
   );
+
+  const isAdmin = $derived(typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true');
+
+  $effect(() => {
+    if (isOpen && !isAdmin && $workflowCustomizationUserStore === false) {
+      isOpen = false;
+    }
+  });
 
   const DEFAULT_NODES: WorkflowNode[] = [
     {
@@ -947,9 +955,15 @@
         <div>
           <div class="flex items-center gap-2">
             <h2 class="text-sm sm:text-base font-extrabold text-[#102A56]">Visual Workflow Studio</h2>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1677FF]/10 text-[#1677FF] border border-[#1677FF]/30 uppercase">
-              Pro Studio
-            </span>
+            {#if isAdmin}
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 border border-amber-400/30 uppercase flex items-center gap-1">
+                <span>👑 Admin Mode: Full Customization Unlocked</span>
+              </span>
+            {:else}
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1677FF]/10 text-[#1677FF] border border-[#1677FF]/30 uppercase">
+                Pro Studio
+              </span>
+            {/if}
           </div>
           <p class="text-xs text-[#64748B]">
             Editing: <span class="font-bold text-[#102A56]">{agentName}</span>

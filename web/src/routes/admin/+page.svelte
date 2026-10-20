@@ -55,6 +55,7 @@
     telegramBotUsername?: string;
     hasTelegramBot?: boolean;
     channelsCeoEnabled?: boolean;
+    workflowCustomizationUserEnabled?: boolean;
     enabledToolConnectors?: string[];
     plans?: PlansSettings;
     providersAllowed?: Record<string, boolean>;
@@ -209,6 +210,7 @@
   let saveFeedbackType = $state<'success' | 'error'>('success');
   let copyFeedback = $state('');
   let channelsCeoEnabled = $state(true);
+  let workflowCustomizationUserEnabled = $state(true);
 
   const MODELS_CATALOG: { id: keyof AdminModelToggles; name: string; provider: string; tag: string; latency: string }[] = [
     { id: 'gemini-2.0-flash', name: 'Google Gemini 2.0 Flash', provider: 'Google AI Studio', tag: 'High Speed (Default)', latency: '~350ms' },
@@ -332,6 +334,7 @@
           enabledToolConnectors = [...s.enabledToolConnectors];
         }
         channelsCeoEnabled = s.channelsCeoEnabled !== false;
+        workflowCustomizationUserEnabled = s.workflowCustomizationUserEnabled !== false;
         isAuthenticated = true;
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('ezbo_admin_authed', 'true');
@@ -707,6 +710,7 @@
         telegramBotToken,
         telegramBotUsername,
         channelsCeoEnabled,
+        workflowCustomizationUserEnabled,
         modelsEnabled,
         providersAllowed,
         enabledToolConnectors,
@@ -764,6 +768,9 @@
           telegramBotToken = s.telegramBotToken || telegramBotToken;
           telegramBotUsername = s.telegramBotUsername || telegramBotUsername;
           hasTelegramBot = !!s.hasTelegramBot;
+          if (s.workflowCustomizationUserEnabled !== undefined) {
+            workflowCustomizationUserEnabled = s.workflowCustomizationUserEnabled !== false;
+          }
           if (s.modelsEnabled) modelsEnabled = { ...s.modelsEnabled };
           if (s.providersAllowed) providersAllowed = { ...providersAllowed, ...s.providersAllowed };
           if (s.enabledToolConnectors && Array.isArray(s.enabledToolConnectors)) {
@@ -2003,6 +2010,52 @@
                     class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'byok_pro' ? 'bg-[#1677FF] text-white shadow-sm' : 'text-[#4B6382] hover:text-[#102A56]'}"
                   >
                     <span>Pro Plan</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dedicated Switch Card: Workflow Studio & Customization (User Access Control) -->
+              <div class="p-4 sm:p-6 rounded-3xl {workflowCustomizationUserEnabled ? 'bg-[#F3F8FF] border border-[#CFE2FA]' : 'bg-amber-50/70 border border-amber-200'} flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-2xs">
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="relative flex h-3 w-3">
+                      {#if workflowCustomizationUserEnabled}
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                      {:else}
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                      {/if}
+                    </span>
+                    <h3 class="text-sm sm:text-base font-bold text-[#102A56]">
+                      Workflow Studio &amp; Customization (User Access Control)
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide {workflowCustomizationUserEnabled ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-900 border border-amber-300'}">
+                      {workflowCustomizationUserEnabled ? 'Active for Users' : 'Admin-Only Access'}
+                    </span>
+                  </div>
+                  <p class="text-xs text-[#4B6382] leading-relaxed max-w-2xl">
+                    Toggle whether regular users can access the Workflow Studio. When turned OFF, Workflow Studio is completely locked and hidden for regular users, while Admins always retain full access to open and customize workflows.
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" bind:checked={workflowCustomizationUserEnabled} class="sr-only peer" />
+                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1677FF]"></div>
+                  </label>
+                  <button
+                    type="button"
+                    onclick={saveSettings}
+                    disabled={isSaving}
+                    class="px-4 py-2 rounded-xl blue-btn text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  >
+                    {#if isSaving}
+                      <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      <span>Saving...</span>
+                    {:else}
+                      <Icon name="Save" size={14} />
+                      <span>Save Setting</span>
+                    {/if}
                   </button>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import { TOOL_CONNECTORS } from '$lib/config/toolConnectors';
 
 const STORAGE_KEY = 'ezbo_public_plans';
 const TOOLS_STORAGE_KEY = 'ezbo_enabled_tool_connectors';
+const WORKFLOW_USER_STORAGE_KEY = 'ezbo_workflow_user_enabled';
 
 export function getAllToolConnectorIds(): string[] {
   return TOOL_CONNECTORS.map((t) => t.id);
@@ -23,6 +24,20 @@ function getInitialEnabledToolConnectors(): string[] {
 }
 
 export const enabledToolConnectorsStore = writable<string[]>(getInitialEnabledToolConnectors());
+
+function getInitialWorkflowCustomizationState(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    const raw = localStorage.getItem(WORKFLOW_USER_STORAGE_KEY);
+    if (raw === 'false') return false;
+    if (raw === 'true') return true;
+  } catch {
+    // fallback
+  }
+  return true;
+}
+
+export const workflowCustomizationUserStore = writable<boolean>(getInitialWorkflowCustomizationState());
 
 export function normalizePlans(raw: any): PlansSettings {
   if (!raw || typeof raw !== 'object') {
@@ -121,6 +136,16 @@ export async function loadPublicPlans(force = false): Promise<PlansSettings> {
         const normalized = normalizePlans(data.plans);
         plansStore.set(normalized);
         lastFetched = now;
+        if (typeof data.workflowCustomizationUserEnabled === 'boolean') {
+          workflowCustomizationUserStore.set(data.workflowCustomizationUserEnabled);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(WORKFLOW_USER_STORAGE_KEY, String(data.workflowCustomizationUserEnabled));
+            } catch {
+              // ignore
+            }
+          }
+        }
         if (data.enabledToolConnectors && Array.isArray(data.enabledToolConnectors)) {
           enabledToolConnectorsStore.set(data.enabledToolConnectors);
           if (typeof window !== 'undefined') {

@@ -24,12 +24,15 @@
   import { decryptVaultKey } from '$lib/services/crypto';
   import { executeToolWithGemini } from '$lib/services/gemini';
   import { marked } from 'marked';
+  import { workflowCustomizationUserStore } from '$lib/stores/plansStore';
 
   let { onOpenByok }: { onOpenByok?: () => void } = $props();
 
   let isStudioOpen = $state(false);
   let showUpgradeModal = $state(false);
   let isPro = $derived($isProPlan);
+  const isAdmin = $derived(typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true');
+  const isWorkflowStudioVisible = $derived(isAdmin || $workflowCustomizationUserStore !== false);
 
   const isCloudManaged = $derived(
     $subscription?.tier === 'managed' ||
@@ -448,26 +451,28 @@
         <span class="text-[10px] text-emerald-600 font-semibold">• Readymade 1-Click Execution</span>
       </div>
 
-      {#if isPro}
-        <button
-          type="button"
-          onclick={() => (isStudioOpen = true)}
-          class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#1677FF] hover:bg-[#F0F5FF] border border-[#CFE2FA] flex items-center gap-1 cursor-pointer transition-colors"
-        >
-          <Icon name="Sliders" size={13} />
-          <span>Customize Workflow</span>
-        </button>
-      {:else}
-        <button
-          type="button"
-          onclick={() => (showUpgradeModal = true)}
-          class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#102A56] hover:bg-gray-100 border border-gray-200 flex items-center gap-1.5 cursor-pointer transition-colors"
-        >
-          <span>Customize Workflow</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase bg-[#1677FF] text-white shadow-2xs">
-            [PRO]
-          </span>
-        </button>
+      {#if isWorkflowStudioVisible}
+        {#if isPro || isAdmin}
+          <button
+            type="button"
+            onclick={() => (isStudioOpen = true)}
+            class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#1677FF] hover:bg-[#F0F5FF] border border-[#CFE2FA] flex items-center gap-1 cursor-pointer transition-colors"
+          >
+            <Icon name="Sliders" size={13} />
+            <span>Customize Workflow</span>
+          </button>
+        {:else}
+          <button
+            type="button"
+            onclick={() => (showUpgradeModal = true)}
+            class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#102A56] hover:bg-gray-100 border border-gray-200 flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <span>Customize Workflow</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase bg-[#1677FF] text-white shadow-2xs">
+              [PRO]
+            </span>
+          </button>
+        {/if}
       {/if}
     </div>
 

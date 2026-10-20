@@ -12,7 +12,7 @@
   import WorkflowStudioModal from '$lib/components/WorkflowStudioModal.svelte';
   import type { PlanTierId } from '$lib/config/plans';
   import { initiateSubscriptionPayment, verifyOpayTransaction } from '$lib/services/opay';
-  import { plansStore, loadPublicPlans } from '$lib/stores/plansStore';
+  import { plansStore, loadPublicPlans, workflowCustomizationUserStore } from '$lib/stores/plansStore';
   import { whatsappApi } from '$lib/services/whatsappApi';
   import { validateGeminiKey } from '$lib/services/gemini';
   import { goto } from '$app/navigation';
@@ -52,13 +52,33 @@
   let isAppDownloadModalOpen = $state(false);
   let hasCheckedServerAccess = $state(false);
 
-  // Pro Workflow Studio State
+  // Pro Workflow Studio State & Admin Access Control
+  const isAdmin = $derived(typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true');
+  const isWorkflowStudioVisible = $derived(isAdmin || $workflowCustomizationUserStore !== false);
+
   let isDashboardStudioOpen = $state(false);
   let studioAgentName = $state('Master Specialist Agent');
   let handleStudioTrigger: ((e: any) => void) | null = null;
   let handleHashChange: (() => void) | null = null;
+  let studioBlockedToast = $state(false);
+  let studioBlockedTimer: any = null;
+
+  function showStudioBlockedToast() {
+    studioBlockedToast = true;
+    if (studioBlockedTimer) clearTimeout(studioBlockedTimer);
+    studioBlockedTimer = setTimeout(() => {
+      studioBlockedToast = false;
+    }, 4000);
+  }
 
   function openWorkflowStudio(agentName: string = 'Master Specialist Agent') {
+    if (!isWorkflowStudioVisible) {
+      showStudioBlockedToast();
+      if (typeof window !== 'undefined' && window.location.hash === '#open-workflow-studio') {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      return;
+    }
     studioAgentName = agentName;
     isDashboardStudioOpen = true;
   }
@@ -267,13 +287,23 @@
     };
     handleHashChange = () => {
       if (window.location.hash === '#open-workflow-studio') {
+        if (!isWorkflowStudioVisible) {
+          showStudioBlockedToast();
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+          return;
+        }
         openWorkflowStudio();
       }
     };
     if (typeof window !== 'undefined') {
       window.addEventListener('ezbo:open-workflow-studio', handleStudioTrigger);
       if (window.location.hash === '#open-workflow-studio') {
-        openWorkflowStudio();
+        if (!isWorkflowStudioVisible) {
+          showStudioBlockedToast();
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+        } else {
+          openWorkflowStudio();
+        }
       }
       window.addEventListener('hashchange', handleHashChange);
     }
@@ -560,7 +590,7 @@
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-2 sm:gap-3">
-        {#if $isProPlan}
+        {#if isWorkflowStudioVisible && ($isProPlan || isAdmin)}
           <button
             type="button"
             onclick={() => openWorkflowStudio()}
@@ -624,7 +654,7 @@
                   class="w-full sm:w-60 bg-[#0B1F42]/70 border border-[#38CFFF]/30 focus:border-[#38CFFF] focus:bg-[#0B1F42] rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/60 outline-none transition-all"
                 />
               </div>
-              {#if $isProPlan}
+              {#if isWorkflowStudioVisible && ($isProPlan || isAdmin)}
                 <button
                   type="button"
                   onclick={() => openWorkflowStudio()}
@@ -1461,4 +1491,14 @@
     bind:isOpen={isDashboardStudioOpen}
     agentName={studioAgentName}
   />
+
+  {#if studioBlockedToast}
+    <div
+      role="status"
+      class="fixed bottom-6 right-6 z-[250] max-w-md px-4 py-3 rounded-2xl bg-[#102A56] text-white text-xs font-semibold shadow-2xl border border-amber-400/40 flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200"
+    >
+      <span class="text-base shrink-0">🔒</span>
+      <span>Workflow Studio is currently reserved for platform administrators.</span>
+    </div>
+  {/if}
 </div>

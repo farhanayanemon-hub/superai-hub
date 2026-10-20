@@ -91,6 +91,10 @@ export const POST: RequestHandler = async ({ request }) => {
       cleanPatch.channelsCeoEnabled = patch.channelsCeoEnabled;
     }
 
+    if (typeof patch.workflowCustomizationUserEnabled === 'boolean') {
+      cleanPatch.workflowCustomizationUserEnabled = patch.workflowCustomizationUserEnabled;
+    }
+
     if (Array.isArray(patch.enabledToolConnectors)) {
       cleanPatch.enabledToolConnectors = patch.enabledToolConnectors.filter((id: any) => typeof id === 'string');
     }

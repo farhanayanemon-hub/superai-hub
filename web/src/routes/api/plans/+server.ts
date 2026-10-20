@@ -10,7 +10,8 @@ export const GET: RequestHandler = async () => {
     return json({
       success: true,
       plans,
-      enabledToolConnectors
+      enabledToolConnectors,
+      workflowCustomizationUserEnabled: config.workflowCustomizationUserEnabled !== false
     }, {
       headers: {
         'Cache-Control': 'public, max-age=15, s-maxage=30'
@@ -21,6 +22,7 @@ export const GET: RequestHandler = async () => {
       success: false,
       plans: DEFAULT_PLANS,
       enabledToolConnectors: DEFAULT_TOOL_CONNECTOR_IDS,
+      workflowCustomizationUserEnabled: true,
       error: err.message
     }, { status: 500 });
   }
