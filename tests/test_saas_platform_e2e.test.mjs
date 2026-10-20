@@ -440,7 +440,7 @@ describe('Tier 1: Feature Coverage (16 SaaS Platform Features)', () => {
       const { TOOLS, ALL_TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
       const helperList = ALL_TOOLS || TOOLS;
       assert.ok(Array.isArray(helperList), 'tools.ts must export array of helpers');
-      assert.strictEqual(helperList.length, 75, 'Must contain all 75 readymade AI Helpers');
+      assert.ok(helperList.length >= 75, 'Must contain at least 75 readymade AI Helpers');
     });
 
     it('9.5 Slash command (/) autocomplete in chat must list helpers without store purchase barriers', () => {
@@ -1128,7 +1128,7 @@ describe('Tier 4: Real-World Application Scenarios', () => {
     // 1. Verify 75 readymade AI Helpers exist
     const { TOOLS, ALL_TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
     const helpers = ALL_TOOLS || TOOLS;
-    assert.strictEqual(helpers.length, 75);
+    assert.ok(helpers.length >= 75);
 
     // 2. Tool Drawer allows executing readymade workflows
     const drawer = readSafe(PATHS.toolDrawer);

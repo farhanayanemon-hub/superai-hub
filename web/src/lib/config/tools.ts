@@ -60,10 +60,10 @@ Your job is to:
 export const CATEGORIES = [
   {
     "id": "all",
-    "name": "All 75 AI Helpers",
-    "shortName": "All 75+",
+    "name": "All 80 AI Helpers",
+    "shortName": "All 80+",
     "icon": "Grid",
-    "count": 75
+    "count": 80
   },
   {
     "id": "ads_marketing",
@@ -112,7 +112,7 @@ export const CATEGORIES = [
     "name": "Business Automation, Sales & Time Mgmt",
     "shortName": "Business & Time",
     "icon": "Zap",
-    "count": 13
+    "count": 18
   }
 ] as const;
 
@@ -3749,6 +3749,372 @@ const RAW_TOOLS: RawAITool[] = [
     "agentRole": "OKR & Weekly Sprint Coach",
     "agentTagline": "Reviews weekly wins, fixes bottlenecks, and sets next week’s top 3 KPIs.",
     "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=GoalPulse"
+  },
+  {
+    "id": "omnichannel_customer_support",
+    "code": "#76",
+    "name": "Omnichannel AI Customer Support Representative",
+    "nameEn": "Omnichannel AI Customer Support Representative",
+    "category": "business_automation",
+    "categoryName": "Business Automation, Sales & Time Mgmt",
+    "description": "All-in-one universal support agent handling WhatsApp, Messenger, Instagram DM, and Telegram from one unified knowledge base.",
+    "shortDesc": "Unified AI customer rep answering WhatsApp, Facebook Messenger, Instagram, and Telegram 24/7.",
+    "icon": "MessageSquareCheck",
+    "badge": "Omnichannel ⭐",
+    "inputs": [
+      {
+        "name": "businessName",
+        "label": "Business / Brand Name",
+        "type": "text",
+        "placeholder": "e.g. TrendyWear BD / TechSolutions Cloud",
+        "required": true
+      },
+      {
+        "name": "businessDescription",
+        "label": "Products, Services & Pricing Summary",
+        "type": "textarea",
+        "placeholder": "e.g. Premium cotton t-shirts (BDT 450) and polo shirts (BDT 650). Sizes S to XXL.",
+        "required": true
+      },
+      {
+        "name": "deliveryReturnPolicy",
+        "label": "Delivery Timelines, Courier Fees & Return Policy",
+        "type": "textarea",
+        "placeholder": "e.g. Inside Dhaka BDT 60 (24-48h), Outside Dhaka BDT 120 (48-72h). 7-day exchange.",
+        "required": true
+      },
+      {
+        "name": "faqKnowledgeBase",
+        "label": "Official FAQs & Key Customer Answers",
+        "type": "textarea",
+        "placeholder": "e.g. Q: Cash on delivery available? A: Yes, all over Bangladesh with zero advance.",
+        "required": true
+      },
+      {
+        "name": "toneOfVoice",
+        "label": "Tone of Voice & Language Preference",
+        "type": "select",
+        "options": [
+          "Polite Bengali (নম্র ও আন্তরিক বাংলা)",
+          "Professional English",
+          "Banglish Friendly (সহজ বাংলিশ)",
+          "Casual & Emojis (সোশ্যাল ফ্রেন্ডলি)"
+        ],
+        "defaultValue": "Polite Bengali (নম্র ও আন্তরিক বাংলা)"
+      },
+      {
+        "name": "customerMessage",
+        "label": "Inbound Customer Message / Inquiry",
+        "type": "textarea",
+        "placeholder": "e.g. ভাইয়া ব্ল্যাক কালার এল সাইজ কি এভেইলেবল আছে? ডেলিভারি চার্জ কত banani তে?",
+        "required": true
+      }
+    ],
+    "systemPrompt": "You are OmniSupport (#76 — Omnichannel AI Customer Support Representative), an elite autonomous customer service executive managing inbound communications across WhatsApp Business, Facebook Messenger, Instagram DM, and Telegram Bot for high-growth enterprises. Your mission is to deliver instant, empathetic, 100% accurate customer responses based strictly on the business's official knowledge base, products, delivery timelines, and return policies. Deliver: 1) Immediate empathetic acknowledgement that matches the customer's language and tone, 2) Clear, concise answer addressing every aspect of the customer's query, 3) High-converting next step or call-to-action (order confirmation, size selection, payment method, or agent escalation), 4) Strict adherence to company pricing and policies with zero hallucinations or unverified promises.",
+    "keywords": [
+      "omnichannel support",
+      "customer support",
+      "customer service",
+      "auto reply",
+      "chat bot",
+      "whatsapp messenger instagram telegram"
+    ],
+    "agentName": "OmniSupport",
+    "agentRole": "Chief Omnichannel Customer Support Lead",
+    "agentTagline": "Monitors and auto-replies across WhatsApp, Messenger, Instagram, and Telegram 24/7 using single business FAQ.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=OmniSupport&backgroundColor=1677ff,0ea5e9"
+  },
+  {
+    "id": "whatsapp_business_support",
+    "code": "#77",
+    "name": "WhatsApp Business Concierge & Order Agent",
+    "nameEn": "WhatsApp Business Concierge & Order Agent",
+    "category": "business_automation",
+    "categoryName": "Business Automation, Sales & Time Mgmt",
+    "description": "Takes orders, confirms shipping details, checks stock status, and crafts WhatsApp *bold* formatted replies.",
+    "shortDesc": "Takes orders, confirms shipping details, and answers WhatsApp inquiries with *bold* formatting.",
+    "icon": "MessageSquareCheck",
+    "badge": "WhatsApp 📱",
+    "inputs": [
+      {
+        "name": "businessName",
+        "label": "Business / Brand Name",
+        "type": "text",
+        "placeholder": "e.g. TrendyWear BD / Organic Fresh Groceries",
+        "required": true
+      },
+      {
+        "name": "businessDescription",
+        "label": "Products, Catalogs & Pricing Breakdown",
+        "type": "textarea",
+        "placeholder": "e.g. Organic Honey 500g (BDT 600), Mustard Oil 1L (BDT 320). Cash on Delivery available.",
+        "required": true
+      },
+      {
+        "name": "deliveryReturnPolicy",
+        "label": "Courier Charges & Order Delivery Terms",
+        "type": "textarea",
+        "placeholder": "e.g. Inside Dhaka BDT 70 via Pathao Courier (24h). Outside Dhaka BDT 130 (48h). Check on delivery.",
+        "required": true
+      },
+      {
+        "name": "faqKnowledgeBase",
+        "label": "Order Taking & Customer FAQs",
+        "type": "textarea",
+        "placeholder": "e.g. Q: Order kivabe korbo? A: Send Name, Phone, and Full Delivery Address here.",
+        "required": true
+      },
+      {
+        "name": "toneOfVoice",
+        "label": "WhatsApp Chat Tone",
+        "type": "select",
+        "options": [
+          "Polite Bengali (নম্র ও আন্তরিক বাংলা)",
+          "Professional English",
+          "Banglish Friendly (সহজ বাংলিশ)",
+          "Casual & Emojis (সোশ্যাল ফ্রেন্ডলি)"
+        ],
+        "defaultValue": "Polite Bengali (নম্র ও আন্তরিক বাংলা)"
+      },
+      {
+        "name": "customerMessage",
+        "label": "WhatsApp Customer Message",
+        "type": "textarea",
+        "placeholder": "e.g. 2 ta honey ar 1 ta mustard oil order korte chai. Dhanmondi te koto porbe total?",
+        "required": true
+      }
+    ],
+    "systemPrompt": "You are WACallCenter (#77 — WhatsApp Business Concierge & Order Agent), a specialized WhatsApp customer support and sales closer. You craft concise, mobile-friendly messages optimized for WhatsApp chat ergonomics: using WhatsApp *bold* formatting for prices, product names, and order numbers, bullet points for lists, and polite closing signatures. Deliver: 1) Instant warm greeting and direct answer, 2) Step-by-step order collection format (Name, Full Address, Phone Number, Selected Items, Quantity), 3) Clear pricing breakdown with courier charge, 4) Friendly Cash-on-Delivery confirmation prompt.",
+    "keywords": [
+      "whatsapp business",
+      "whatsapp order",
+      "whatsapp bot",
+      "cash on delivery",
+      "order taking"
+    ],
+    "agentName": "WACallCenter",
+    "agentRole": "WhatsApp Business Concierge & Dispatch Specialist",
+    "agentTagline": "Automates WhatsApp customer orders, Cash-on-Delivery verifications, and delivery status updates.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=WACallCenter&backgroundColor=25D366,128C7E"
+  },
+  {
+    "id": "messenger_customer_support",
+    "code": "#78",
+    "name": "Facebook Page Messenger Customer Support Rep",
+    "nameEn": "Facebook Page Messenger Customer Support Rep",
+    "category": "business_automation",
+    "categoryName": "Business Automation, Sales & Time Mgmt",
+    "description": "Resolves Facebook Page customer messages, product catalog inquiries, and COD orders with polite bilingual care.",
+    "shortDesc": "Handles Facebook Page messages, product price inquiries, and order bookings with polite care.",
+    "icon": "MessageSquare",
+    "badge": "Messenger 💬",
+    "inputs": [
+      {
+        "name": "businessName",
+        "label": "Facebook Page / Business Name",
+        "type": "text",
+        "placeholder": "e.g. Dhaka Glamour Studio / Gadget Zone BD",
+        "required": true
+      },
+      {
+        "name": "businessDescription",
+        "label": "Featured Products & Page Catalog",
+        "type": "textarea",
+        "placeholder": "e.g. Wireless Earbuds Pro (BDT 1,450), Smartwatch V2 (BDT 2,200). 6 months official warranty.",
+        "required": true
+      },
+      {
+        "name": "deliveryReturnPolicy",
+        "label": "Shipping Fees & Replacement Guarantee",
+        "type": "textarea",
+        "placeholder": "e.g. Free shipping on orders over BDT 2000. 3-day instant replacement on defect.",
+        "required": true
+      },
+      {
+        "name": "faqKnowledgeBase",
+        "label": "Page Inbox FAQs & Order Steps",
+        "type": "textarea",
+        "placeholder": "e.g. Q: Original kina? A: 100% original verified authentic with warranty card.",
+        "required": true
+      },
+      {
+        "name": "toneOfVoice",
+        "label": "Messenger Reply Tone",
+        "type": "select",
+        "options": [
+          "Polite Bengali (নম্র ও আন্তরিক বাংলা)",
+          "Professional English",
+          "Banglish Friendly (সহজ বাংলিশ)",
+          "Casual & Emojis (সোশ্যাল ফ্রেন্ডলি)"
+        ],
+        "defaultValue": "Polite Bengali (নম্র ও আন্তরিক বাংলা)"
+      },
+      {
+        "name": "customerMessage",
+        "label": "Inbound Page Inbox Message",
+        "type": "textarea",
+        "placeholder": "e.g. Earbuds er price koto? warranty ache kina ar Uttara te delivery kobe pabo?",
+        "required": true
+      }
+    ],
+    "systemPrompt": "You are PageRep (#78 — Facebook Page Messenger Customer Support Rep), a dedicated social customer care specialist for Facebook business pages. You understand social buyer psychology: customers asking 'price please', 'available?', or 'delivery koto din lagbe'. You respond with high warmth, immediate clarity, and structured order guidance. Deliver: 1) Gracious brand greeting, 2) Direct answers to product questions with exact variants and pricing, 3) Hassle-free ordering steps with Cash-on-Delivery options, 4) Reassuring return/exchange guarantees to eliminate buyer hesitation.",
+    "keywords": [
+      "facebook messenger",
+      "page inbox",
+      "f commerce",
+      "messenger bot",
+      "facebook support"
+    ],
+    "agentName": "PageRep",
+    "agentRole": "Facebook Page Concierge & In-Inbox Closer",
+    "agentTagline": "Replies to Facebook Page inbox inquiries, provides instant product info, and secures order bookings.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=PageRep&backgroundColor=1877F2,0064E0"
+  },
+  {
+    "id": "instagram_dm_support",
+    "code": "#79",
+    "name": "Instagram DM Sales Closer & Lead Bot",
+    "nameEn": "Instagram DM Sales Closer & Lead Bot",
+    "category": "business_automation",
+    "categoryName": "Business Automation, Sales & Time Mgmt",
+    "description": "Engages story replies, shares product checkout links, and converts Instagram followers into buyers.",
+    "shortDesc": "Converts Instagram DM inquiries and Story replies into paid orders with engaging, aesthetic replies.",
+    "icon": "Camera",
+    "badge": "Insta DM 📸",
+    "inputs": [
+      {
+        "name": "businessName",
+        "label": "Instagram Handle / Brand Name",
+        "type": "text",
+        "placeholder": "e.g. @AestheticLifestyleBD / Velvet Closet",
+        "required": true
+      },
+      {
+        "name": "businessDescription",
+        "label": "Collections, Drops & Price Range",
+        "type": "textarea",
+        "placeholder": "e.g. Summer Linen Co-ord sets (BDT 1,850). Sizes S, M, L. Limited batch restock.",
+        "required": true
+      },
+      {
+        "name": "deliveryReturnPolicy",
+        "label": "Courier Delivery & Sizing Exchange",
+        "type": "textarea",
+        "placeholder": "e.g. Courier delivery in 24-48 hours. Size exchange supported within 3 days of delivery.",
+        "required": true
+      },
+      {
+        "name": "faqKnowledgeBase",
+        "label": "Instagram Story & DM FAQs",
+        "type": "textarea",
+        "placeholder": "e.g. Q: Link please! A: Direct checkout link or DM us your phone & address to book.",
+        "required": true
+      },
+      {
+        "name": "toneOfVoice",
+        "label": "Instagram DM Tone",
+        "type": "select",
+        "options": [
+          "Casual & Emojis (সোশ্যাল ফ্রেন্ডলি)",
+          "Polite Bengali (নম্র ও আন্তরিক বাংলা)",
+          "Professional English",
+          "Banglish Friendly (সহজ বাংলিশ)"
+        ],
+        "defaultValue": "Casual & Emojis (সোশ্যাল ফ্রেন্ডলি)"
+      },
+      {
+        "name": "customerMessage",
+        "label": "Story Reply or DM Inquiry",
+        "type": "textarea",
+        "placeholder": "e.g. OMG loved the beige co-ord in your reel! Is M size in stock and what is the price?",
+        "required": true
+      }
+    ],
+    "systemPrompt": "You are InstaCloser (#79 — Instagram DM Sales Closer & Lead Bot), a modern social commerce sales specialist built for Instagram Direct. You know that Instagram conversations must feel aesthetic, warm, emoji-rich, and effortless. Deliver: 1) Enthusiastic greeting with tasteful emojis matching brand aesthetics, 2) Direct answers about product details, colors, sizing, and styling advice, 3) 1-click checkout instructions or instant DM booking request (Name + Address + Phone), 4) Friendly urgency or limited-edition highlight without being pushy.",
+    "keywords": [
+      "instagram dm",
+      "instagram sales",
+      "story reply bot",
+      "direct message bot",
+      "insta closer"
+    ],
+    "agentName": "InstaCloser",
+    "agentRole": "Instagram Direct Sales & Influencer Concierge",
+    "agentTagline": "Turns Instagram Story replies and product DMs into sales with engaging, aesthetic conversational replies.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=InstaCloser&backgroundColor=E1306C,833AB4"
+  },
+  {
+    "id": "telegram_customer_support",
+    "code": "#80",
+    "name": "Telegram Community & Helpdesk Bot",
+    "nameEn": "Telegram Community & Helpdesk Bot",
+    "category": "business_automation",
+    "categoryName": "Business Automation, Sales & Time Mgmt",
+    "description": "Provides automated community helpdesk support, instant FAQ resolution, and command-driven assistance.",
+    "shortDesc": "Automates Telegram group helpdesk, FAQ queries, and support ticket commands 24/7.",
+    "icon": "Send",
+    "badge": "Telegram ✈️",
+    "inputs": [
+      {
+        "name": "businessName",
+        "label": "Telegram Bot / Community Name",
+        "type": "text",
+        "placeholder": "e.g. Ezbo Community Support / ForexSignals Helpdesk",
+        "required": true
+      },
+      {
+        "name": "businessDescription",
+        "label": "Community Services, Plans & Features",
+        "type": "textarea",
+        "placeholder": "e.g. Premium VIP Signals Channel, Software Bot License, Weekly Strategy Webinars.",
+        "required": true
+      },
+      {
+        "name": "deliveryReturnPolicy",
+        "label": "Subscription Access & Refund Terms",
+        "type": "textarea",
+        "placeholder": "e.g. Instant automated invite link upon payment verification. 100% money-back in 48 hours.",
+        "required": true
+      },
+      {
+        "name": "faqKnowledgeBase",
+        "label": "Bot Commands & Knowledge Base",
+        "type": "textarea",
+        "placeholder": "e.g. /start - Welcome menu, /pricing - Current subscription rates, /help - Contact human admin.",
+        "required": true
+      },
+      {
+        "name": "toneOfVoice",
+        "label": "Telegram Response Tone",
+        "type": "select",
+        "options": [
+          "Professional English",
+          "Polite Bengali (নম্র ও আন্তরিক বাংলা)",
+          "Banglish Friendly (সহজ বাংলিশ)",
+          "Casual & Emojis (সোশ্যাল ফ্রেন্ডলি)"
+        ],
+        "defaultValue": "Professional English"
+      },
+      {
+        "name": "customerMessage",
+        "label": "User Query or Bot Command",
+        "type": "textarea",
+        "placeholder": "e.g. /pricing or 'How do I upgrade to the VIP group after paying via bKash/crypto?'",
+        "required": true
+      }
+    ],
+    "systemPrompt": "You are TeleDesk (#80 — Telegram Community & Helpdesk Bot), an executive support bot specialized for Telegram channels, groups, and direct support bots. You deliver rapid, concise, command-aware assistance with structured formatting. Deliver: 1) Rapid greeting with instant query resolution, 2) Clear numbered steps or bullet points for policy/technical questions, 3) Clear escalation path (/support, /human, or helpdesk email) if the query requires human intervention, 4) Complete security guidance reminding users to never share private passwords or payment OTPs in Telegram.",
+    "keywords": [
+      "telegram bot",
+      "telegram support",
+      "telegram helpdesk",
+      "community bot",
+      "faq bot"
+    ],
+    "agentName": "TeleDesk",
+    "agentRole": "Telegram Community & Technical Helpdesk Bot",
+    "agentTagline": "Provides 24/7 automated community helpdesk support, instant FAQ lookup, and escalation commands.",
+    "agentAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=TeleDesk&backgroundColor=229ED9,0088CC"
   }
 ];
 

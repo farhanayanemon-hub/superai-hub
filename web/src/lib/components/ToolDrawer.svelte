@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Icon from './Icon.svelte';
   import BrandIcon from './BrandIcon.svelte';
   import WorkflowStudioModal from './WorkflowStudioModal.svelte';
@@ -19,6 +20,7 @@
     apiVault,
     activeDashboardTab
   } from '$lib/stores/userStore';
+  import { getBusinessChannelsState, type ConnectedToolState } from '$lib/config/toolConnectors';
   import { decryptVaultKey } from '$lib/services/crypto';
   import { executeToolWithGemini } from '$lib/services/gemini';
   import { marked } from 'marked';
@@ -46,6 +48,53 @@
     activeDashboardTab.set('api-keys');
     if (onOpenByok) {
       onOpenByok();
+    }
+  }
+
+  let businessChannels = $state<Record<string, ConnectedToolState>>({});
+
+  function refreshBusinessChannels(): void {
+    businessChannels = getBusinessChannelsState();
+  }
+
+  onMount(() => {
+    refreshBusinessChannels();
+    const handleUpdate = () => {
+      refreshBusinessChannels();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ezbo:tools-updated', handleUpdate);
+      window.addEventListener('storage', handleUpdate);
+      return () => {
+        window.removeEventListener('ezbo:tools-updated', handleUpdate);
+        window.removeEventListener('storage', handleUpdate);
+      };
+    }
+  });
+
+  const isCustomerReplyAgent = $derived(
+    $activeTool?.code === '#76' ||
+    $activeTool?.code === '#77' ||
+    $activeTool?.code === '#78' ||
+    $activeTool?.code === '#79' ||
+    $activeTool?.code === '#80' ||
+    $activeTool?.id === 'omnichannel_customer_support' ||
+    $activeTool?.id === 'whatsapp_business_support' ||
+    $activeTool?.id === 'messenger_customer_support' ||
+    $activeTool?.id === 'instagram_dm_support' ||
+    $activeTool?.id === 'telegram_customer_support'
+  );
+
+  function handleNavigateToChannels() {
+    closeToolDrawer();
+    activeDashboardTab.set('tools');
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const el = document.getElementById('core-business-channels');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
   }
 
@@ -493,6 +542,106 @@
               <Icon name="ArrowRight" size={13} />
             </button>
           </div>
+        </div>
+      {/if}
+
+      <!-- ⚡ Connected Business Channels (for Omnichannel Customer Reply Agents #76 to #80) -->
+      {#if isCustomerReplyAgent}
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#F0F5FF] via-white to-[#F8FAFD] border border-[#CFE2FA] shadow-xs space-y-3.5 animate-in fade-in">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
+              <span class="text-base">⚡</span>
+              <h4 class="text-xs sm:text-sm font-extrabold text-[#102A56]">Connected Business Channels</h4>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1677FF]/10 text-[#1677FF]">
+                Auto-Reply
+              </span>
+            </div>
+            <button
+              type="button"
+              onclick={handleNavigateToChannels}
+              class="text-[11px] font-bold text-[#1677FF] hover:text-[#0E63E0] hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Manage</span>
+              <Icon name="ArrowRight" size={12} />
+            </button>
+          </div>
+
+          <!-- 4 Channel Status Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- WhatsApp -->
+            <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
+              <BrandIcon modelId="whatsapp_cloud" size={16} />
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-[#102A56] truncate">WhatsApp</p>
+                {#if businessChannels['whatsapp_business']?.status === 'connected'}
+                  <p class="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live</span>
+                  </p>
+                {:else}
+                  <p class="text-[10px] font-medium text-[#7B92AE]">Not connected</p>
+                {/if}
+              </div>
+            </div>
+
+            <!-- Messenger -->
+            <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
+              <BrandIcon modelId="facebook_graph" size={16} />
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-[#102A56] truncate">Messenger</p>
+                {#if businessChannels['facebook_messenger']?.status === 'connected'}
+                  <p class="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live</span>
+                  </p>
+                {:else}
+                  <p class="text-[10px] font-medium text-[#7B92AE]">Not connected</p>
+                {/if}
+              </div>
+            </div>
+
+            <!-- Instagram -->
+            <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
+              <BrandIcon modelId="instagram_basic" size={16} />
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-[#102A56] truncate">Instagram</p>
+                {#if businessChannels['instagram_dm']?.status === 'connected'}
+                  <p class="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live</span>
+                  </p>
+                {:else}
+                  <p class="text-[10px] font-medium text-[#7B92AE]">Not connected</p>
+                {/if}
+              </div>
+            </div>
+
+            <!-- Telegram -->
+            <div class="p-2.5 rounded-xl bg-white border border-[#E3ECF7] flex items-center gap-2 shadow-2xs">
+              <BrandIcon modelId="telegram_bot" size={16} />
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-[#102A56] truncate">Telegram</p>
+                {#if businessChannels['telegram_support_bot']?.status === 'connected'}
+                  <p class="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live</span>
+                  </p>
+                {:else}
+                  <p class="text-[10px] font-medium text-[#7B92AE]">Not connected</p>
+                {/if}
+              </div>
+            </div>
+          </div>
+
+          <!-- Direct 1-Click Action Button -->
+          <button
+            type="button"
+            onclick={handleNavigateToChannels}
+            class="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#F3F8FF] border border-[#CFE2FA] hover:border-[#1677FF] text-[#1677FF] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-98"
+          >
+            <span>🔗 Connect Channels in Tools &amp; Integrations</span>
+            <Icon name="ArrowRight" size={13} />
+          </button>
         </div>
       {/if}
 

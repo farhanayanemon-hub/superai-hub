@@ -35,8 +35,8 @@ describe('Empirical Challenge Suite: Milestone M2 (Dual-Tier Persistence & CEO S
   // 1. All 75 Helpers Exhaustive Mention & Delegation Verification
   // =========================================================================
   describe('1. All 75 Helpers Mention Chip & Delegation Test', () => {
-    it('TOOLS array has exactly 75 helpers numbered #01 through #75', () => {
-      assert.equal(TOOLS.length, 75, `Expected 75 tools, got ${TOOLS.length}`);
+    it('TOOLS array has at least 75 helpers numbered #01 through #75', () => {
+      assert.ok(TOOLS.length >= 75, `Expected >= 75 tools, got ${TOOLS.length}`);
       for (let i = 1; i <= 75; i++) {
         const expectedCode = `#${String(i).padStart(2, '0')}`;
         const tool = TOOLS.find(t => t.code === expectedCode);

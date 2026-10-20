@@ -305,7 +305,7 @@
 
   // Filtered helpers for slash command popover
   const filteredTools = $derived.by(() => {
-    if (!slashQuery) return TOOLS.slice(0, 75);
+    if (!slashQuery) return TOOLS.slice(0, 80);
     const q = slashQuery.toLowerCase().replace(/^#/, '');
     return TOOLS.filter((t) => {
       const codeClean = t.code.toLowerCase().replace(/^#/, '');
@@ -316,7 +316,7 @@
         t.categoryName.toLowerCase().includes(q) ||
         t.keywords?.some((k) => k.toLowerCase().includes(q))
       );
-    }).slice(0, 75);
+    }).slice(0, 80);
   });
 
   // Detect slash typing

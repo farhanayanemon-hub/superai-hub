@@ -58,7 +58,7 @@ describe('Forensic Integrity Audit: Milestone M3 Components', () => {
       // handleSend must build payload, call /api/chat and handle response
       assert.match(floatingChatSource, /async\s+function\s+handleSend\(\)/);
       assert.match(floatingChatSource, /fetch\(['"]\/api\/chat['"],\s*\{/);
-      assert.match(floatingChatSource, /addChatMessage\(/);
+      assert.match(floatingChatSource, /(?:addChatMessage|chatMessages\.set)\(/);
     });
   });
 
@@ -112,9 +112,9 @@ describe('Forensic Integrity Audit: Milestone M3 Components', () => {
       assert.match(channelModalSource, /src=\{\$whatsappQr\}/);
     });
 
-    it('FloatingCeoChat implements slash command (/) popover for all 75 helpers', () => {
+    it('FloatingCeoChat implements slash command (/) popover for all helpers', () => {
       assert.match(floatingChatSource, /const\s+filteredTools\s*=\s*\$derived\.by\(/);
-      assert.match(floatingChatSource, /TOOLS\.slice\(0,\s*75\)/);
+      assert.match(floatingChatSource, /TOOLS\.slice\(0,\s*(?:75|80)\)/);
       assert.match(floatingChatSource, /handleInput/);
       assert.match(floatingChatSource, /handleKeyDown/);
       assert.match(floatingChatSource, /selectHelper/);

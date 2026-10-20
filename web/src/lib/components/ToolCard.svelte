@@ -74,13 +74,23 @@
       </div>
 
       {#if isUnlocked}
-        <span
-          class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 shrink-0 flex items-center gap-1"
-          title="Controllable via AI CEO, WhatsApp & Telegram"
-        >
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span>CEO + WA/TG</span>
-        </span>
+        {#if tool.code === '#76' || tool.code === '#77' || tool.code === '#78' || tool.code === '#79' || tool.code === '#80'}
+          <span
+            class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-blue-50 border border-blue-200 text-blue-700 shrink-0 flex items-center gap-1"
+            title="Omnichannel Auto-Reply: WhatsApp • Facebook • Instagram • Telegram"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+            <span>WA • FB • IG • TG</span>
+          </span>
+        {:else}
+          <span
+            class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 shrink-0 flex items-center gap-1"
+            title="Controllable via AI CEO, WhatsApp & Telegram"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>CEO + WA/TG</span>
+          </span>
+        {/if}
       {:else}
         <span
           class="px-2 py-0.5 text-[9px] font-black rounded-full bg-amber-50 border border-amber-200 text-amber-700 shrink-0 flex items-center gap-1 shadow-2xs"

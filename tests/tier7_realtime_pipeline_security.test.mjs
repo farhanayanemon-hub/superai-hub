@@ -444,19 +444,20 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
   // 4. Comprehensive 75 AI Helpers & Store Bots Invariant
   // ==========================================================================
   describe('4. Comprehensive 75 AI Helpers & Store Bots Invariant', () => {
-    it('4.1 Exactly 75 AI Helpers must be defined and exported in tools.ts', async () => {
+    it('4.1 At least 75 AI Helpers (all 80 helpers) must be defined and exported in tools.ts', async () => {
       assert.ok(fs.existsSync(PATHS.toolsTs), 'tools.ts must exist');
       const { TOOLS, ALL_TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
       const helperList = ALL_TOOLS || TOOLS;
       assert.ok(Array.isArray(helperList), 'tools.ts must export array of helpers');
-      assert.strictEqual(helperList.length, 75, 'Must contain exactly 75 AI Helpers');
+      assert.ok(helperList.length >= 75, `Expected >= 75 AI Helpers, got ${helperList.length}`);
+      assert.strictEqual(helperList.length, 80, 'Must contain all 80 AI Helpers');
     });
 
-    it('4.2 Every single AI Helper (#01 to #75) has non-empty typed inputs, roles, and deep executive prompts', async () => {
+    it('4.2 Every single AI Helper (#01 to #80) has non-empty typed inputs, roles, and deep executive prompts', async () => {
       const { TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
-      const expectedCodes = Array.from({ length: 75 }, (_, i) => `#${String(i + 1).padStart(2, '0')}`);
+      const expectedCodes = Array.from({ length: 80 }, (_, i) => `#${String(i + 1).padStart(2, '0')}`);
 
-      for (let i = 0; i < 75; i++) {
+      for (let i = 0; i < 80; i++) {
         const helper = TOOLS[i];
         assert.ok(helper, `Helper at index ${i} must exist`);
         assert.strictEqual(helper.code, expectedCodes[i], `Helper ${i + 1} code must match ${expectedCodes[i]}`);
@@ -466,6 +467,7 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
         assert.ok(helper.agentName && helper.agentName.trim().length > 0, `Helper ${helper.code} must have agentName`);
         assert.ok(helper.agentRole && helper.agentRole.trim().length > 0, `Helper ${helper.code} must have agentRole`);
         assert.ok(helper.agentTagline && helper.agentTagline.trim().length > 0, `Helper ${helper.code} must have agentTagline`);
+        assert.ok(helper.agentAvatar && helper.agentAvatar.trim().length > 0, `Helper ${helper.code} must have agentAvatar`);
 
         // Inputs validation
         assert.ok(Array.isArray(helper.inputs) && helper.inputs.length > 0, `Helper ${helper.code} must have >=1 input`);
@@ -482,6 +484,28 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
         assert.ok(helper.systemPrompt && helper.systemPrompt.length >= 100, `Helper ${helper.code} systemPrompt must be >=100 chars`);
         assert.ok(!helper.systemPrompt.includes('Lorem ipsum'), `Helper ${helper.code} must not contain placeholder text`);
         assert.ok(!helper.systemPrompt.includes('TODO:'), `Helper ${helper.code} must not contain TODO marker`);
+      }
+    });
+
+    it('4.2b Hybrid Omnichannel Customer Reply Agents (#76 to #80) exist with required inputs and deep prompts', async () => {
+      const { TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
+      const replyAgentIds = [
+        'omnichannel_customer_support',
+        'whatsapp_business_support',
+        'messenger_customer_support',
+        'instagram_dm_support',
+        'telegram_customer_support'
+      ];
+      for (const id of replyAgentIds) {
+        const agent = TOOLS.find((t) => t.id === id);
+        assert.ok(agent, `Customer reply agent ${id} must exist in TOOLS`);
+        const inputNames = agent.inputs.map((inp) => inp.name);
+        assert.ok(inputNames.includes('businessName'), `${id} must have businessName input`);
+        assert.ok(inputNames.includes('businessDescription'), `${id} must have businessDescription input`);
+        assert.ok(inputNames.includes('deliveryReturnPolicy'), `${id} must have deliveryReturnPolicy input`);
+        assert.ok(inputNames.includes('faqKnowledgeBase'), `${id} must have faqKnowledgeBase input`);
+        assert.ok(inputNames.includes('toneOfVoice'), `${id} must have toneOfVoice input`);
+        assert.ok(inputNames.includes('customerMessage'), `${id} must have customerMessage input`);
       }
     });
 

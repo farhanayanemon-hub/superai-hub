@@ -1635,3 +1635,160 @@ export function filterConnectorsByCategory(
   return list.filter((c) => c.category.toLowerCase() === category.toLowerCase() || c.categoryId.toLowerCase() === category.toLowerCase());
 }
 
+// ============================================================================
+// Core Business Customer Channels (Omnichannel Auto-Reply)
+// Distinct from personal AI CEO channels
+// ============================================================================
+
+export interface BusinessChannelConfig {
+  id: 'whatsapp_business' | 'facebook_messenger' | 'instagram_dm' | 'telegram_support_bot';
+  name: string;
+  subtitle: string;
+  brand: string;
+  badge: string;
+  icon: string;
+  description: string;
+  webhookPath: string;
+  usedByAgents: string;
+  fields: CredentialField[];
+}
+
+export const BUSINESS_CHANNELS: BusinessChannelConfig[] = [
+  {
+    id: 'whatsapp_business',
+    name: 'WhatsApp Business Cloud API',
+    subtitle: 'Official Meta WhatsApp Cloud API for Orders & Inbound Support',
+    brand: 'whatsapp',
+    badge: 'Meta Official',
+    icon: 'MessageSquareCheck',
+    description: 'Auto-reply to customer inquiries, confirm Cash-on-Delivery orders, and send WhatsApp delivery updates 24/7.',
+    webhookPath: '/api/webhooks/whatsapp-business',
+    usedByAgents: 'Omnichannel Agent (#76) & WhatsApp Concierge (#77)',
+    fields: [
+      { key: 'phoneNumberId', label: 'Phone Number ID', type: 'text', placeholder: '109823471092837', required: true },
+      { key: 'wabaId', label: 'WhatsApp Business Account (WABA) ID', type: 'text', placeholder: '987654321098765', required: true },
+      { key: 'accessToken', label: 'Permanent System User Access Token', type: 'password', placeholder: 'EAAG...', required: true },
+      { key: 'webhookVerifyToken', label: 'Webhook Verify Token', type: 'text', placeholder: 'ezbo_verify_token_secret', required: true }
+    ]
+  },
+  {
+    id: 'facebook_messenger',
+    name: 'Facebook Page Messenger',
+    subtitle: 'Meta Messenger Graph API for 24/7 Facebook Page Messages',
+    brand: 'facebook',
+    badge: 'High Conversion',
+    icon: 'MessageSquare',
+    description: 'Automate customer support on your Facebook Page inbox. Instant product replies, price answers, and lead qualification.',
+    webhookPath: '/api/webhooks/messenger',
+    usedByAgents: 'Omnichannel Agent (#76) & Messenger Support (#78)',
+    fields: [
+      { key: 'pageId', label: 'Facebook Page ID', type: 'text', placeholder: '102938475610293', required: true },
+      { key: 'pageAccessToken', label: 'Page Access Token', type: 'password', placeholder: 'EAAG...', required: true },
+      { key: 'appSecret', label: 'Meta App Secret', type: 'password', placeholder: '3a4b5c6d...', required: true },
+      { key: 'webhookVerifyToken', label: 'Webhook Verify Token', type: 'text', placeholder: 'ezbo_messenger_verify_token', required: true }
+    ]
+  },
+  {
+    id: 'instagram_dm',
+    name: 'Instagram Direct (DM)',
+    subtitle: 'Instagram Graph API for Story Replies, Reels & Inbound DMs',
+    brand: 'instagram',
+    badge: 'Viral Sales',
+    icon: 'Camera',
+    description: 'Automatically engage customers replying to your Instagram Stories, Reels, and direct DMs with emojis and product links.',
+    webhookPath: '/api/webhooks/instagram-dm',
+    usedByAgents: 'Omnichannel Agent (#76) & Instagram DM Closer (#79)',
+    fields: [
+      { key: 'instagramAccountId', label: 'Instagram Business Account ID', type: 'text', placeholder: '1784140530921', required: true },
+      { key: 'pageAccessToken', label: 'Linked Page Access Token', type: 'password', placeholder: 'EAAG...', required: true },
+      { key: 'webhookSecret', label: 'Webhook App Secret / Verify Token', type: 'password', placeholder: 'meta_ig_secret_key', required: true }
+    ]
+  },
+  {
+    id: 'telegram_support_bot',
+    name: 'Telegram Customer Support Bot',
+    subtitle: 'Telegram Bot API for Helpdesk, Community & FAQ Broadcasts',
+    brand: 'telegram',
+    badge: 'Instant Setup',
+    icon: 'Send',
+    description: 'Provide an instant customer helpdesk bot on Telegram. Handles user questions, FAQs, and support ticket commands.',
+    webhookPath: '/api/webhooks/telegram-support',
+    usedByAgents: 'Omnichannel Agent (#76) & Telegram Helpdesk (#80)',
+    fields: [
+      { key: 'botToken', label: 'Bot Token (from @BotFather)', type: 'password', placeholder: '123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ', required: true },
+      { key: 'botUsername', label: 'Bot Username', type: 'text', placeholder: '@YourBrandSupportBot', required: true },
+      { key: 'webhookSecret', label: 'Webhook Secret Token', type: 'password', placeholder: 'tg_secret_header_token', required: false }
+    ]
+  }
+];
+
+const BUSINESS_CHANNELS_STORAGE_KEY = 'ezbo_business_channels';
+
+/**
+ * Retrieves the dictionary of configured business customer channels.
+ */
+export function getBusinessChannelsState(): Record<string, ConnectedToolState> {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return {};
+  }
+  try {
+    const raw = window.localStorage.getItem(BUSINESS_CHANNELS_STORAGE_KEY);
+    if (!raw) {
+      // Check if existing ezbo_connected_tools has any of these channels
+      const connTools = getConnectedTools();
+      const legacy: Record<string, ConnectedToolState> = {};
+      for (const ch of BUSINESS_CHANNELS) {
+        if (connTools[ch.id]) {
+          legacy[ch.id] = connTools[ch.id];
+        }
+      }
+      return legacy;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn('[toolConnectors] Failed to parse business channels state:', err);
+    return {};
+  }
+}
+
+/**
+ * Saves credentials for a business channel and broadcasts update event.
+ */
+export function saveBusinessChannelCredentials(channelId: string, credentials: Record<string, string>): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const state = getBusinessChannelsState();
+    state[channelId] = {
+      status: 'connected',
+      connectedAt: new Date().toISOString(),
+      credentials
+    };
+    window.localStorage.setItem(BUSINESS_CHANNELS_STORAGE_KEY, JSON.stringify(state));
+    // Mirror to general connected tools so generic lookups find it
+    saveToolCredentials(channelId, credentials);
+    if (typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('ezbo:tools-updated', { detail: { toolId: channelId, status: 'connected' } }));
+    }
+  } catch (err) {
+    console.error('[toolConnectors] Failed to save business channel credentials:', err);
+  }
+}
+
+/**
+ * Disconnects a business customer channel.
+ */
+export function disconnectBusinessChannel(channelId: string): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const state = getBusinessChannelsState();
+    delete state[channelId];
+    window.localStorage.setItem(BUSINESS_CHANNELS_STORAGE_KEY, JSON.stringify(state));
+    disconnectTool(channelId);
+    if (typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('ezbo:tools-updated', { detail: { toolId: channelId, status: 'unconfigured' } }));
+    }
+  } catch (err) {
+    console.error('[toolConnectors] Failed to disconnect business channel:', err);
+  }
+}
+

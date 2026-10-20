@@ -34,9 +34,12 @@
     if (mid === 'google_analytics_4') return 'google_analytics';
     if (mid === 'bigquery') return 'bigquery';
 
-    // Messaging & Channels (10)
-    if (mid === 'whatsapp_cloud') return 'whatsapp';
-    if (mid === 'telegram_bot') return 'telegram';
+    // Messaging & Channels (10) + Core Business Channels
+    if (mid === 'whatsapp_cloud' || mid === 'whatsapp_business' || mid === 'whatsapp_business_support') return 'whatsapp';
+    if (mid === 'telegram_bot' || mid === 'telegram_support_bot' || mid === 'telegram_customer_support') return 'telegram';
+    if (mid === 'facebook_messenger' || mid === 'messenger_customer_support') return 'facebook';
+    if (mid === 'instagram_dm' || mid === 'instagram_dm_support') return 'instagram';
+    if (mid === 'omnichannel_customer_support') return 'agent';
     if (mid === 'slack_webhooks') return 'slack';
     if (mid === 'discord_bot') return 'discord';
     if (mid === 'twilio_sms_voice') return 'twilio';
@@ -251,7 +254,7 @@
     if (raw.includes('buffer')) return 'buffer';
     if (raw.includes('youtube')) return 'youtube';
     if (raw.includes('instagram')) return 'instagram';
-    if (raw.includes('facebook') || (raw.includes('meta') && !raw.includes('meta tag') && !raw.includes('meta-llama') && !raw.includes('llama'))) return 'facebook';
+    if (raw.includes('facebook') || raw.includes('messenger') || (raw.includes('meta') && !raw.includes('meta tag') && !raw.includes('meta-llama') && !raw.includes('llama'))) return 'facebook';
     if (raw.includes('tiktok')) return 'tiktok';
     if (raw.includes('linkedin')) return 'linkedin';
 
