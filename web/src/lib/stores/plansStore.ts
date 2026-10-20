@@ -63,6 +63,7 @@ export function normalizePlans(raw: any): PlansSettings {
     ...DEFAULT_PLANS.byok_starter,
     ...starterSource,
     id: 'byok_starter',
+    isEnabled: starterSource.isEnabled !== undefined ? starterSource.isEnabled : DEFAULT_PLANS.byok_starter.isEnabled,
     featureToggles: {
       ...DEFAULT_PLANS.byok_starter.featureToggles,
       ...(starterSource.featureToggles || {})
@@ -74,6 +75,7 @@ export function normalizePlans(raw: any): PlansSettings {
     ...DEFAULT_PLANS.byok_pro,
     ...proSource,
     id: 'byok_pro',
+    isEnabled: proSource.isEnabled !== undefined ? proSource.isEnabled : DEFAULT_PLANS.byok_pro.isEnabled,
     featureToggles: {
       ...DEFAULT_PLANS.byok_pro.featureToggles,
       ...(proSource.featureToggles || {})
@@ -85,6 +87,7 @@ export function normalizePlans(raw: any): PlansSettings {
     ...DEFAULT_PLANS.managed,
     ...managedSource,
     id: 'managed',
+    isEnabled: managedSource.isEnabled !== undefined ? managedSource.isEnabled : DEFAULT_PLANS.managed.isEnabled,
     featureToggles: {
       ...DEFAULT_PLANS.managed.featureToggles,
       ...(managedSource.featureToggles || {})

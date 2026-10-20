@@ -149,6 +149,7 @@ function loadConfigFromStorage(): AdminConfig {
           ...DEFAULT_PLANS.byok_starter,
           ...savedStarter,
           id: 'byok_starter',
+          isEnabled: savedStarter.isEnabled !== undefined ? savedStarter.isEnabled : DEFAULT_PLANS.byok_starter.isEnabled,
           featureToggles: {
             ...DEFAULT_PLANS.byok_starter.featureToggles,
             ...(savedStarter.featureToggles || {})
@@ -159,6 +160,7 @@ function loadConfigFromStorage(): AdminConfig {
           ...DEFAULT_PLANS.byok_pro,
           ...savedPro,
           id: 'byok_pro',
+          isEnabled: savedPro.isEnabled !== undefined ? savedPro.isEnabled : DEFAULT_PLANS.byok_pro.isEnabled,
           featureToggles: {
             ...DEFAULT_PLANS.byok_pro.featureToggles,
             ...(savedPro.featureToggles || {})
@@ -169,6 +171,7 @@ function loadConfigFromStorage(): AdminConfig {
           ...DEFAULT_PLANS.managed,
           ...savedManaged,
           id: 'managed',
+          isEnabled: savedManaged.isEnabled !== undefined ? savedManaged.isEnabled : DEFAULT_PLANS.managed.isEnabled,
           featureToggles: {
             ...DEFAULT_PLANS.managed.featureToggles,
             ...(savedManaged.featureToggles || {})
@@ -284,6 +287,9 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       ...base.byok_starter,
       ...starterPatch,
       id: 'byok_starter',
+      isEnabled: starterPatch.isEnabled !== undefined
+        ? starterPatch.isEnabled
+        : (base.byok_starter.isEnabled !== undefined ? base.byok_starter.isEnabled : DEFAULT_PLANS.byok_starter.isEnabled),
       featureToggles: {
         ...base.byok_starter.featureToggles,
         ...(starterPatch.featureToggles || {})
@@ -294,6 +300,9 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       ...base.byok_pro,
       ...proPatch,
       id: 'byok_pro',
+      isEnabled: proPatch.isEnabled !== undefined
+        ? proPatch.isEnabled
+        : (base.byok_pro.isEnabled !== undefined ? base.byok_pro.isEnabled : DEFAULT_PLANS.byok_pro.isEnabled),
       featureToggles: {
         ...base.byok_pro.featureToggles,
         ...(proPatch.featureToggles || {})
@@ -304,6 +313,9 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       ...base.managed,
       ...managedPatch,
       id: 'managed',
+      isEnabled: managedPatch.isEnabled !== undefined
+        ? managedPatch.isEnabled
+        : (base.managed.isEnabled !== undefined ? base.managed.isEnabled : DEFAULT_PLANS.managed.isEnabled),
       featureToggles: {
         ...base.managed.featureToggles,
         ...(managedPatch.featureToggles || {})

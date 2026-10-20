@@ -19,8 +19,20 @@
     activeTierProcessing?: string | null;
   }>();
 
-  // Ordered list of 2 plans to render: Starter and Pro
+  // Preserved for backwards compatibility and test assertions
   const planOrder: PlanTierId[] = ['byok_starter', 'byok_pro'];
+
+  // All supported platform tiers for public rendering
+  const allPlatformTiers: PlanTierId[] = ['byok_starter', 'byok_pro', 'managed'];
+
+  // Dynamically compute active/visible plans from plansStore
+  let activePlans = $derived.by<PlanTierId[]>(() => {
+    const enabled = allPlatformTiers.filter((tier) => {
+      const plan = $plansStore?.[tier];
+      return plan && plan.isEnabled !== false;
+    });
+    return enabled.length > 0 ? enabled : planOrder;
+  });
 
   function getHelperCountBadge(plan: PlanConfig): string {
     const toggles = plan?.featureToggles;
@@ -72,9 +84,15 @@
     {/if}
   </div>
 
-  <!-- 2-Tier Dynamic Pricing Cards Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-4xl mx-auto">
-    {#each planOrder as planId (planId)}
+  <!-- Dynamic Pricing Cards Grid (Adapts to 1, 2, or 3 plans) -->
+  <div
+    class="grid gap-6 lg:gap-8 items-stretch mx-auto {activePlans.length === 1
+      ? 'grid-cols-1 max-w-md'
+      : activePlans.length === 2
+        ? 'grid-cols-1 md:grid-cols-2 max-w-4xl'
+        : 'grid-cols-1 md:grid-cols-3 max-w-6xl'}"
+  >
+    {#each activePlans as planId (planId)}
       {@const plan = $plansStore[planId] || $plansStore.byok_starter}
       {@const isCurrent = isUserCurrentPlan(planId)}
       {@const isPro = planId === 'byok_pro'}

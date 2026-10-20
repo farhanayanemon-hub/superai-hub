@@ -93,6 +93,7 @@
   // Form state - Plans & Pricing
   let editablePlans = $state<PlansSettings>(JSON.parse(JSON.stringify(DEFAULT_PLANS)));
   let activePlanTab = $state<PlanTierId>('byok_starter');
+  let isCurrentPlanActive = $derived(editablePlans[activePlanTab]?.isEnabled !== false);
   let newFeatureText = $state('');
   let previewBillingInterval = $state<'monthly' | 'yearly'>('monthly');
   let helperSearch = $state('');
@@ -590,6 +591,40 @@
     editablePlans[planId] = JSON.parse(JSON.stringify(DEFAULT_PLANS[planId]));
   }
 
+  function getEnabledPlanCount(): number {
+    const tiers: PlanTierId[] = ['byok_starter', 'byok_pro', 'managed'];
+    return tiers.filter((t) => editablePlans[t]?.isEnabled !== false).length;
+  }
+
+  function togglePlanVisibility(planId: PlanTierId) {
+    const isCurrentlyEnabled = editablePlans[planId]?.isEnabled !== false;
+    if (isCurrentlyEnabled) {
+      const enabledCount = getEnabledPlanCount();
+      if (enabledCount <= 1) {
+        saveFeedback = 'Cannot hide/delete this plan: At least 1 plan must remain active and visible to users!';
+        saveFeedbackType = 'error';
+        return;
+      }
+      editablePlans[planId].isEnabled = false;
+    } else {
+      editablePlans[planId].isEnabled = true;
+    }
+  }
+
+  function deleteOrHidePlan(planId: PlanTierId) {
+    const enabledCount = getEnabledPlanCount();
+    if (enabledCount <= 1 && editablePlans[planId]?.isEnabled !== false) {
+      saveFeedback = 'Cannot hide/delete this plan: At least 1 plan must remain active and visible to users!';
+      saveFeedbackType = 'error';
+      return;
+    }
+    editablePlans[planId].isEnabled = false;
+  }
+
+  function restorePlan(planId: PlanTierId) {
+    editablePlans[planId].isEnabled = true;
+  }
+
   function toggleHelperForPlan(planId: PlanTierId, helperId: string) {
     const plan = editablePlans[planId];
     if (!plan.featureToggles) {
@@ -692,6 +727,13 @@
   async function saveSettings() {
     isSaving = true;
     saveFeedback = '';
+    const enabledPlanCount = getEnabledPlanCount();
+    if (enabledPlanCount === 0) {
+      saveFeedback = 'Cannot save: At least 1 plan must remain active and visible to users!';
+      saveFeedbackType = 'error';
+      isSaving = false;
+      return;
+    }
     try {
       const patch: any = {
         opayApiKey,
@@ -778,10 +820,14 @@
           if (s.enabledToolConnectors && Array.isArray(s.enabledToolConnectors)) {
             enabledToolConnectors = [...s.enabledToolConnectors];
           }
+          if (s.plans) {
+            editablePlans = JSON.parse(JSON.stringify(s.plans));
+          }
           if (typeof window !== 'undefined') {
             try {
               localStorage.setItem('ezbo_enabled_tool_connectors', JSON.stringify(enabledToolConnectors));
               localStorage.setItem('ezbo_workflow_user_enabled', String(workflowCustomizationUserEnabled));
+              localStorage.setItem('ezbo_public_plans', JSON.stringify(editablePlans));
               workflowCustomizationUserStore.set(workflowCustomizationUserEnabled);
               window.dispatchEvent(new CustomEvent('ezbo:tools-settings-updated'));
               window.dispatchEvent(new CustomEvent('ezbo:workflow-settings-updated', { detail: { enabled: workflowCustomizationUserEnabled } }));
@@ -802,6 +848,8 @@
       }, 5000);
     }
   }
+
+  const handleSaveSettings = saveSettings;
 
   async function sendTestEmail() {
     if (!testEmailTo.trim()) {
@@ -2000,21 +2048,31 @@
                   </div>
                 </div>
 
-                <!-- Plan Switcher Pills (2 Plans) -->
-                <div class="flex items-center p-1 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] shrink-0 gap-1">
+                <!-- Plan Switcher Pills (3 Plans) -->
+                <div class="flex items-center p-1 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] shrink-0 gap-1 flex-wrap">
                   <button
                     type="button"
                     onclick={() => activePlanTab = 'byok_starter'}
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'byok_starter' ? 'bg-[#102A56] text-white shadow-2xs' : 'text-[#4B6382] hover:text-[#102A56]'}"
+                    class="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {activePlanTab === 'byok_starter' ? 'bg-[#102A56] text-white shadow-2xs' : 'text-[#4B6382] hover:text-[#102A56]'}"
                   >
+                    <span class="w-2 h-2 rounded-full {editablePlans.byok_starter?.isEnabled !== false ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
                     <span>Starter Plan</span>
                   </button>
                   <button
                     type="button"
                     onclick={() => activePlanTab = 'byok_pro'}
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer {activePlanTab === 'byok_pro' ? 'bg-[#1677FF] text-white shadow-sm' : 'text-[#4B6382] hover:text-[#102A56]'}"
+                    class="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {activePlanTab === 'byok_pro' ? 'bg-[#1677FF] text-white shadow-sm' : 'text-[#4B6382] hover:text-[#102A56]'}"
                   >
+                    <span class="w-2 h-2 rounded-full {editablePlans.byok_pro?.isEnabled !== false ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
                     <span>Pro Plan</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => activePlanTab = 'managed'}
+                    class="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {activePlanTab === 'managed' ? 'bg-[#0E7490] text-white shadow-sm' : 'text-[#4B6382] hover:text-[#102A56]'}"
+                  >
+                    <span class="w-2 h-2 rounded-full {editablePlans.managed?.isEnabled !== false ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
+                    <span>Cloud Managed</span>
                   </button>
                 </div>
               </div>
@@ -2087,6 +2145,86 @@
                       <Icon name="RefreshCw" size={12} />
                       <span>Reset Defaults</span>
                     </button>
+                  </div>
+
+                  <!-- Plan Status & Visibility Control Card -->
+                  <div
+                    class="p-4 sm:p-5 rounded-2xl border transition-all shadow-xs {isCurrentPlanActive
+                      ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border-emerald-500/30'
+                      : 'bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-transparent border-rose-500/30'}"
+                  >
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div class="space-y-1">
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                          <span class="relative flex h-3 w-3">
+                            {#if isCurrentPlanActive}
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            {:else}
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                            {/if}
+                          </span>
+                          <h4 class="text-sm font-extrabold text-[#102A56] flex items-center gap-2">
+                            <span>Plan Status:</span>
+                            <span class={isCurrentPlanActive ? 'text-emerald-700' : 'text-rose-700'}>
+                              {isCurrentPlanActive ? 'Active & Visible to Public Users' : 'Hidden / Deleted from Users'}
+                            </span>
+                          </h4>
+                          <span
+                            class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide {isCurrentPlanActive
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : 'bg-rose-100 text-rose-800 border border-rose-300'}"
+                          >
+                            {isCurrentPlanActive ? 'Live' : 'Hidden'}
+                          </span>
+                        </div>
+                        <p class="text-xs text-[#4B6382] leading-relaxed">
+                          {#if isCurrentPlanActive}
+                            This plan is currently <strong class="text-emerald-700 font-bold">LIVE &amp; VISIBLE</strong> on the Homepage, <code class="text-[#1677FF] font-mono">/plans</code> page, and Dashboard Billing.
+                          {:else}
+                            This plan is currently <strong class="text-rose-700 font-bold">HIDDEN</strong> from public users.
+                          {/if}
+                        </p>
+                      </div>
+
+                      <div class="flex items-center gap-3 shrink-0 self-end sm:self-center flex-wrap">
+                        <!-- Visibility Switch -->
+                        <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-[#CFE2FA] shadow-2xs hover:border-[#1677FF]/40 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={isCurrentPlanActive}
+                            onchange={() => togglePlanVisibility(activePlanTab)}
+                            class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
+                          />
+                          <span class="text-xs font-bold text-[#102A56] select-none">
+                            Visible to Public Users
+                          </span>
+                        </label>
+
+                        <!-- Action Button: Delete or Restore -->
+                        {#if isCurrentPlanActive}
+                          <button
+                            type="button"
+                            onclick={() => deleteOrHidePlan(activePlanTab)}
+                            class="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                            title="Hide this plan from all public user pages"
+                          >
+                            <Icon name="Trash2" size={13} />
+                            <span>Delete Plan (Hide from Users)</span>
+                          </button>
+                        {:else}
+                          <button
+                            type="button"
+                            onclick={() => restorePlan(activePlanTab)}
+                            class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                            title="Restore this plan and make it visible again"
+                          >
+                            <Icon name="RotateCcw" size={13} />
+                            <span>Restore Plan</span>
+                          </button>
+                        {/if}
+                      </div>
+                    </div>
                   </div>
 
                   <!-- General Info Group -->
@@ -2481,6 +2619,13 @@
                     {#if editablePlans[activePlanTab].highlightBadge}
                       <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-0.5 rounded-full bg-[#1677FF] text-white text-[10px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">
                         {editablePlans[activePlanTab].highlightBadge}
+                      </div>
+                    {/if}
+
+                    {#if editablePlans[activePlanTab]?.isEnabled === false}
+                      <div class="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2 text-xs font-bold animate-in fade-in duration-200">
+                        <Icon name="EyeOff" size={16} class="shrink-0 text-rose-600" />
+                        <span>This plan is currently HIDDEN from public users. Enable it to make it visible.</span>
                       </div>
                     {/if}
 

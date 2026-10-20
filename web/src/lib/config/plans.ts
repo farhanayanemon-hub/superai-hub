@@ -24,6 +24,7 @@ export interface PlanConfig {
   yearlyTotal: number;
   features: string[];
   featureToggles: PlanFeatureToggles;
+  isEnabled?: boolean;
 }
 
 export interface PlansSettings {
@@ -64,7 +65,8 @@ const DEFAULT_BYOK_STARTER: PlanConfig = {
     prioritySupport: false,
     allHelpersEnabled: true,
     enabledHelpers: []
-  }
+  },
+  isEnabled: true
 };
 
 const DEFAULT_BYOK_PRO: PlanConfig = {
@@ -98,7 +100,8 @@ const DEFAULT_BYOK_PRO: PlanConfig = {
     prioritySupport: true,
     allHelpersEnabled: true,
     enabledHelpers: []
-  }
+  },
+  isEnabled: true
 };
 
 const DEFAULT_MANAGED: PlanConfig = {
@@ -132,7 +135,8 @@ const DEFAULT_MANAGED: PlanConfig = {
     prioritySupport: true,
     allHelpersEnabled: true,
     enabledHelpers: []
-  }
+  },
+  isEnabled: false
 };
 
 export const DEFAULT_PLANS: PlansSettings = {
