@@ -94,4 +94,26 @@ describe('Plan-Based Agent & Tool Filtering Suite', () => {
     assert.ok(tabContent.includes('enabledTools'), 'ToolConnectorsTab must check enabledTools');
     assert.ok(tabContent.includes('isAdmin'), 'Admin users must bypass restrictions in ToolConnectorsTab');
   });
+
+  it('1.11 admin page toggleHelperForPlan never auto-populates all tools on single selection', () => {
+    const adminPath = path.join(WEB_DIR, 'src', 'routes', 'admin', '+page.svelte');
+    const adminContent = readSafe(adminPath);
+    // Must NOT have ALL_TOOLS.map in toggleHelperForPlan
+    const toggleHelperSnippet = adminContent.slice(
+      adminContent.indexOf('function toggleHelperForPlan'),
+      adminContent.indexOf('function selectAllHelpersForPlan')
+    );
+    assert.ok(!toggleHelperSnippet.includes('ALL_TOOLS.map'), 'toggleHelperForPlan must never auto-populate ALL_TOOLS.map');
+  });
+
+  it('1.12 admin page toggleToolForPlan never auto-populates all tools on single selection', () => {
+    const adminPath = path.join(WEB_DIR, 'src', 'routes', 'admin', '+page.svelte');
+    const adminContent = readSafe(adminPath);
+    // Must NOT have TOOL_CONNECTORS.map in toggleToolForPlan
+    const toggleToolSnippet = adminContent.slice(
+      adminContent.indexOf('function toggleToolForPlan'),
+      adminContent.indexOf('function selectAllToolsForPlan')
+    );
+    assert.ok(!toggleToolSnippet.includes('TOOL_CONNECTORS.map'), 'toggleToolForPlan must never auto-populate TOOL_CONNECTORS.map');
+  });
 });

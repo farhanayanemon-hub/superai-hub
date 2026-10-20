@@ -93,6 +93,12 @@ export function normalizePlans(raw: any): PlansSettings {
     featureToggles: {
       ...DEFAULT_PLANS.byok_starter.featureToggles,
       ...(starterSource.featureToggles || {}),
+      allHelpersEnabled: starterSource.featureToggles?.allHelpersEnabled !== undefined
+        ? starterSource.featureToggles.allHelpersEnabled
+        : DEFAULT_PLANS.byok_starter.featureToggles.allHelpersEnabled,
+      enabledHelpers: Array.isArray(starterSource.featureToggles?.enabledHelpers)
+        ? starterSource.featureToggles.enabledHelpers
+        : [...(DEFAULT_PLANS.byok_starter.featureToggles.enabledHelpers || [])],
       allToolsEnabled: starterSource.featureToggles?.allToolsEnabled !== undefined
         ? starterSource.featureToggles.allToolsEnabled
         : DEFAULT_PLANS.byok_starter.featureToggles.allToolsEnabled,
@@ -111,6 +117,12 @@ export function normalizePlans(raw: any): PlansSettings {
     featureToggles: {
       ...DEFAULT_PLANS.byok_pro.featureToggles,
       ...(proSource.featureToggles || {}),
+      allHelpersEnabled: proSource.featureToggles?.allHelpersEnabled !== undefined
+        ? proSource.featureToggles.allHelpersEnabled
+        : DEFAULT_PLANS.byok_pro.featureToggles.allHelpersEnabled,
+      enabledHelpers: Array.isArray(proSource.featureToggles?.enabledHelpers)
+        ? proSource.featureToggles.enabledHelpers
+        : [...(DEFAULT_PLANS.byok_pro.featureToggles.enabledHelpers || [])],
       allToolsEnabled: proSource.featureToggles?.allToolsEnabled !== undefined
         ? proSource.featureToggles.allToolsEnabled
         : DEFAULT_PLANS.byok_pro.featureToggles.allToolsEnabled,
@@ -129,6 +141,12 @@ export function normalizePlans(raw: any): PlansSettings {
     featureToggles: {
       ...DEFAULT_PLANS.managed.featureToggles,
       ...(managedSource.featureToggles || {}),
+      allHelpersEnabled: managedSource.featureToggles?.allHelpersEnabled !== undefined
+        ? managedSource.featureToggles.allHelpersEnabled
+        : DEFAULT_PLANS.managed.featureToggles.allHelpersEnabled,
+      enabledHelpers: Array.isArray(managedSource.featureToggles?.enabledHelpers)
+        ? managedSource.featureToggles.enabledHelpers
+        : [...(DEFAULT_PLANS.managed.featureToggles.enabledHelpers || [])],
       allToolsEnabled: managedSource.featureToggles?.allToolsEnabled !== undefined
         ? managedSource.featureToggles.allToolsEnabled
         : DEFAULT_PLANS.managed.featureToggles.allToolsEnabled,

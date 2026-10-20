@@ -652,12 +652,6 @@
     if (!Array.isArray(plan.featureToggles.enabledHelpers)) {
       plan.featureToggles.enabledHelpers = [];
     }
-    // If all helpers were active, transition to explicit list excluding this one
-    if (plan.featureToggles.allHelpersEnabled !== false) {
-      plan.featureToggles.allHelpersEnabled = false;
-      plan.featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id).filter((id) => id !== helperId);
-      return;
-    }
     plan.featureToggles.allHelpersEnabled = false;
     const currentList = plan.featureToggles.enabledHelpers;
     if (currentList.includes(helperId)) {
@@ -705,12 +699,6 @@
     if (!Array.isArray(plan.featureToggles.enabledTools)) {
       plan.featureToggles.enabledTools = [];
     }
-    // If all tools were active, transition to explicit list excluding this one
-    if (plan.featureToggles.allToolsEnabled !== false) {
-      plan.featureToggles.allToolsEnabled = false;
-      plan.featureToggles.enabledTools = TOOL_CONNECTORS.map((t) => t.id).filter((id) => id !== toolId);
-      return;
-    }
     plan.featureToggles.allToolsEnabled = false;
     const currentList = plan.featureToggles.enabledTools;
     if (currentList.includes(toolId)) {
@@ -753,7 +741,6 @@
   });
 
   function toggleToolConnector(id: string) {
-    toggleToolForPlan(activePlanTab, id);
     if (enabledToolConnectors.includes(id)) {
       enabledToolConnectors = enabledToolConnectors.filter((t) => t !== id);
     } else {
@@ -762,12 +749,10 @@
   }
 
   function selectAllToolConnectors() {
-    selectAllToolsForPlan(activePlanTab);
     enabledToolConnectors = TOOL_CONNECTORS.map((t) => t.id);
   }
 
   function clearAllToolConnectors() {
-    clearAllToolsForPlan(activePlanTab);
     enabledToolConnectors = [];
   }
 
@@ -2509,12 +2494,12 @@
                       <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] cursor-pointer shrink-0">
                         <input
                           type="checkbox"
-                          checked={editablePlans[activePlanTab].featureToggles.allHelpersEnabled}
+                          checked={editablePlans[activePlanTab].featureToggles.allHelpersEnabled !== false}
                           onchange={(e) => {
                             const checked = e.currentTarget.checked;
                             editablePlans[activePlanTab].featureToggles.allHelpersEnabled = checked;
-                            if (!checked && !Array.isArray(editablePlans[activePlanTab].featureToggles.enabledHelpers)) {
-                              editablePlans[activePlanTab].featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id);
+                            if (!Array.isArray(editablePlans[activePlanTab].featureToggles.enabledHelpers)) {
+                              editablePlans[activePlanTab].featureToggles.enabledHelpers = [];
                             }
                           }}
                           class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
@@ -2523,7 +2508,7 @@
                       </label>
                     </div>
 
-                    {#if !editablePlans[activePlanTab].featureToggles.allHelpersEnabled}
+                    {#if editablePlans[activePlanTab].featureToggles.allHelpersEnabled === false}
                       <div class="space-y-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CFE2FA] animate-in fade-in duration-200">
                         <!-- Controls: Search, Category Filter, Select All / Clear All -->
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2623,8 +2608,8 @@
                           onchange={(e) => {
                             const checked = e.currentTarget.checked;
                             editablePlans[activePlanTab].featureToggles.allToolsEnabled = checked;
-                            if (!checked && !Array.isArray(editablePlans[activePlanTab].featureToggles.enabledTools)) {
-                              editablePlans[activePlanTab].featureToggles.enabledTools = TOOL_CONNECTORS.map((t) => t.id);
+                            if (!Array.isArray(editablePlans[activePlanTab].featureToggles.enabledTools)) {
+                              editablePlans[activePlanTab].featureToggles.enabledTools = [];
                             }
                           }}
                           class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"

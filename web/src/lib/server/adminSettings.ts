@@ -153,6 +153,12 @@ function loadConfigFromStorage(): AdminConfig {
           featureToggles: {
             ...DEFAULT_PLANS.byok_starter.featureToggles,
             ...(savedStarter.featureToggles || {}),
+            allHelpersEnabled: savedStarter.featureToggles?.allHelpersEnabled !== undefined
+              ? savedStarter.featureToggles.allHelpersEnabled
+              : DEFAULT_PLANS.byok_starter.featureToggles.allHelpersEnabled,
+            enabledHelpers: Array.isArray(savedStarter.featureToggles?.enabledHelpers)
+              ? savedStarter.featureToggles.enabledHelpers
+              : [...(DEFAULT_PLANS.byok_starter.featureToggles.enabledHelpers || [])],
             allToolsEnabled: savedStarter.featureToggles?.allToolsEnabled !== undefined
               ? savedStarter.featureToggles.allToolsEnabled
               : DEFAULT_PLANS.byok_starter.featureToggles.allToolsEnabled,
@@ -170,6 +176,12 @@ function loadConfigFromStorage(): AdminConfig {
           featureToggles: {
             ...DEFAULT_PLANS.byok_pro.featureToggles,
             ...(savedPro.featureToggles || {}),
+            allHelpersEnabled: savedPro.featureToggles?.allHelpersEnabled !== undefined
+              ? savedPro.featureToggles.allHelpersEnabled
+              : DEFAULT_PLANS.byok_pro.featureToggles.allHelpersEnabled,
+            enabledHelpers: Array.isArray(savedPro.featureToggles?.enabledHelpers)
+              ? savedPro.featureToggles.enabledHelpers
+              : [...(DEFAULT_PLANS.byok_pro.featureToggles.enabledHelpers || [])],
             allToolsEnabled: savedPro.featureToggles?.allToolsEnabled !== undefined
               ? savedPro.featureToggles.allToolsEnabled
               : DEFAULT_PLANS.byok_pro.featureToggles.allToolsEnabled,
@@ -187,6 +199,12 @@ function loadConfigFromStorage(): AdminConfig {
           featureToggles: {
             ...DEFAULT_PLANS.managed.featureToggles,
             ...(savedManaged.featureToggles || {}),
+            allHelpersEnabled: savedManaged.featureToggles?.allHelpersEnabled !== undefined
+              ? savedManaged.featureToggles.allHelpersEnabled
+              : DEFAULT_PLANS.managed.featureToggles.allHelpersEnabled,
+            enabledHelpers: Array.isArray(savedManaged.featureToggles?.enabledHelpers)
+              ? savedManaged.featureToggles.enabledHelpers
+              : [...(DEFAULT_PLANS.managed.featureToggles.enabledHelpers || [])],
             allToolsEnabled: savedManaged.featureToggles?.allToolsEnabled !== undefined
               ? savedManaged.featureToggles.allToolsEnabled
               : DEFAULT_PLANS.managed.featureToggles.allToolsEnabled,
@@ -311,12 +329,26 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       featureToggles: {
         ...base.byok_starter.featureToggles,
         ...(starterPatch.featureToggles || {}),
+        allHelpersEnabled: starterPatch.featureToggles?.allHelpersEnabled !== undefined
+          ? starterPatch.featureToggles.allHelpersEnabled
+          : (base.byok_starter.featureToggles?.allHelpersEnabled !== undefined
+              ? base.byok_starter.featureToggles.allHelpersEnabled
+              : DEFAULT_PLANS.byok_starter.featureToggles.allHelpersEnabled),
+        enabledHelpers: Array.isArray(starterPatch.featureToggles?.enabledHelpers)
+          ? starterPatch.featureToggles.enabledHelpers
+          : (Array.isArray(base.byok_starter.featureToggles?.enabledHelpers)
+              ? base.byok_starter.featureToggles.enabledHelpers
+              : [...DEFAULT_PLANS.byok_starter.featureToggles.enabledHelpers]),
         allToolsEnabled: starterPatch.featureToggles?.allToolsEnabled !== undefined
           ? starterPatch.featureToggles.allToolsEnabled
-          : base.byok_starter.featureToggles.allToolsEnabled,
+          : (base.byok_starter.featureToggles?.allToolsEnabled !== undefined
+              ? base.byok_starter.featureToggles.allToolsEnabled
+              : DEFAULT_PLANS.byok_starter.featureToggles.allToolsEnabled),
         enabledTools: Array.isArray(starterPatch.featureToggles?.enabledTools)
           ? starterPatch.featureToggles.enabledTools
-          : [...(base.byok_starter.featureToggles.enabledTools || [])]
+          : (Array.isArray(base.byok_starter.featureToggles?.enabledTools)
+              ? base.byok_starter.featureToggles.enabledTools
+              : [...DEFAULT_PLANS.byok_starter.featureToggles.enabledTools])
       }
     };
 
@@ -330,12 +362,26 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       featureToggles: {
         ...base.byok_pro.featureToggles,
         ...(proPatch.featureToggles || {}),
+        allHelpersEnabled: proPatch.featureToggles?.allHelpersEnabled !== undefined
+          ? proPatch.featureToggles.allHelpersEnabled
+          : (base.byok_pro.featureToggles?.allHelpersEnabled !== undefined
+              ? base.byok_pro.featureToggles.allHelpersEnabled
+              : DEFAULT_PLANS.byok_pro.featureToggles.allHelpersEnabled),
+        enabledHelpers: Array.isArray(proPatch.featureToggles?.enabledHelpers)
+          ? proPatch.featureToggles.enabledHelpers
+          : (Array.isArray(base.byok_pro.featureToggles?.enabledHelpers)
+              ? base.byok_pro.featureToggles.enabledHelpers
+              : [...DEFAULT_PLANS.byok_pro.featureToggles.enabledHelpers]),
         allToolsEnabled: proPatch.featureToggles?.allToolsEnabled !== undefined
           ? proPatch.featureToggles.allToolsEnabled
-          : base.byok_pro.featureToggles.allToolsEnabled,
+          : (base.byok_pro.featureToggles?.allToolsEnabled !== undefined
+              ? base.byok_pro.featureToggles.allToolsEnabled
+              : DEFAULT_PLANS.byok_pro.featureToggles.allToolsEnabled),
         enabledTools: Array.isArray(proPatch.featureToggles?.enabledTools)
           ? proPatch.featureToggles.enabledTools
-          : [...(base.byok_pro.featureToggles.enabledTools || [])]
+          : (Array.isArray(base.byok_pro.featureToggles?.enabledTools)
+              ? base.byok_pro.featureToggles.enabledTools
+              : [...DEFAULT_PLANS.byok_pro.featureToggles.enabledTools])
       }
     };
 
@@ -349,12 +395,26 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
       featureToggles: {
         ...base.managed.featureToggles,
         ...(managedPatch.featureToggles || {}),
+        allHelpersEnabled: managedPatch.featureToggles?.allHelpersEnabled !== undefined
+          ? managedPatch.featureToggles.allHelpersEnabled
+          : (base.managed.featureToggles?.allHelpersEnabled !== undefined
+              ? base.managed.featureToggles.allHelpersEnabled
+              : DEFAULT_PLANS.managed.featureToggles.allHelpersEnabled),
+        enabledHelpers: Array.isArray(managedPatch.featureToggles?.enabledHelpers)
+          ? managedPatch.featureToggles.enabledHelpers
+          : (Array.isArray(base.managed.featureToggles?.enabledHelpers)
+              ? base.managed.featureToggles.enabledHelpers
+              : [...DEFAULT_PLANS.managed.featureToggles.enabledHelpers]),
         allToolsEnabled: managedPatch.featureToggles?.allToolsEnabled !== undefined
           ? managedPatch.featureToggles.allToolsEnabled
-          : base.managed.featureToggles.allToolsEnabled,
+          : (base.managed.featureToggles?.allToolsEnabled !== undefined
+              ? base.managed.featureToggles.allToolsEnabled
+              : DEFAULT_PLANS.managed.featureToggles.allToolsEnabled),
         enabledTools: Array.isArray(managedPatch.featureToggles?.enabledTools)
           ? managedPatch.featureToggles.enabledTools
-          : [...(base.managed.featureToggles.enabledTools || [])]
+          : (Array.isArray(base.managed.featureToggles?.enabledTools)
+              ? base.managed.featureToggles.enabledTools
+              : [...DEFAULT_PLANS.managed.featureToggles.enabledTools])
       }
     };
 
