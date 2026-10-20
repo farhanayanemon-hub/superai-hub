@@ -124,6 +124,25 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     if (isProTier && isRestrictedStarterIntent(message)) {
+      if (adminConfig.workflowCustomizationUserEnabled === false) {
+        const lockedResponse = `🔒 **Workflow Studio Access Notice**\nভিজ্যুয়াল ওয়ার্কফ্লো স্টুডিও বর্তমানে প্ল্যাটফর্ম অ্যাডমিনিস্ট্রেটর কর্তৃক সংরক্ষিত রয়েছে (Visual Workflow Studio is currently reserved for platform administrators)। অ্যাডমিন ব্যতীত সাধারণ ইউজারদের জন্য স্টুডিও এক্সেস সাময়িকভাবে বন্ধ আছে।`;
+
+        return json({
+          success: true,
+          input: message,
+          delegatedHelper: null,
+          result: {
+            type: 'text',
+            text: lockedResponse
+          },
+          reply: lockedResponse,
+          guarded: false,
+          isPlanGuarded: false,
+          isProWorkflowIntent: true,
+          provider: 'system'
+        });
+      }
+
       const proWorkflowResponse = `✅ **Executive Workflow Customization Authority Active (Pro Plan)**
 সম্মানিত প্রো গ্রাহক, আপনার অ্যাকাউন্টে **Visual Workflow Studio** এবং **Custom Agent Builder** সম্পূর্ণ আনলক করা আছে!
 

@@ -23,6 +23,8 @@ const PATHS = {
   dashboardPage: path.join(WEB_DIR, 'src', 'routes', 'dashboard', '+page.svelte'),
   toolDrawer: path.join(WEB_DIR, 'src', 'lib', 'components', 'ToolDrawer.svelte'),
   workflowStudioModal: path.join(WEB_DIR, 'src', 'lib', 'components', 'WorkflowStudioModal.svelte'),
+  floatingCeoChat: path.join(WEB_DIR, 'src', 'lib', 'components', 'FloatingCeoChat.svelte'),
+  chatApi: path.join(WEB_DIR, 'src', 'routes', 'api', 'chat', '+server.ts'),
   robotsCss: path.join(WEB_DIR, 'src', 'lib', 'components', 'robots', 'robots.css')
 };
 
@@ -290,6 +292,104 @@ describe('Workflow Customization Admin Toggle & User Access Control Suite', () =
         `robots.css SHA256 checksum modified! Expected: ${EXPECTED_ROBOTS_SHA256}, Got: ${hash}`
       );
       assert.strictEqual(content.length, 5427, 'robots.css exact size must be 5427 bytes');
+    });
+  });
+  // =========================================================================
+  // 8. Cross-Tab Storage & Real-Time Event Synchronization
+  // =========================================================================
+  describe('8. Cross-Tab Storage & Real-Time Event Synchronization', () => {
+    it('8.1 plansStore.ts listens to storage event for instant cross-tab update', () => {
+      const content = readSafe(PATHS.plansStore);
+      assert.ok(
+        content.includes("event.key === WORKFLOW_USER_STORAGE_KEY"),
+        'plansStore must listen for storage events targeting WORKFLOW_USER_STORAGE_KEY'
+      );
+      assert.ok(
+        content.includes("workflowCustomizationUserStore.set(event.newValue === 'true')"),
+        'plansStore must update store when storage event fires'
+      );
+    });
+
+    it('8.2 plansStore.ts listens to ezbo:workflow-settings-updated in-window event', () => {
+      const content = readSafe(PATHS.plansStore);
+      assert.ok(
+        content.includes("window.addEventListener('ezbo:workflow-settings-updated'"),
+        'plansStore must listen for ezbo:workflow-settings-updated'
+      );
+    });
+
+    it('8.3 admin page persists ezbo_workflow_user_enabled and dispatches update event', () => {
+      const content = readSafe(PATHS.adminPage);
+      assert.ok(
+        content.includes("localStorage.setItem('ezbo_workflow_user_enabled'"),
+        'admin page must persist ezbo_workflow_user_enabled upon save'
+      );
+      assert.ok(
+        content.includes("new CustomEvent('ezbo:workflow-settings-updated'"),
+        'admin page must dispatch ezbo:workflow-settings-updated event upon save'
+      );
+    });
+  });
+
+  // =========================================================================
+  // 9. FloatingCeoChat & AI CEO Chat API Guarding
+  // =========================================================================
+  describe('9. FloatingCeoChat & AI CEO Chat API Guarding', () => {
+    it('9.1 FloatingCeoChat derives isWorkflowStudioVisible and suppresses intent when disabled', () => {
+      const content = readSafe(PATHS.floatingCeoChat);
+      assert.ok(
+        content.includes('const isWorkflowStudioVisible = $derived(isAdmin || $workflowCustomizationUserStore !== false)'),
+        'FloatingCeoChat must compute isWorkflowStudioVisible'
+      );
+      assert.ok(
+        content.includes('if (!isWorkflowStudioVisible) return null;'),
+        'detectNavigationIntent must suppress workflow intent when isWorkflowStudioVisible is false'
+      );
+    });
+
+    it('9.2 FloatingCeoChat hides workflow navigation action button when disabled', () => {
+      const content = readSafe(PATHS.floatingCeoChat);
+      assert.ok(
+        content.includes("msg.navigationAction.type !== 'workflow' || isWorkflowStudioVisible"),
+        'FloatingCeoChat must hide workflow navigation chip when isWorkflowStudioVisible is false'
+      );
+      assert.ok(
+        content.includes('if (!isWorkflowStudioVisible) {\n          return;'),
+        'handleNavigationAction must abort when isWorkflowStudioVisible is false'
+      );
+    });
+
+    it('9.3 api/chat/+server.ts intercepts workflow customization intent when disabled', () => {
+      const content = readSafe(PATHS.chatApi);
+      assert.ok(
+        content.includes('if (adminConfig.workflowCustomizationUserEnabled === false)'),
+        'api/chat must check if workflowCustomizationUserEnabled is disabled'
+      );
+      assert.ok(
+        content.includes('🔒 **Workflow Studio Access Notice**'),
+        'api/chat must return locked notice when customization is disabled by admin'
+      );
+    });
+  });
+
+  // =========================================================================
+  // 10. WorkflowStudioModal Programmatic Execution Guarding
+  // =========================================================================
+  describe('10. WorkflowStudioModal Programmatic Execution Guarding', () => {
+    it('10.1 WorkflowStudioModal handleSaveWorkflow guards against unauthorized user saving', () => {
+      const content = readSafe(PATHS.workflowStudioModal);
+      assert.ok(
+        content.includes('if (!isAdmin && $workflowCustomizationUserStore === false) {\n      isOpen = false;\n      return;'),
+        'handleSaveWorkflow must abort and close if regular user attempts to save while disabled'
+      );
+    });
+
+    it('10.2 WorkflowStudioModal runLiveWorkflow guards against unauthorized user execution', () => {
+      const content = readSafe(PATHS.workflowStudioModal);
+      assert.ok(
+        content.includes('if (!isAdmin && $workflowCustomizationUserStore === false) {\n      isOpen = false;\n      return;\n    }\n    if (isExecuting) return;'),
+        'runLiveWorkflow must abort and close if regular user attempts to run pipeline while disabled'
+      );
     });
   });
 

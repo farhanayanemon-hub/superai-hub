@@ -12,6 +12,7 @@
     applyAdminGrantLocally,
     type ServerUserGrant
   } from '$lib/stores/userStore';
+  import { workflowCustomizationUserStore } from '$lib/stores/plansStore';
 
   type AdminTab = 'overview' | 'users' | 'plans' | 'tools' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
 
@@ -335,6 +336,7 @@
         }
         channelsCeoEnabled = s.channelsCeoEnabled !== false;
         workflowCustomizationUserEnabled = s.workflowCustomizationUserEnabled !== false;
+        workflowCustomizationUserStore.set(workflowCustomizationUserEnabled);
         isAuthenticated = true;
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('ezbo_admin_authed', 'true');
@@ -779,7 +781,10 @@
           if (typeof window !== 'undefined') {
             try {
               localStorage.setItem('ezbo_enabled_tool_connectors', JSON.stringify(enabledToolConnectors));
+              localStorage.setItem('ezbo_workflow_user_enabled', String(workflowCustomizationUserEnabled));
+              workflowCustomizationUserStore.set(workflowCustomizationUserEnabled);
               window.dispatchEvent(new CustomEvent('ezbo:tools-settings-updated'));
+              window.dispatchEvent(new CustomEvent('ezbo:workflow-settings-updated', { detail: { enabled: workflowCustomizationUserEnabled } }));
             } catch {}
           }
         }

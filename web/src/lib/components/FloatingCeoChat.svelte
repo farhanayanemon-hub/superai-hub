@@ -25,7 +25,7 @@
     type ChatMessage,
     type AIProvider
   } from '$lib/stores/userStore';
-  import { plansStore } from '$lib/stores/plansStore';
+  import { plansStore, workflowCustomizationUserStore } from '$lib/stores/plansStore';
   import { decryptVaultKey, encryptVaultKey } from '$lib/services/crypto';
   import { offlineStorage } from '$lib/services/offlineStorage';
   import { marked } from 'marked';
@@ -92,6 +92,8 @@
   const currentMessages = $derived(
     activeSession ? activeSession.messages : []
   );
+  const isAdmin = $derived(typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true');
+  const isWorkflowStudioVisible = $derived(isAdmin || $workflowCustomizationUserStore !== false);
 
   function loadStoredSessions(): ChatSession[] {
     if (typeof window === 'undefined') return [];
@@ -501,6 +503,7 @@
       lower.includes('node graph') ||
       lower.includes('workflow canvas')
     ) {
+      if (!isWorkflowStudioVisible) return null;
       return {
         type: 'workflow',
         label: '🚀 Open Visual Workflow Studio',
@@ -663,6 +666,9 @@
   function handleNavigationAction(type: 'workflow' | 'tools' | 'agents' | 'billing' | 'vault' | 'channels' | 'app') {
     switch (type) {
       case 'workflow':
+        if (!isWorkflowStudioVisible) {
+          return;
+        }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('ezbo:open-workflow-studio', { detail: { agentName: 'Master Specialist Agent' } }));
         }
@@ -1448,7 +1454,7 @@
                   {/if}
 
                   <!-- Smart Site Navigation Action Chip -->
-                  {#if msg.navigationAction}
+                  {#if msg.navigationAction && (msg.navigationAction.type !== 'workflow' || isWorkflowStudioVisible)}
                     <div class="mt-3 pt-2.5 border-t border-[#E3ECF7] space-y-1.5">
                       <p class="text-[11px] text-[#5E7694]">{msg.navigationAction.description}</p>
                       <button

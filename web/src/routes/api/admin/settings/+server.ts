@@ -93,6 +93,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
     if (typeof patch.workflowCustomizationUserEnabled === 'boolean') {
       cleanPatch.workflowCustomizationUserEnabled = patch.workflowCustomizationUserEnabled;
+    } else if (patch.workflowCustomizationUserEnabled === 'true' || patch.workflowCustomizationUserEnabled === 'false') {
+      cleanPatch.workflowCustomizationUserEnabled = patch.workflowCustomizationUserEnabled === 'true';
     }
 
     if (Array.isArray(patch.enabledToolConnectors)) {

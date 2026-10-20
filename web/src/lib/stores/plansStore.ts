@@ -39,6 +39,19 @@ function getInitialWorkflowCustomizationState(): boolean {
 
 export const workflowCustomizationUserStore = writable<boolean>(getInitialWorkflowCustomizationState());
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === WORKFLOW_USER_STORAGE_KEY && event.newValue !== null) {
+      workflowCustomizationUserStore.set(event.newValue === 'true');
+    }
+  });
+  window.addEventListener('ezbo:workflow-settings-updated', (event: any) => {
+    if (event?.detail && typeof event.detail.enabled === 'boolean') {
+      workflowCustomizationUserStore.set(event.detail.enabled);
+    }
+  });
+}
+
 export function normalizePlans(raw: any): PlansSettings {
   if (!raw || typeof raw !== 'object') {
     return DEFAULT_PLANS;

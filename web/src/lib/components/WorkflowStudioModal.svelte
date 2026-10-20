@@ -661,6 +661,10 @@
   }
 
   function handleSaveWorkflow() {
+    if (!isAdmin && $workflowCustomizationUserStore === false) {
+      isOpen = false;
+      return;
+    }
     const workflowData = {
       agentName,
       nodes,
@@ -701,6 +705,10 @@
   }
 
   async function runLiveWorkflow() {
+    if (!isAdmin && $workflowCustomizationUserStore === false) {
+      isOpen = false;
+      return;
+    }
     if (isExecuting) return;
 
     // Open live execution drawer
