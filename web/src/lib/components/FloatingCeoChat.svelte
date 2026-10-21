@@ -888,7 +888,24 @@
       }
 
       if (!response.ok) {
-        throw new Error(data.error || `Engine communication error (${response.status})`);
+        if (data.error) {
+          const alertMsg: ChatMessage = {
+            id: `bot-${Date.now()}`,
+            role: 'assistant',
+            content: `⚠️ **AI CEO Service Notice:** ${data.error}`,
+            status: 'error',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          if (activeSession) {
+            activeSession.messages = [...activeSession.messages, alertMsg];
+            activeSession.updatedAt = Date.now();
+            sessions = sessions.map((s) => (s.id === activeSession.id ? activeSession : s));
+            saveSessions();
+          }
+          chatMessages.set(activeSession ? activeSession.messages : [alertMsg]);
+          return;
+        }
+        throw new Error(`Engine communication error (${response.status})`);
       }
 
       let replyContent = '';

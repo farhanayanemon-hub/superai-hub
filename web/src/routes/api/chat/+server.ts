@@ -171,10 +171,10 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Match helper via AI CEO router or explicit helperId
+    // Match helper via AI CEO router or explicit helperId (passing history for follow-up /boost or proceed context)
     const isGreeting = isConversationalGreeting(message);
-    const matchedHelper = isGreeting ? null : matchHelperForMessage(message, helperId);
-    const multiHelpers = isGreeting ? [] : matchMultiHelpersForMessage(message);
+    const matchedHelper = isGreeting ? null : matchHelperForMessage(message, helperId, history);
+    const multiHelpers = isGreeting ? [] : matchMultiHelpersForMessage(message, history);
     const isMultiChain = multiHelpers.length > 1;
 
     // Recommend helper when in CEO mode, no helper is matched, and query is not a greeting
@@ -423,6 +423,20 @@ export const POST: RequestHandler = async ({ request }) => {
             const isRateLimitOrQuota =
               geminiRes.status === 429 ||
               /RESOURCE_EXHAUSTED|quota|rate_limit|exceeded/i.test(errBody);
+
+            const isInvalidKey =
+              geminiRes.status === 400 &&
+              /API_KEY_INVALID|API key not valid|bad request/i.test(errBody);
+
+            const isPermissionDenied =
+              geminiRes.status === 403 || /PERMISSION_DENIED/i.test(errBody);
+
+            if (isInvalidKey || isPermissionDenied) {
+              console.warn(
+                `[gemini-failover] Key "${kObj.label || 'key'}" invalid or permission denied (${geminiRes.status}). Failing over to next key...`
+              );
+              break; // Try next key instead of repeating with the same invalid key
+            }
 
             if (isModelNotFound) {
               console.warn(

@@ -15,6 +15,7 @@
     openrouterSelectedModels,
     routingStrategy,
     incrementManagedUsage,
+    activeDashboardTab,
     isProPlan,
     type ChatMessage
   } from '$lib/stores/userStore';
@@ -142,11 +143,43 @@
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) {
-        throw new Error(`Engine communication error (${response.status})`);
+      const data = await response.json().catch(() => ({}));
+
+      const isMissingKey =
+        Boolean(data.requiresApiKey) ||
+        (data.error && /api key/i.test(data.error)) ||
+        (!response.ok && response.status === 400 && data.requiresApiKey);
+
+      if (isMissingKey) {
+        const errorText =
+          data.error ||
+          'No API Key configured. Please add your free Google Gemini or OpenRouter key in the API Vault.';
+        const botMsg: ChatMessage & { requiresApiKey?: boolean } = {
+          id: `bot-${Date.now()}`,
+          role: 'assistant',
+          content: errorText,
+          status: 'error',
+          requiresApiKey: true,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        addChatMessage(botMsg);
+        return;
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        if (data.error) {
+          const alertMsg: ChatMessage = {
+            id: `bot-${Date.now()}`,
+            role: 'assistant',
+            content: `⚠️ **AI CEO Service Notice:** ${data.error}`,
+            status: 'error',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          addChatMessage(alertMsg);
+          return;
+        }
+        throw new Error(`Engine communication error (${response.status})`);
+      }
 
       let replyContent = '';
       let toolMatched: string | undefined = data.delegatedHelper
@@ -446,6 +479,24 @@
                     <span>👥 /teamwork-preview</span>
                   </button>
                 </div>
+              </div>
+            {/if}
+
+            <!-- In-Chat Missing API Key Setup Action Chip -->
+            {#if (msg as any).requiresApiKey || (msg.role === 'assistant' && msg.content && msg.content.includes('API Key') && (msg.content.includes('API Vault') || msg.content.includes('Vault tab') || msg.content.includes('No API Key')))}
+              <div class="mt-3 pt-2.5 border-t border-[#E3ECF7] space-y-2">
+                <p class="text-[11px] text-[#5E7694]">
+                  Google Gemini API is <strong>100% free with no credit card required</strong> and includes high rate limits.
+                </p>
+                <button
+                  type="button"
+                  onclick={() => activeDashboardTab.set('api-keys')}
+                  class="px-3.5 py-2 rounded-xl bg-linear-to-r from-[#1677FF] to-[#38CFFF] hover:from-[#1162DB] hover:to-[#22B8E6] text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-98"
+                >
+                  <Icon name="Key" size={13} />
+                  <span>🔑 Setup API Key in Vault</span>
+                  <Icon name="ArrowRight" size={13} />
+                </button>
               </div>
             {/if}
 

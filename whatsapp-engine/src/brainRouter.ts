@@ -92,7 +92,22 @@ export class CentralBrainRouter {
     );
   }
 
+  private isConversationalGreeting(query: string): boolean {
+    const clean = query.trim().replace(/^[\s!.,?।~*-]+|[\s!.,?।~*-]+$/g, '');
+    if (!clean || clean.length <= 1) return true;
+    const GREETING_PATTERNS = [
+      /^(h+i+|h+e+y+|h+e+l+l+o+|h+e+y+a+|y+o+|h+o+l+a+|h+o+w+d+y+|s+u+p+|greetings)(?:\s+(?:ezbo|ceo|there|bro|brother|friend|sir|vai|bhai|boss|mate|team|all|everyone))?$/i,
+      /^(good\s+(?:morning|afternoon|evening|day|night))(?:\s+(?:ezbo|ceo|there|bro|sir|vai|bhai))?$/i,
+      /^(how\s+are\s+you|how're\s+you|how\s+do\s+you\s+do|how\s+is\s+it\s+going|what's\s+up|whats\s+up|who\s+are\s+you|what\s+is\s+your\s+name|what\s+can\s+you\s+do|can\s+you\s+help\s+me|help\s+me(?:\s+please)?|help(?:\s+please)?|start)(?:\s+(?:ezbo|ceo|today|bro|sir|vai|bhai))?$/i,
+      /^(হাই|হ্যালো|হে|সালাম|আসসালামু\s*আলাইকুম|কেমন\s*(?:আছেন|আছো)|কি\s*খবর|কী\s*খবর|কি\s*অবস্থা|কে\s*তুমি|তুমি\s*কে|তোমার\s*নাম\s*কি|শুভ\s*(?:সকাল|সন্ধ্যা|রাত্রি)|ধন্যবাদ|ঠিক\s*আছে|আচ্ছা|বাই|খোদা\s*হাফেজ|আল্লাহ\s*হাফেজ)(?:\s+(?:এজবো|সিইও|ভাই|স্যার|বন্ধু|বস))?$/i,
+      /^(salam|assalamu\s*alaikum|asalamu\s*alaikum|slm|ki\s*khobor|kemon\s*(?:acho|achen)|ki\s*obostha|ke\s*tumi|tumi\s*k|apni\s*k|nam\s*ki|shuvo\s*(?:shokal|sondha|ratri)|valo\s*achi|bhalo\s*achi|dhonnobad|shukriya|thanks|thank\s*you|thx|welcome|ok|okay|thik\s*ache|accha|bye|goodbye|bye\s*bye|allah\s*hafez|tata)(?:\s+(?:ezbo|ceo|vai|bhai|bro|sir|boss|dost))?$/i,
+      /^(?:hi+|hello+|hey+|salam|assalamu\s*alaikum)[,\s!]+(?:how\s+are\s+you|how're\s+you|kemon\s*(?:acho|achen)|ki\s*khobor|who\s+are\s+you|what\s+can\s+you\s+do)[,\s!?.]*$/i
+    ];
+    return GREETING_PATTERNS.some((p) => p.test(clean));
+  }
+
   private isHelpIntent(query: string): boolean {
+    if (this.isConversationalGreeting(query)) return true;
     const clean = query.toLowerCase().replace(/[^a-z0-9]/g, '');
     return [
       'help',
@@ -101,19 +116,12 @@ export class CentralBrainRouter {
       'tools',
       'helpers',
       'ceo',
-      'start',
-      'hi',
-      'hello',
-      'hey',
-      'salam',
-      'assalamu'
+      'start'
     ].includes(clean);
   }
 
   private findMatchingTool(query: string): ToolItem | undefined {
-    const clean = query.trim().toLowerCase();
-    const cleanAlphanumeric = clean.replace(/[^a-z0-9]/g, '');
-    if (['hi', 'hello', 'hey', 'salam', 'assalamu', 'start', 'help', 'menu'].includes(cleanAlphanumeric)) {
+    if (this.isConversationalGreeting(query)) {
       return undefined;
     }
 

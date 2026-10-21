@@ -90,28 +90,29 @@ const KEYWORD_RULES: Array<{ helperId: string; keywords: string[] }> = [
 ];
 
 export const GREETING_PATTERNS: RegExp[] = [
-  /^(hi|hello|hey|heya|yo|hola|howdy|sup|greetings)[\s!.,?]*$/i,
-  /^(good\s+(morning|afternoon|evening|day|night))[\s!.,?]*$/i,
-  /^(how\s+are\s+you|how're\s+you|how\s+do\s+you\s+do|who\s+are\s+you|what\s+is\s+your\s+name|what\s+can\s+you\s+do|help|help\s+me|start)[\s!.,?]*$/i,
-  /^(হাই|হ্যালো|হে|সালাম|আসসালামু\s*আলাইকুম|কেমন\s*(আছেন|আছো)|কি\s*খবর|কী\s*খবর|কে\s*তুমি|তুমি\s*কে|তোমার\s*নাম\s*কি)[\s!.,?]*$/i,
-  /^(salam|assalamu\s*alaikum|ki\s*khobor|kemon\s*(acho|achen)|ki\s*obostha|ke\s*tumi|tumi\s*k|apni\s*k|nam\s*ki)[\s!.,?]*$/i
+  /^(h+i+|h+e+y+|h+e+l+l+o+|h+e+y+a+|y+o+|h+o+l+a+|h+o+w+d+y+|s+u+p+|greetings)(?:\s+(?:ezbo|ceo|there|bro|brother|friend|sir|vai|bhai|boss|mate|team|all|everyone))?$/i,
+  /^(good\s+(?:morning|afternoon|evening|day|night))(?:\s+(?:ezbo|ceo|there|bro|sir|vai|bhai))?$/i,
+  /^(how\s+are\s+you|how're\s+you|how\s+do\s+you\s+do|how\s+is\s+it\s+going|what's\s+up|whats\s+up|who\s+are\s+you|what\s+is\s+your\s+name|what\s+can\s+you\s+do|can\s+you\s+help\s+me|help\s+me(?:\s+please)?|help(?:\s+please)?|start)(?:\s+(?:ezbo|ceo|today|bro|sir|vai|bhai))?$/i,
+  /^(হাই|হ্যালো|হে|সালাম|আসসালামু\s*আলাইকুম|কেমন\s*(?:আছেন|আছো)|কি\s*খবর|কী\s*খবর|কি\s*অবস্থা|কে\s*তুমি|তুমি\s*কে|তোমার\s*নাম\s*কি|শুভ\s*(?:সকাল|সন্ধ্যা|রাত্রি)|ধন্যবাদ|ঠিক\s*আছে|আচ্ছা|বাই|খোদা\s*হাফেজ|আল্লাহ\s*হাফেজ)(?:\s+(?:এজবো|সিইও|ভাই|স্যার|বন্ধু|বস))?$/i,
+  /^(salam|assalamu\s*alaikum|asalamu\s*alaikum|slm|ki\s*khobor|kemon\s*(?:acho|achen)|ki\s*obostha|ke\s*tumi|tumi\s*k|apni\s*k|nam\s*ki|shuvo\s*(?:shokal|sondha|ratri)|valo\s*achi|bhalo\s*achi|dhonnobad|shukriya|thanks|thank\s*you|thx|welcome|ok|okay|thik\s*ache|accha|bye|goodbye|bye\s*bye|allah\s*hafez|tata)(?:\s+(?:ezbo|ceo|vai|bhai|bro|sir|boss|dost))?$/i,
+  /^(?:hi+|hello+|hey+|salam|assalamu\s*alaikum)[,\s!]+(?:how\s+are\s+you|how're\s+you|kemon\s*(?:acho|achen)|ki\s*khobor|who\s+are\s+you|what\s+can\s+you\s+do)[,\s!?.]*$/i
 ];
 
 export function isConversationalGreeting(message: string): boolean {
   if (!message || typeof message !== 'string') return false;
-  const trimmed = message.trim();
-  if (!trimmed) return false;
-  if (trimmed.length <= 1) return true;
-  return GREETING_PATTERNS.some((pattern) => pattern.test(trimmed));
+  const clean = message.trim().replace(/^[\s!.,?।~*-]+|[\s!.,?।~*-]+$/g, '');
+  if (!clean) return false;
+  if (clean.length <= 1) return true;
+  return GREETING_PATTERNS.some((pattern) => pattern.test(clean));
 }
 
 export const EXPLICIT_EXECUTION_COMMANDS: RegExp[] = [
   /^\/(boost|teamwork-preview|run|execute|deploy|start)\b/i,
   /\[⚡?\s*#(\d{1,2})\b/i,
-  /\b#(0[1-9]|[1-7][0-9]|80)\b/i,
+  /(?:^|\s|\[⚡?)#(0[1-9]|[1-7][0-9]|80)\b/i,
   /\b(run|execute|deploy|start|proceed\s+with)\s+(agent|helper)?\s*#?(\d{1,2})\b/i,
   /\b(run|execute|deploy|start|proceed\s+with)\s+(this|the)\s+(agent|helper)\b/i,
-  /\b(yes\s+proceed|yes\s+run|yes\s+deploy|proceed\s+now|deploy\s+now|run\s+now)\b/i,
+  /\b(yes\s+proceed|yes\s+run|yes\s+deploy|proceed\s+now|deploy\s+now|run\s+now|proceed|deploy|execute)\b/i,
   /(শুরু\s*করো|কাজে\s*লাগাঁও|চালাও|এজেন্ট\s*দিয়ে\s*করাও|হ্যাঁ\s*শুরু\s*করো|হ্যাঁ\s*চালাও)/i,
   /(kaj\s*shuru\s*koro|kaj\s*koro|chalu\s*koro|run\s*koro|deploy\s*koro|proceed\s*koro|boost\s*koro)/i
 ];
@@ -144,7 +145,9 @@ export function recommendHelperForMessage(query: string): ToolConfig | null {
   if (isConversationalGreeting(clean)) return null;
 
   // Check mention chips or #XX
-  const chipMatch = clean.match(/\[?⚡?\s*#(\d{1,2})\b/i);
+  const chipMatch =
+    clean.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
+    clean.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
   if (chipMatch) {
     const num = chipMatch[1].padStart(2, '0');
     const byCode = TOOLS.find((t) => t.code === `#${num}`);
@@ -172,7 +175,11 @@ export function recommendHelperForMessage(query: string): ToolConfig | null {
   return null;
 }
 
-export function matchHelperForMessage(query: string, explicitHelperId?: string): ToolConfig | null {
+export function matchHelperForMessage(
+  query: string,
+  explicitHelperId?: string,
+  history?: Array<{ role: string; content: string }>
+): ToolConfig | null {
   if (explicitHelperId && explicitHelperId !== 'ceo') {
     const exact = TOOLS.find(
       (t) =>
@@ -183,7 +190,9 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
     if (exact) return exact;
 
     // Check if explicitHelperId references a mention chip or #XX
-    const explicitChipMatch = explicitHelperId.match(/\[?⚡?\s*#(\d{1,2})\b/i);
+    const explicitChipMatch =
+      explicitHelperId.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
+      explicitHelperId.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
     if (explicitChipMatch) {
       const num = explicitChipMatch[1].padStart(2, '0');
       const byCode = TOOLS.find((t) => t.code === `#${num}`);
@@ -199,8 +208,11 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
     return null;
   }
 
-  // Check if message references slash command mention chip: [⚡ #01 Facebook Ad Copy] or #01 - #75 directly
-  const chipMatch = clean.match(/\[?⚡?\s*#(\d{1,2})\b/i);
+  // Check if message references slash command mention chip: [⚡ #01 Facebook Ad Copy] or #01 - #75 directly or /boost 01 etc.
+  const chipMatch =
+    clean.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
+    clean.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i) ||
+    clean.match(/(?:\/boost|\/teamwork-preview|\/run|\/deploy|\/start|run|deploy|start|proceed\s+with)\s+(?:agent\s+|helper\s+)?#?(\d{1,2})\b/i);
   if (chipMatch) {
     const num = chipMatch[1].padStart(2, '0');
     const byCode = TOOLS.find((t) => t.code === `#${num}`);
@@ -234,6 +246,28 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
         return tool;
       }
     }
+
+    // Historical context resolution: if user says "proceed", "/boost", "start", "shuru koro", etc.
+    // without repeating the helper code, find the helper that was just recommended in the chat history.
+    if (history && history.length > 0) {
+      for (let i = history.length - 1; i >= 0; i--) {
+        const turn = history[i];
+        if (turn && turn.content) {
+          const histChipMatch =
+            turn.content.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
+            turn.content.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
+          if (histChipMatch) {
+            const num = histChipMatch[1].padStart(2, '0');
+            const byCode = TOOLS.find((t) => t.code === `#${num}`);
+            if (byCode) return byCode;
+          }
+          if (turn.role === 'user') {
+            const recFromPrev = recommendHelperForMessage(turn.content);
+            if (recFromPrev) return recFromPrev;
+          }
+        }
+      }
+    }
   }
 
   return null;
@@ -243,12 +277,17 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
  * Detects multiple agents mentioned or required in sequence for a multi-specialist pipeline.
  * Extracts explicit mention chips (#01, #34, etc.) or distinct keyword triggers.
  */
-export function matchMultiHelpersForMessage(query: string): ToolConfig[] {
+export function matchMultiHelpersForMessage(
+  query: string,
+  history?: Array<{ role: string; content: string }>
+): ToolConfig[] {
   const clean = (query || '').trim();
   if (!clean || isConversationalGreeting(clean)) return [];
 
   const matchedTools: ToolConfig[] = [];
   const seenIds = new Set<string>();
+
+  const isTeamworkCmd = /^\/teamwork-preview\b/i.test(clean) || clean.toLowerCase().includes('teamwork preview');
 
   // 1. Match all explicit mention chips or #XX codes: [⚡ #01 ...], #34, etc.
   const chipMatches = clean.matchAll(/(?:\[?⚡?\s*#(\d{1,2})\b)/gi);
@@ -259,6 +298,49 @@ export function matchMultiHelpersForMessage(query: string): ToolConfig[] {
       matchedTools.push(tool);
       seenIds.add(tool.id);
     }
+  }
+
+  // If teamwork-preview was invoked without specific chips, check history for the primary helper
+  if (isTeamworkCmd && matchedTools.length === 0 && history && history.length > 0) {
+    for (let i = history.length - 1; i >= 0; i--) {
+      const turn = history[i];
+      if (turn && turn.content) {
+        const histChipMatch =
+          turn.content.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
+          turn.content.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
+        if (histChipMatch) {
+          const num = histChipMatch[1].padStart(2, '0');
+          const tool = TOOLS.find((t) => t.code === `#${num}`);
+          if (tool && !seenIds.has(tool.id)) {
+            matchedTools.push(tool);
+            seenIds.add(tool.id);
+            break;
+          }
+        }
+        if (turn.role === 'user') {
+          const recFromPrev = recommendHelperForMessage(turn.content);
+          if (recFromPrev && !seenIds.has(recFromPrev.id)) {
+            matchedTools.push(recFromPrev);
+            seenIds.add(recFromPrev.id);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // For teamwork-preview, auto-complement with related category team specialists if fewer than 3
+  if (isTeamworkCmd && matchedTools.length > 0 && matchedTools.length < 3) {
+    const primary = matchedTools[0];
+    const categoryPeers = TOOLS.filter((t) => t.category === primary.category && t.id !== primary.id);
+    for (const peer of categoryPeers) {
+      if (!seenIds.has(peer.id)) {
+        matchedTools.push(peer);
+        seenIds.add(peer.id);
+        if (matchedTools.length >= 3) break;
+      }
+    }
+    return matchedTools;
   }
 
   // 2. If chaining conjunctions exist and explicit execution is indicated
@@ -495,8 +577,8 @@ Do not give generic filler. Deliver complete, copy-paste ready results immediate
   if (helper) {
     return `${AI_CEO_PROFILE.systemPrompt}
 
-AUTOMATIC HELPER DELEGATION ACTIVE:
-You have automatically routed this request to specialist helper **[${helper.code}] ${helper.name}** (${helper.badge}).
+EXPLICIT HELPER DELEGATION ACTIVE:
+The user has explicitly ordered deployment of specialist helper **[${helper.code}] ${helper.name}** (${helper.badge}).
 Begin your response with a brief 1-line executive header:
 "⚡ **AI CEO → Delegated to [${helper.code}] ${helper.name}**"
 Then execute the task using this specialist's protocol:

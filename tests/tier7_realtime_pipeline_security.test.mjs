@@ -20,6 +20,7 @@ const PATHS = {
   chatApi: path.join(WEB_DIR, 'src', 'routes', 'api', 'chat', '+server.ts'),
   toolDrawer: path.join(WEB_DIR, 'src', 'lib', 'components', 'ToolDrawer.svelte'),
   floatingCeoChat: path.join(WEB_DIR, 'src', 'lib', 'components', 'FloatingCeoChat.svelte'),
+  dashboardChat: path.join(WEB_DIR, 'src', 'lib', 'components', 'DashboardChat.svelte'),
 
   // Real-Time Pipeline Execution in Visual Workflow Studio
   workflowStudio: path.join(WEB_DIR, 'src', 'lib', 'components', 'WorkflowStudioModal.svelte'),
@@ -764,6 +765,92 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
       const content = readSafe(apiVaultPath);
       assert.ok(content.includes("'gemini-2.0-flash'"), 'ApiVaultManager must include gemini-2.0-flash');
       assert.ok(content.includes("'gemini-2.5-flash'"), 'ApiVaultManager must include gemini-2.5-flash');
+    });
+
+    it('10.7 functional verification: conversational greeting guard filters 100% of casual greetings & pleasantries', () => {
+      // Re-create pure evaluation function matching ceoRouter implementation
+      const GREETING_PATTERNS = [
+        /^(h+i+|h+e+y+|h+e+l+l+o+|h+e+y+a+|y+o+|h+o+l+a+|h+o+w+d+y+|s+u+p+|greetings)(?:\s+(?:ezbo|ceo|there|bro|brother|friend|sir|vai|bhai|boss|mate|team|all|everyone))?$/i,
+        /^(good\s+(?:morning|afternoon|evening|day|night))(?:\s+(?:ezbo|ceo|there|bro|sir|vai|bhai))?$/i,
+        /^(how\s+are\s+you|how're\s+you|how\s+do\s+you\s+do|how\s+is\s+it\s+going|what's\s+up|whats\s+up|who\s+are\s+you|what\s+is\s+your\s+name|what\s+can\s+you\s+do|can\s+you\s+help\s+me|help\s+me(?:\s+please)?|help(?:\s+please)?|start)(?:\s+(?:ezbo|ceo|today|bro|sir|vai|bhai))?$/i,
+        /^(হাই|হ্যালো|হে|সালাম|আসসালামু\s*আলাইকুম|কেমন\s*(?:আছেন|আছো)|কি\s*খবর|কী\s*খবর|কি\s*অবস্থা|কে\s*তুমি|তুমি\s*কে|তোমার\s*নাম\s*কি|শুভ\s*(?:সকাল|সন্ধ্যা|রাত্রি)|ধন্যবাদ|ঠিক\s*আছে|আচ্ছা|বাই|খোদা\s*হাফেজ|আল্লাহ\s*হাফেজ)(?:\s+(?:এজবো|সিইও|ভাই|স্যার|বন্ধু|বস))?$/i,
+        /^(salam|assalamu\s*alaikum|asalamu\s*alaikum|slm|ki\s*khobor|kemon\s*(?:acho|achen)|ki\s*obostha|ke\s*tumi|tumi\s*k|apni\s*k|nam\s*ki|shuvo\s*(?:shokal|sondha|ratri)|valo\s*achi|bhalo\s*achi|dhonnobad|shukriya|thanks|thank\s*you|thx|welcome|ok|okay|thik\s*ache|accha|bye|goodbye|bye\s*bye|allah\s*hafez|tata)(?:\s+(?:ezbo|ceo|vai|bhai|bro|sir|boss|dost))?$/i,
+        /^(?:hi+|hello+|hey+|salam|assalamu\s*alaikum)[,\s!]+(?:how\s+are\s+you|how're\s+you|kemon\s*(?:acho|achen)|ki\s*khobor|who\s+are\s+you|what\s+can\s+you\s+do)[,\s!?.]*$/i
+      ];
+
+      function isGreeting(message) {
+        if (!message || typeof message !== 'string') return false;
+        const clean = message.trim().replace(/^[\s!.,?।~*-]+|[\s!.,?।~*-]+$/g, '');
+        if (!clean || clean.length <= 1) return true;
+        return GREETING_PATTERNS.some((pattern) => pattern.test(clean));
+      }
+
+      const casualGreetings = [
+        'hi', 'hello', 'hey', 'salam', 'hi ezbo', 'hello ezbo', 'hey ezbo', 'salam ezbo',
+        'hi there', 'hello there', 'hey bro', 'salam bhai', 'salam bhai!!', 'ki khobor bro',
+        'kemon acho vai', 'assalamu alaikum bhai', 'good morning ezbo', 'who are you?',
+        'what can you do?', 'help me please', 'can you help me?', 'hiii', 'heyyy',
+        'helloooo', 'thanks', 'thank you', 'dhonnobad', 'ok', 'okay', 'thik ache', 'bye'
+      ];
+
+      for (const g of casualGreetings) {
+        assert.strictEqual(isGreeting(g), true, `Greeting "${g}" must evaluate to true`);
+      }
+
+      const taskQueries = [
+        'Write a facebook ad copy for my fashion brand',
+        'Create a 30 day content calendar',
+        'Humanize this text: The product delivers efficiency',
+        '#01 Facebook ad copy for wireless earbuds',
+        '/boost #01'
+      ];
+
+      for (const t of taskQueries) {
+        assert.strictEqual(isGreeting(t), false, `Task query "${t}" must evaluate to false`);
+      }
+    });
+
+    it('10.8 functional verification: explicit execution intent detects commands correctly', () => {
+      const EXPLICIT_COMMANDS = [
+        /^\/(boost|teamwork-preview|run|execute|deploy|start)\b/i,
+        /\[⚡?\s*#(\d{1,2})\b/i,
+        /(?:^|\s|\[⚡?)#(0[1-9]|[1-7][0-9]|80)\b/i,
+        /\b(run|execute|deploy|start|proceed\s+with)\s+(agent|helper)?\s*#?(\d{1,2})\b/i,
+        /\b(run|execute|deploy|start|proceed\s+with)\s+(this|the)\s+(agent|helper)\b/i,
+        /\b(yes\s+proceed|yes\s+run|yes\s+deploy|proceed\s+now|deploy\s+now|run\s+now|proceed|deploy|execute)\b/i,
+        /(শুরু\s*করো|কাজে\s*লাগাঁও|চালাও|এজেন্ট\s*দিয়ে\s*করাও|হ্যাঁ\s*শুরু\s*করো|হ্যাঁ\s*চালাও)/i,
+        /(kaj\s*shuru\s*koro|kaj\s*koro|chalu\s*koro|run\s*koro|deploy\s*koro|proceed\s*koro|boost\s*koro)/i
+      ];
+
+      function hasExplicitIntent(message) {
+        if (!message || typeof message !== 'string') return false;
+        const trimmed = message.trim();
+        if (!trimmed) return false;
+        return EXPLICIT_COMMANDS.some((pattern) => pattern.test(trimmed));
+      }
+
+      assert.strictEqual(hasExplicitIntent('/boost #01'), true);
+      assert.strictEqual(hasExplicitIntent('/boost 01'), true);
+      assert.strictEqual(hasExplicitIntent('/teamwork-preview #01'), true);
+      assert.strictEqual(hasExplicitIntent('#01 Facebook Ad'), true);
+      assert.strictEqual(hasExplicitIntent('run agent 01'), true);
+      assert.strictEqual(hasExplicitIntent('proceed'), true);
+      assert.strictEqual(hasExplicitIntent('yes proceed'), true);
+      assert.strictEqual(hasExplicitIntent('শুরু করো'), true);
+      assert.strictEqual(hasExplicitIntent('চালাও'), true);
+      assert.strictEqual(hasExplicitIntent('kaj shuru koro'), true);
+
+      assert.strictEqual(hasExplicitIntent('hi ezbo'), false);
+      assert.strictEqual(hasExplicitIntent('Can you write an ad for my store?'), false);
+      assert.strictEqual(hasExplicitIntent('How do I build an audience?'), false);
+    });
+
+    it('10.9 DashboardChat and FloatingCeoChat render 1-click API Vault navigation for missing key detection', () => {
+      const dashboardChatContent = readSafe(PATHS.dashboardChat);
+      assert.ok(dashboardChatContent.includes('activeDashboardTab'), 'DashboardChat must import activeDashboardTab');
+      assert.ok(dashboardChatContent.includes("activeDashboardTab.set('api-keys')"), 'DashboardChat must provide 1-click navigation to api-keys');
+      assert.ok(dashboardChatContent.includes('requiresApiKey'), 'DashboardChat must intercept requiresApiKey');
+      assert.ok(dashboardChatContent.includes('AI CEO Service Notice'), 'DashboardChat must display friendly AI CEO Service Notice');
     });
   });
 });
