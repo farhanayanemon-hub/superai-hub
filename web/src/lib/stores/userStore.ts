@@ -5,7 +5,7 @@ import { offlineStorage } from '$lib/services/offlineStorage';
 import { DEFAULT_PLANS, type PlansSettings } from '$lib/config/plans';
 
 export type WhatsAppStatus = 'disconnected' | 'connecting' | 'qr_ready' | 'connected';
-export type DashboardTab = 'chat' | 'agents' | 'store' | 'owned-agents' | 'channels' | 'billing' | 'settings' | 'api-keys' | 'tools' | 'whatsapp' | 'vault';
+export type DashboardTab = 'chat' | 'agents' | 'store' | 'owned-agents' | 'channels' | 'billing' | 'settings' | 'api-keys' | 'tools' | 'whatsapp' | 'vault' | 'docs' | 'documentation';
 export type AIProvider = 'gemini' | 'openai' | 'grok' | 'deepseek' | 'openrouter' | 'replicate';
 export type RoutingStrategy = 'auto_free_rotate' | 'single_model' | 'multi_provider_rotate';
 export type PlanTier = 'byok_starter' | 'byok_pro' | 'managed' | 'byok' | 'complete' | 'pro' | 'ultra' | 'free';

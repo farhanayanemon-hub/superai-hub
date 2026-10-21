@@ -475,13 +475,13 @@
           </button>
         </div>
 
-        <!-- Navigation Menu Items -->
-        <nav class="p-3 space-y-1.5">
+        <!-- Navigation Menu Items (Consistent Poppins Typography) -->
+        <nav class="p-3 space-y-1.5 font-['Poppins',sans-serif]">
           <!-- 1. AI Helpers -->
           <button
             type="button"
             onclick={() => switchTab('agents')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'agents' ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
               <Icon name="Grid" size={17} class={$activeDashboardTab === 'agents' ? 'text-white' : 'text-[#1677FF]'} />
@@ -493,9 +493,7 @@
           <button
             type="button"
             onclick={() => switchTab('tools')}
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-200 group text-left cursor-pointer {$activeDashboardTab === 'tools'
-              ? 'bg-[#1677FF] text-white shadow-xs font-bold'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-[#F3F8FF]/80'}"
+            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'tools' ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
               <Icon name="Wrench" size={17} class={$activeDashboardTab === 'tools' ? 'text-white' : 'text-[#1677FF]'} />
@@ -503,11 +501,23 @@
             </div>
           </button>
 
+          <!-- 3. Documentation -->
+          <button
+            type="button"
+            onclick={() => switchTab('docs')}
+            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'docs' || $activeDashboardTab === 'documentation' ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="BookOpen" size={17} class={$activeDashboardTab === 'docs' || $activeDashboardTab === 'documentation' ? 'text-white' : 'text-[#1677FF]'} />
+              <span>Documentation</span>
+            </div>
+          </button>
+
           <!-- 4. Subscription & Billing -->
           <button
             type="button"
             onclick={() => switchTab('billing')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'billing' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'billing' ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
               <Icon name="CreditCard" size={17} class={$activeDashboardTab === 'billing' ? 'text-white' : 'text-[#1677FF]'} />
@@ -519,7 +529,7 @@
           <button
             type="button"
             onclick={() => switchTab('settings')}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-3">
               <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' ? 'text-white' : 'text-[#5E7694]'} />
@@ -531,7 +541,7 @@
           <button
             type="button"
             onclick={() => switchTab('api-keys')}
-            class="w-[calc(100%-1rem)] ml-4 px-3 py-2 rounded-xl text-[11px] font-semibold flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF]/15 text-[#1677FF] font-bold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            class="w-[calc(100%-1rem)] ml-4 px-3 py-2 rounded-xl font-['Poppins',sans-serif] text-[11px] sm:text-xs font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF]/15 text-[#1677FF] font-semibold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
           >
             <div class="flex items-center gap-2.5">
               <Icon name="Key" size={14} class={$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
@@ -551,7 +561,7 @@
               isAppDownloadModalOpen = true;
               mobileSidebarOpen = false;
             }}
-            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF] group"
+            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF] group"
           >
             <div class="flex items-center gap-3">
               <Icon name="Smartphone" size={17} class="text-[#1677FF] group-hover:scale-110 transition-transform" />
@@ -756,6 +766,130 @@
       {:else if $activeDashboardTab === 'tools'}
         <div class="h-full overflow-y-auto max-w-7xl mx-auto pb-12">
           <ToolConnectorsTab />
+        </div>
+
+      <!-- ==================================================== -->
+      <!-- TAB: DOCUMENTATION & QUICK GUIDES -->
+      <!-- ==================================================== -->
+      {:else if $activeDashboardTab === 'docs' || $activeDashboardTab === 'documentation'}
+        <div class="h-full overflow-y-auto max-w-6xl mx-auto space-y-6 pb-12 font-['Poppins',sans-serif]">
+          <!-- Header Banner -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-white/90 via-blue-50/50 to-indigo-50/40 backdrop-blur-xl border border-[#CFE2FA] shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F4FF] border border-[#91CAFF] text-[#1677FF] text-xs font-bold mb-2">
+                  <Icon name="BookOpen" size={13} />
+                  <span>EzboAgents Knowledge Base</span>
+                </div>
+                <h2 class="text-2xl font-black text-[#102A56] tracking-tight">
+                  Documentation & Integration Guides
+                </h2>
+                <p class="text-xs sm:text-sm text-[#4B6382] mt-1 max-w-2xl leading-relaxed">
+                  Complete setup guides, webhook references, customer channel tutorials, and Master AI CEO operational cheatsheets.
+                </p>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <a
+                  href="/docs/channels"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-5 py-2.5 rounded-xl bg-[#1677FF] hover:bg-[#1466de] text-white text-xs sm:text-sm font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:scale-102 active:scale-98"
+                >
+                  <Icon name="ExternalLink" size={15} />
+                  <span>Open Dedicated Docs Page</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documentation Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- 1. Customer Support Channels -->
+            <div class="p-6 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] hover:border-[#1677FF]/50 hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <Icon name="MessageSquare" size={20} />
+                </div>
+                <h3 class="text-base font-bold text-[#102A56]">Connect Customer Support Channels</h3>
+                <p class="text-xs text-[#5E7694] leading-relaxed">
+                  Detailed step-by-step instructions to connect WhatsApp Business Cloud API, Facebook Page Messenger, Instagram Direct (DM), and Telegram Customer Support Bot with webhooks and tokens.
+                </p>
+              </div>
+              <a
+                href="/docs/channels"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1677FF] hover:text-[#0E63E0] pt-2"
+              >
+                <span>Read Full Channels Guide ↗</span>
+                <Icon name="ArrowRight" size={13} />
+              </a>
+            </div>
+
+            <!-- 2. Master AI CEO & 80 Helpers -->
+            <div class="p-6 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] hover:border-[#1677FF]/50 hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#1677FF]">
+                  <Icon name="Zap" size={20} />
+                </div>
+                <h3 class="text-base font-bold text-[#102A56]">Master AI CEO & 80 AI Helpers</h3>
+                <p class="text-xs text-[#5E7694] leading-relaxed">
+                  Command the Master AI CEO autonomously. In the chat, type <code class="px-1.5 py-0.5 rounded bg-blue-50 text-[#1677FF] font-mono">/</code> to search all 80 specialists, or simply instruct Ezbo in natural language to execute immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onclick={() => switchTab('agents')}
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1677FF] hover:text-[#0E63E0] pt-2 cursor-pointer text-left"
+              >
+                <span>Explore All 80 AI Helpers</span>
+                <Icon name="ArrowRight" size={13} />
+              </button>
+            </div>
+
+            <!-- 3. Free Gemini & API Vault -->
+            <div class="p-6 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] hover:border-[#1677FF]/50 hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-[#4F46E5]">
+                  <Icon name="Key" size={20} />
+                </div>
+                <h3 class="text-base font-bold text-[#102A56]">API Vault & Free Gemini Setup</h3>
+                <p class="text-xs text-[#5E7694] leading-relaxed">
+                  Google Gemini API is 100% free with no credit card required. Connect your key in the API Vault to get unlimited high-speed AI inference, or configure OpenRouter failover chains with automatic model rotation.
+                </p>
+              </div>
+              <button
+                type="button"
+                onclick={() => switchTab('api-keys')}
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1677FF] hover:text-[#0E63E0] pt-2 cursor-pointer text-left"
+              >
+                <span>Manage API Keys in Vault</span>
+                <Icon name="ArrowRight" size={13} />
+              </button>
+            </div>
+
+            <!-- 4. Tools & Integrations (100+) -->
+            <div class="p-6 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] hover:border-[#1677FF]/50 hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                  <Icon name="Wrench" size={20} />
+                </div>
+                <h3 class="text-base font-bold text-[#102A56]">Enterprise Connectors & Integrations</h3>
+                <p class="text-xs text-[#5E7694] leading-relaxed">
+                  Connect over 100 enterprise services including Bangladeshi payment gateways (bKash, Nagad), CRMs (Salesforce, HubSpot), Google Workspace, Notion, Shopify, and database connectors.
+                </p>
+              </div>
+              <button
+                type="button"
+                onclick={() => switchTab('tools')}
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1677FF] hover:text-[#0E63E0] pt-2 cursor-pointer text-left"
+              >
+                <span>Configure Tool Connectors</span>
+                <Icon name="ArrowRight" size={13} />
+              </button>
+            </div>
+          </div>
         </div>
 
       <!-- ==================================================== -->
