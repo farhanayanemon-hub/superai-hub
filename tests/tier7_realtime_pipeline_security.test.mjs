@@ -712,6 +712,16 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
       assert.ok(studio.includes('enabledToolConnectorsStore'), 'WorkflowStudio must subscribe to enabledToolConnectorsStore');
       assert.ok(studio.includes('enabledConnectors'), 'WorkflowStudio must derive enabledConnectors');
     });
+
+    it('9.7 Settings tab has interactive dropdown with hover auto-show on PC and click toggle', () => {
+      const dashboard = readSafe(PATHS.dashboardPage);
+      assert.ok(dashboard.includes('settingsDropdownOpen'), 'Dashboard must manage settingsDropdownOpen state');
+      assert.ok(dashboard.includes('settingsHovered'), 'Dashboard must manage settingsHovered state for PC hover');
+      assert.ok(dashboard.includes('onmouseenter'), 'Dashboard must trigger onmouseenter for hover reveal');
+      assert.ok(dashboard.includes('onmouseleave'), 'Dashboard must trigger onmouseleave on hover exit');
+      assert.ok(dashboard.includes("switchTab('api-keys')"), 'Dashboard must support switchTab to api-keys');
+      assert.ok(dashboard.includes('General & CEO Persona') || dashboard.includes('General & Persona'), 'Dashboard must provide General sub-tab');
+    });
   });
 
   // ==========================================================================

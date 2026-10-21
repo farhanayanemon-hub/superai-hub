@@ -55,6 +55,18 @@
   let isAppDownloadModalOpen = $state(false);
   let hasCheckedServerAccess = $state(false);
 
+  // Settings Dropdown Navigation State (Auto-expand on hover on PC, toggle on click)
+  let settingsDropdownOpen = $state(false);
+  let settingsHovered = $state(false);
+  const isSettingsActive = $derived(
+    $activeDashboardTab === 'settings' ||
+      $activeDashboardTab === 'api-keys' ||
+      $activeDashboardTab === 'vault'
+  );
+  const showSettingsDropdown = $derived(
+    settingsDropdownOpen || settingsHovered || isSettingsActive
+  );
+
   // Pro Workflow Studio State & Admin Access Control
   const isAdmin = $derived(typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true');
   const isWorkflowStudioVisible = $derived(isAdmin || $workflowCustomizationUserStore !== false);
@@ -525,34 +537,85 @@
             </div>
           </button>
 
-          <!-- 5. Settings & Profile -->
-          <button
-            type="button"
-            onclick={() => switchTab('settings')}
-            class="w-full px-3.5 py-2.5 rounded-xl font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+          <!-- 5. Settings with Dropdown Menu (Auto-shown on PC hover, toggled on click) -->
+          <div
+            class="relative group"
+            role="region"
+            aria-label="Settings and API Key Management menu"
+            onmouseenter={() => (settingsHovered = true)}
+            onmouseleave={() => (settingsHovered = false)}
           >
-            <div class="flex items-center gap-3">
-              <Icon name="Settings" size={17} class={$activeDashboardTab === 'settings' ? 'text-white' : 'text-[#5E7694]'} />
-              <span>Settings</span>
-            </div>
-          </button>
+            <!-- Main Settings Trigger Button -->
+            <div
+              class="w-full flex items-center justify-between rounded-xl transition-all {isSettingsActive ? 'bg-[#1677FF] text-white shadow-xs font-semibold' : 'text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+            >
+              <button
+                type="button"
+                onclick={() => {
+                  switchTab('settings');
+                  settingsDropdownOpen = !settingsDropdownOpen;
+                }}
+                class="flex-1 px-3.5 py-2.5 font-['Poppins',sans-serif] text-xs sm:text-[13px] font-medium flex items-center gap-3 text-left cursor-pointer"
+              >
+                <Icon name="Settings" size={17} class={isSettingsActive ? 'text-white' : 'text-[#5E7694]'} />
+                <span>Settings</span>
+              </button>
 
-          <!-- 5a. API Key Management (Child Tab under Settings) -->
-          <button
-            type="button"
-            onclick={() => switchTab('api-keys')}
-            class="w-[calc(100%-1rem)] ml-4 px-3 py-2 rounded-xl font-['Poppins',sans-serif] text-[11px] sm:text-xs font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF]/15 text-[#1677FF] font-semibold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
-          >
-            <div class="flex items-center gap-2.5">
-              <Icon name="Key" size={14} class={$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
-              <span>API Key Management</span>
+              <!-- Dropdown Chevron Button (Clickable toggle) -->
+              <button
+                type="button"
+                onclick={(e) => {
+                  e.stopPropagation();
+                  settingsDropdownOpen = !settingsDropdownOpen;
+                }}
+                class="px-3 py-2.5 flex items-center justify-center cursor-pointer opacity-80 hover:opacity-100 transition-all"
+                title={showSettingsDropdown ? 'Collapse Settings Menu' : 'Expand Settings Menu'}
+                aria-label="Toggle Settings Dropdown"
+              >
+                <Icon
+                  name="ChevronDown"
+                  size={14}
+                  class="transition-transform duration-200 {showSettingsDropdown ? 'rotate-180' : ''} {isSettingsActive ? 'text-white' : 'text-[#5E7694]'}"
+                />
+              </button>
             </div>
-            {#if $apiVault.length > 0}
-              <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500 text-white">
-                {$apiVault.length}
-              </span>
+
+            <!-- Dropdown Sub-Tabs Menu (Auto-shown on PC hover, toggled on click, open when active) -->
+            {#if showSettingsDropdown}
+              <div
+                class="mt-1 pl-3 pr-1 py-1 space-y-1 border-l-2 border-[#CFE2FA] ml-4.5 animate-in fade-in slide-in-from-top-1 duration-150"
+              >
+                <!-- Sub-tab 1: General & CEO Persona -->
+                <button
+                  type="button"
+                  onclick={() => switchTab('settings')}
+                  class="w-full px-3 py-1.5 rounded-lg font-['Poppins',sans-serif] text-[11px] sm:text-xs font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'settings' ? 'bg-[#1677FF]/15 text-[#1677FF] font-semibold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+                >
+                  <div class="flex items-center gap-2">
+                    <Icon name="Sliders" size={13} class={$activeDashboardTab === 'settings' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
+                    <span>General & Persona</span>
+                  </div>
+                </button>
+
+                <!-- Sub-tab 2: API Key Management -->
+                <button
+                  type="button"
+                  onclick={() => switchTab('api-keys')}
+                  class="w-full px-3 py-1.5 rounded-lg font-['Poppins',sans-serif] text-[11px] sm:text-xs font-medium flex items-center justify-between transition-all cursor-pointer {$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'bg-[#1677FF]/15 text-[#1677FF] font-semibold border border-[#1677FF]/30 shadow-2xs' : 'text-[#5E7694] hover:text-[#102A56] hover:bg-[#F3F8FF]'}"
+                >
+                  <div class="flex items-center gap-2">
+                    <Icon name="Key" size={13} class={$activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault' ? 'text-[#1677FF]' : 'text-[#5E7694]'} />
+                    <span>API Key Management</span>
+                  </div>
+                  {#if $apiVault.length > 0}
+                    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500 text-white">
+                      {$apiVault.length}
+                    </span>
+                  {/if}
+                </button>
+              </div>
             {/if}
-          </button>
+          </div>
 
           <!-- 6. Download Mobile App -->
           <button
@@ -1460,7 +1523,36 @@
       <!-- TAB 6: SETTINGS -->
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'settings'}
-        <div class="h-full overflow-y-auto max-w-4xl mx-auto space-y-6 pb-12">
+        <div class="h-full overflow-y-auto max-w-4xl mx-auto space-y-6 pb-12 font-['Poppins',sans-serif]">
+          <!-- Settings Sub-Navigation Header -->
+          <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] shadow-2xs font-['Poppins',sans-serif]">
+            <button
+              type="button"
+              onclick={() => switchTab('settings')}
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[#1677FF] text-white shadow-xs"
+            >
+              <span class="flex items-center gap-2">
+                <Icon name="Sliders" size={15} />
+                <span>General & CEO Persona</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onclick={() => switchTab('api-keys')}
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]"
+            >
+              <span class="flex items-center gap-2">
+                <Icon name="Key" size={15} />
+                <span>API Key Management</span>
+                {#if $apiVault.length > 0}
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
+                    {$apiVault.length}
+                  </span>
+                {/if}
+              </span>
+            </button>
+          </div>
+
           <!-- Master AI CEO Persona & Custom Instructions Card -->
           <div class="p-6 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 space-y-6 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3ECF7] pb-4">
@@ -1625,7 +1717,38 @@
       <!-- TAB 8: API KEY MANAGEMENT & MODEL EXPLORER -->
       <!-- ==================================================== -->
       {:else if $activeDashboardTab === 'api-keys' || $activeDashboardTab === 'vault'}
-        <ApiKeyManager />
+        <div class="h-full overflow-y-auto max-w-5xl mx-auto space-y-6 pb-12 font-['Poppins',sans-serif]">
+          <!-- Settings Sub-Navigation Header -->
+          <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] shadow-2xs font-['Poppins',sans-serif]">
+            <button
+              type="button"
+              onclick={() => switchTab('settings')}
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer text-[#4B6382] hover:text-[#102A56] hover:bg-[#F3F8FF]"
+            >
+              <span class="flex items-center gap-2">
+                <Icon name="Sliders" size={15} />
+                <span>General & CEO Persona</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onclick={() => switchTab('api-keys')}
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[#1677FF] text-white shadow-xs"
+            >
+              <span class="flex items-center gap-2">
+                <Icon name="Key" size={15} />
+                <span>API Key Management</span>
+                {#if $apiVault.length > 0}
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
+                    {$apiVault.length}
+                  </span>
+                {/if}
+              </span>
+            </button>
+          </div>
+
+          <ApiKeyManager />
+        </div>
       {/if}
     </div>
   </main>
