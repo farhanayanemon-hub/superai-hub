@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import BrandIcon from '$lib/components/BrandIcon.svelte';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { DEFAULT_PLANS, type PlansSettings, type PlanConfig, type PlanTierId } from '$lib/config/plans';
   import { STORE_BOTS } from '$lib/config/storeBots';
   import { ALL_TOOLS, CATEGORIES, type AITool } from '$lib/config/tools';
@@ -12,7 +12,7 @@
     applyAdminGrantLocally,
     type ServerUserGrant
   } from '$lib/stores/userStore';
-  import { plansStore, normalizePlans, workflowCustomizationUserStore } from '$lib/stores/plansStore';
+  import { plansStore, normalizePlans, workflowCustomizationUserStore, enabledToolConnectorsStore, saveAdminPlansMaster } from '$lib/stores/plansStore';
   import { draggableScroll } from '$lib/utils/draggableScroll';
 
   type AdminTab = 'overview' | 'users' | 'plans' | 'tools' | 'payment' | 'ai-keys' | 'models' | 'smtp' | 'telegram' | 'security';
@@ -216,6 +216,132 @@
   let copyFeedback = $state('');
   let channelsCeoEnabled = $state(true);
   let workflowCustomizationUserEnabled = $state(true);
+
+  // Auto-Save Engine State (300ms debounce & dual-tier sync)
+  let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+  let isAutoSaving = $state(false);
+  let autoSaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  let activeAutoSaveSection = $state<'workflow' | 'helpers' | 'tools' | 'plan-visibility' | 'general' | null>(null);
+  let autoSaveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingAutoSaveSection: 'workflow' | 'helpers' | 'tools' | 'plan-visibility' | 'general' | null = null;
+  let autoSaveRevision = 0;
+
+  onDestroy(() => {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    if (autoSaveFeedbackTimer) clearTimeout(autoSaveFeedbackTimer);
+  });
+
+  function syncStoresAndLocalStorageOptimistically() {
+    if (typeof window === 'undefined') return;
+    try {
+      const updatedPlans = normalizePlans(editablePlans);
+      const masterObj = {
+        revision: Date.now(),
+        updatedAt: new Date().toISOString(),
+        plans: updatedPlans,
+        workflowCustomizationUserEnabled,
+        enabledToolConnectors
+      };
+      localStorage.setItem('ezbo_admin_plans_master', JSON.stringify(masterObj));
+      localStorage.setItem('ezbo_enabled_tool_connectors', JSON.stringify(enabledToolConnectors));
+      localStorage.setItem('ezbo_workflow_user_enabled', String(workflowCustomizationUserEnabled));
+      localStorage.setItem('ezbo_public_plans', JSON.stringify(updatedPlans));
+
+      plansStore.set(updatedPlans);
+      workflowCustomizationUserStore.set(workflowCustomizationUserEnabled);
+      enabledToolConnectorsStore.set(enabledToolConnectors);
+
+      window.dispatchEvent(new CustomEvent('ezbo:plans-settings-updated', { detail: { plans: updatedPlans } }));
+      window.dispatchEvent(new CustomEvent('ezbo:tools-settings-updated'));
+      window.dispatchEvent(new CustomEvent('ezbo:workflow-settings-updated', { detail: { enabled: workflowCustomizationUserEnabled } }));
+    } catch (err) {
+      console.warn('Optimistic local storage sync failed:', err);
+    }
+  }
+
+  function triggerAutoSave(section: 'workflow' | 'helpers' | 'tools' | 'plan-visibility' | 'general' = 'general') {
+    activeAutoSaveSection = section;
+    autoSaveStatus = 'saving';
+
+    // 1. Optimistically persist local stores and localStorage immediately (0ms)
+    syncStoresAndLocalStorageOptimistically();
+
+    // 2. Clear existing debounce timer
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    // 3. 300ms debounced network save
+    autoSaveTimer = setTimeout(async () => {
+      await executeAutoSave(section);
+    }, 300);
+  }
+
+  async function executeAutoSave(section: 'workflow' | 'helpers' | 'tools' | 'plan-visibility' | 'general') {
+    if (isAutoSaving) {
+      pendingAutoSaveSection = section;
+      return;
+    }
+
+    isAutoSaving = true;
+    autoSaveStatus = 'saving';
+    const currentRevision = ++autoSaveRevision;
+
+    try {
+      const enabledPlanCount = getEnabledPlanCount();
+      if (enabledPlanCount === 0) {
+        autoSaveStatus = 'error';
+        return;
+      }
+
+      const secretToUse = authSecret.trim() || (typeof window !== 'undefined' ? sessionStorage.getItem('ezbo_admin_secret') || '' : '') || 'ezbo-admin-2026';
+      const patch: any = {
+        workflowCustomizationUserEnabled,
+        enabledToolConnectors,
+        plans: {
+          ...editablePlans,
+          byok: editablePlans.byok_starter
+        },
+        modelsEnabled,
+        providersAllowed,
+        channelsCeoEnabled
+      };
+
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminSecret: secretToUse, patch })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        syncStoresAndLocalStorageOptimistically();
+
+        if (currentRevision === autoSaveRevision) {
+          autoSaveStatus = 'saved';
+          if (autoSaveFeedbackTimer) clearTimeout(autoSaveFeedbackTimer);
+          autoSaveFeedbackTimer = setTimeout(() => {
+            if (autoSaveStatus === 'saved') {
+              autoSaveStatus = 'idle';
+              activeAutoSaveSection = null;
+            }
+          }, 3500);
+        }
+      } else {
+        autoSaveStatus = 'error';
+      }
+    } catch (e) {
+      console.error('Auto-save network error:', e);
+      autoSaveStatus = 'error';
+    } finally {
+      isAutoSaving = false;
+      if (pendingAutoSaveSection) {
+        const nextSec = pendingAutoSaveSection;
+        pendingAutoSaveSection = null;
+        triggerAutoSave(nextSec);
+      }
+    }
+  }
 
   const MODELS_CATALOG: { id: keyof AdminModelToggles; name: string; provider: string; tag: string; latency: string }[] = [
     { id: 'gemini-2.0-flash', name: 'Google Gemini 2.0 Flash', provider: 'Google AI Studio', tag: 'High Speed (Default)', latency: '~350ms' },
@@ -613,6 +739,7 @@
     } else {
       editablePlans[planId].isEnabled = true;
     }
+    triggerAutoSave('plan-visibility');
   }
 
   function deleteOrHidePlan(planId: PlanTierId) {
@@ -624,10 +751,12 @@
       return;
     }
     editablePlans[planId].isEnabled = false;
+    triggerAutoSave('plan-visibility');
   }
 
   function restorePlan(planId: PlanTierId) {
     editablePlans[planId].isEnabled = true;
+    triggerAutoSave('plan-visibility');
   }
 
   function toggleHelperForPlan(planId: PlanTierId, helperId: string) {
@@ -647,6 +776,7 @@
         allToolsEnabled: true,
         enabledTools: []
       };
+      triggerAutoSave('helpers');
       return;
     }
     if (!Array.isArray(plan.featureToggles.enabledHelpers)) {
@@ -659,6 +789,7 @@
     } else {
       plan.featureToggles.enabledHelpers = [...currentList, helperId];
     }
+    triggerAutoSave('helpers');
   }
 
   function selectAllHelpersForPlan(planId: PlanTierId) {
@@ -666,6 +797,7 @@
     if (!plan.featureToggles) return;
     plan.featureToggles.allHelpersEnabled = false;
     plan.featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id);
+    triggerAutoSave('helpers');
   }
 
   function clearAllHelpersForPlan(planId: PlanTierId) {
@@ -673,6 +805,7 @@
     if (!plan.featureToggles) return;
     plan.featureToggles.allHelpersEnabled = false;
     plan.featureToggles.enabledHelpers = [];
+    triggerAutoSave('helpers');
   }
 
   const filteredMatrixHelpers = $derived.by(() => {
@@ -706,6 +839,7 @@
     } else {
       plan.featureToggles.enabledTools = [...currentList, toolId];
     }
+    triggerAutoSave('tools');
   }
 
   function selectAllToolsForPlan(planId: PlanTierId) {
@@ -713,6 +847,7 @@
     if (!plan.featureToggles) return;
     plan.featureToggles.allToolsEnabled = false;
     plan.featureToggles.enabledTools = TOOL_CONNECTORS.map((t) => t.id);
+    triggerAutoSave('tools');
   }
 
   function clearAllToolsForPlan(planId: PlanTierId) {
@@ -720,6 +855,7 @@
     if (!plan.featureToggles) return;
     plan.featureToggles.allToolsEnabled = false;
     plan.featureToggles.enabledTools = [];
+    triggerAutoSave('tools');
   }
 
   const filteredPlanTools = $derived.by(() => {
@@ -746,25 +882,30 @@
     } else {
       enabledToolConnectors = [...enabledToolConnectors, id];
     }
+    triggerAutoSave('tools');
   }
 
   function selectAllToolConnectors() {
     enabledToolConnectors = TOOL_CONNECTORS.map((t) => t.id);
+    triggerAutoSave('tools');
   }
 
   function clearAllToolConnectors() {
     enabledToolConnectors = [];
+    triggerAutoSave('tools');
   }
 
   function enableCategoryTools(catId: string) {
     const catTools = TOOL_CONNECTORS.filter((t) => t.categoryId === catId).map((t) => t.id);
     const set = new Set([...enabledToolConnectors, ...catTools]);
     enabledToolConnectors = Array.from(set);
+    triggerAutoSave('tools');
   }
 
   function disableCategoryTools(catId: string) {
     const catTools = new Set(TOOL_CONNECTORS.filter((t) => t.categoryId === catId).map((t) => t.id));
     enabledToolConnectors = enabledToolConnectors.filter((id) => !catTools.has(id));
+    triggerAutoSave('tools');
   }
 
   const filteredToolConnectors = $derived.by(() => {
@@ -884,11 +1025,20 @@
           }
           if (typeof window !== 'undefined') {
             try {
+              const updatedMaster = {
+                revision: Date.now(),
+                updatedAt: new Date().toISOString(),
+                plans: normalizePlans(editablePlans),
+                workflowCustomizationUserEnabled,
+                enabledToolConnectors
+              };
+              localStorage.setItem('ezbo_admin_plans_master', JSON.stringify(updatedMaster));
               localStorage.setItem('ezbo_enabled_tool_connectors', JSON.stringify(enabledToolConnectors));
               localStorage.setItem('ezbo_workflow_user_enabled', String(workflowCustomizationUserEnabled));
               localStorage.setItem('ezbo_public_plans', JSON.stringify(editablePlans));
               plansStore.set(normalizePlans(editablePlans));
               workflowCustomizationUserStore.set(workflowCustomizationUserEnabled);
+              enabledToolConnectorsStore.set(enabledToolConnectors);
               window.dispatchEvent(new CustomEvent('ezbo:plans-settings-updated', { detail: { plans: editablePlans } }));
               window.dispatchEvent(new CustomEvent('ezbo:tools-settings-updated'));
               window.dispatchEvent(new CustomEvent('ezbo:workflow-settings-updated', { detail: { enabled: workflowCustomizationUserEnabled } }));
@@ -1267,9 +1417,30 @@
                 {:else if activeAdminTab === 'security'}Security &amp; System Configuration
                 {/if}
               </h2>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Operational</span>
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1.5 transition-all duration-300 {
+                  autoSaveStatus === 'saved'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : autoSaveStatus === 'saving'
+                    ? 'bg-blue-100 text-[#1677FF] border border-blue-300'
+                    : autoSaveStatus === 'error'
+                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                }"
+              >
+                {#if autoSaveStatus === 'saving'}
+                  <span class="w-2 h-2 rounded-full border border-[#1677FF] border-t-transparent animate-spin"></span>
+                  <span>Saving changes...</span>
+                {:else if autoSaveStatus === 'saved'}
+                  <Icon name="Check" size={11} class="text-emerald-700 stroke-[3]" />
+                  <span>All changes auto-saved in real-time ✅</span>
+                {:else if autoSaveStatus === 'error'}
+                  <Icon name="AlertCircle" size={11} class="text-rose-600" />
+                  <span>Auto-save failed</span>
+                {:else}
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>All changes auto-saved in real-time</span>
+                {/if}
               </span>
             </div>
             <p class="text-xs text-[#4B6382] mt-0.5 hidden sm:block">
@@ -2163,8 +2334,19 @@
                 </div>
 
                 <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                  {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'workflow'}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
+                      <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
+                      <span>Saved ✅</span>
+                    </span>
+                  {:else if autoSaveStatus === 'saving' && activeAutoSaveSection === 'workflow'}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#1677FF] text-xs font-bold animate-in fade-in duration-150">
+                      <span class="w-2.5 h-2.5 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></span>
+                      <span>Saving...</span>
+                    </span>
+                  {/if}
                   <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" bind:checked={workflowCustomizationUserEnabled} class="sr-only peer" />
+                    <input type="checkbox" bind:checked={workflowCustomizationUserEnabled} onchange={() => triggerAutoSave('workflow')} class="sr-only peer" />
                     <div class="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1677FF]"></div>
                   </label>
                   <button
@@ -2249,6 +2431,17 @@
                       </div>
 
                       <div class="flex items-center gap-3 shrink-0 self-end sm:self-center flex-wrap">
+                        {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'plan-visibility'}
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
+                            <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
+                            <span>Saved ✅</span>
+                          </span>
+                        {:else if autoSaveStatus === 'saving' && activeAutoSaveSection === 'plan-visibility'}
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#1677FF] text-xs font-bold animate-in fade-in duration-150">
+                            <span class="w-2.5 h-2.5 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></span>
+                            <span>Saving...</span>
+                          </span>
+                        {/if}
                         <!-- Visibility Switch -->
                         <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-[#CFE2FA] shadow-2xs hover:border-[#1677FF]/40 transition-colors">
                           <input
@@ -2414,7 +2607,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Master AI CEO</span>
                           <span class="text-[10px] text-[#5E7694] block">Central brain orchestration</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.aiCeo} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.aiCeo} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- WhatsApp -->
@@ -2423,7 +2616,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">WhatsApp Engine</span>
                           <span class="text-[10px] text-[#5E7694] block">24/7 client assistant</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.whatsapp} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.whatsapp} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- Telegram -->
@@ -2432,7 +2625,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Telegram Bot</span>
                           <span class="text-[10px] text-[#5E7694] block">Official channel integration</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.telegram} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.telegram} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- Multi-Key Vault -->
@@ -2441,7 +2634,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Multi-Key Vault</span>
                           <span class="text-[10px] text-[#5E7694] block">Round-robin key rotation (BYOK Pro)</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.multiKeyVault} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.multiKeyVault} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- Multi-Model Failover -->
@@ -2450,7 +2643,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Multi-Model Failover</span>
                           <span class="text-[10px] text-[#5E7694] block">OpenRouter model chain & failover</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.multiModelFailover} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.multiModelFailover} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- Commercial Images -->
@@ -2459,7 +2652,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Commercial Images & Logos</span>
                           <span class="text-[10px] text-[#5E7694] block">Helpers #34 & #35 generation</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.commercialImages} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.commercialImages} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- Custom Prompts -->
@@ -2468,7 +2661,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Custom Master Prompts</span>
                           <span class="text-[10px] text-[#5E7694] block">CEO system prompt in settings</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.customPrompts} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.customPrompts} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
 
                       <!-- Priority Support -->
@@ -2477,7 +2670,7 @@
                           <span class="text-xs font-bold text-[#102A56] block">Priority Support</span>
                           <span class="text-[10px] text-[#5E7694] block">Fast-lane response support</span>
                         </div>
-                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.prioritySupport} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
+                        <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.prioritySupport} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
                     </div>
                   </div>
@@ -2486,7 +2679,20 @@
                   <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">4. AI Helpers Access Matrix ({ALL_TOOLS.length} Total)</h4>
+                        <div class="flex items-center gap-2">
+                          <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">4. AI Helpers Access Matrix ({ALL_TOOLS.length} Total)</h4>
+                          {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'helpers'}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
+                              <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
+                              <span>Saved ✅</span>
+                            </span>
+                          {:else if autoSaveStatus === 'saving' && activeAutoSaveSection === 'helpers'}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#1677FF] text-xs font-bold animate-in fade-in duration-150">
+                              <span class="w-2.5 h-2.5 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></span>
+                              <span>Saving...</span>
+                            </span>
+                          {/if}
+                        </div>
                         <p class="text-[11px] text-[#4B6382]">Control which AI specialists are unlocked for this subscription tier.</p>
                       </div>
 
@@ -2501,6 +2707,7 @@
                             if (!Array.isArray(editablePlans[activePlanTab].featureToggles.enabledHelpers)) {
                               editablePlans[activePlanTab].featureToggles.enabledHelpers = [];
                             }
+                            triggerAutoSave('helpers');
                           }}
                           class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
                         />
@@ -2596,7 +2803,20 @@
                   <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">5. Tool Connectors Access Matrix ({TOOL_CONNECTORS.length} Total)</h4>
+                        <div class="flex items-center gap-2">
+                          <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">5. Tool Connectors Access Matrix ({TOOL_CONNECTORS.length} Total)</h4>
+                          {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'tools'}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
+                              <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
+                              <span>Saved ✅</span>
+                            </span>
+                          {:else if autoSaveStatus === 'saving' && activeAutoSaveSection === 'tools'}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#1677FF] text-xs font-bold animate-in fade-in duration-150">
+                              <span class="w-2.5 h-2.5 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></span>
+                              <span>Saving...</span>
+                            </span>
+                          {/if}
+                        </div>
                         <p class="text-[11px] text-[#4B6382]">Control which enterprise tool connectors are unlocked for this subscription tier.</p>
                       </div>
 
@@ -2611,6 +2831,7 @@
                             if (!Array.isArray(editablePlans[activePlanTab].featureToggles.enabledTools)) {
                               editablePlans[activePlanTab].featureToggles.enabledTools = [];
                             }
+                            triggerAutoSave('tools');
                           }}
                           class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
                         />
@@ -2934,6 +3155,17 @@
 
                 <!-- Stats Badges & Save CTA -->
                 <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                  {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'tools'}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
+                      <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
+                      <span>Saved ✅</span>
+                    </span>
+                  {:else if autoSaveStatus === 'saving' && activeAutoSaveSection === 'tools'}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#1677FF] text-xs font-bold animate-in fade-in duration-150">
+                      <span class="w-2.5 h-2.5 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></span>
+                      <span>Saving...</span>
+                    </span>
+                  {/if}
                   <div class="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
                     <span class="text-[10px] uppercase font-bold text-emerald-700 tracking-wider block">Active</span>
                     <span class="text-sm font-black text-emerald-800">{enabledToolConnectors.length} Tools</span>

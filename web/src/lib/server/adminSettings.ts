@@ -44,6 +44,8 @@ export interface RegisteredUserSummary {
 }
 
 export interface AdminConfig {
+  revision?: number;
+  updatedAt?: string;
   adminPassphrase?: string;
   opayApiKey: string;
   opaySecretKey: string;
@@ -103,6 +105,8 @@ let memoryConfig: AdminConfig | null = null;
 
 function loadConfigFromStorage(): AdminConfig {
   const envConfig: AdminConfig = {
+    revision: 0,
+    updatedAt: new Date(0).toISOString(),
     adminPassphrase: process.env.ADMIN_SECRET || 'ezbo-admin-2026',
     opayApiKey: process.env.OPAY_API_KEY || '',
     opaySecretKey: process.env.OPAY_SECRET_KEY || '',
@@ -257,6 +261,8 @@ function loadConfigFromStorage(): AdminConfig {
       }
 
       return {
+        revision: typeof saved.revision === 'number' ? saved.revision : 0,
+        updatedAt: typeof saved.updatedAt === 'string' ? saved.updatedAt : new Date(0).toISOString(),
         adminPassphrase: saved.adminPassphrase || envConfig.adminPassphrase,
         opayApiKey: saved.opayApiKey || envConfig.opayApiKey,
         opaySecretKey: saved.opaySecretKey || envConfig.opaySecretKey,
@@ -426,9 +432,19 @@ export function updateAdminConfig(patch: Partial<AdminConfig>): AdminConfig {
     };
   }
 
+  const currentRevision = typeof current.revision === 'number' ? current.revision : 0;
+  const nextRevision = typeof patch.revision === 'number' && patch.revision > currentRevision
+    ? patch.revision
+    : currentRevision + 1;
+  const nextUpdatedAt = patch.updatedAt && typeof patch.updatedAt === 'string'
+    ? patch.updatedAt
+    : new Date().toISOString();
+
   const updated: AdminConfig = {
     ...current,
     ...patch,
+    revision: nextRevision,
+    updatedAt: nextUpdatedAt,
     modelsEnabled: {
       ...current.modelsEnabled,
       ...(patch.modelsEnabled || {})
@@ -601,6 +617,8 @@ function maskKey(key?: string): string {
 export function getMaskedAdminConfig(includeUsers = false) {
   const config = getAdminConfig();
   return {
+    revision: config.revision || 0,
+    updatedAt: config.updatedAt || new Date(0).toISOString(),
     opayApiKey: maskKey(config.opayApiKey),
     opaySecretKey: maskKey(config.opaySecretKey),
     opayBrandKey: maskKey(config.opayBrandKey),

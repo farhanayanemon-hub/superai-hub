@@ -9,6 +9,8 @@ export const GET: RequestHandler = async () => {
     const enabledToolConnectors = config.enabledToolConnectors || DEFAULT_TOOL_CONNECTOR_IDS;
     return json({
       success: true,
+      revision: config.revision || 0,
+      updatedAt: config.updatedAt || new Date(0).toISOString(),
       plans,
       enabledToolConnectors,
       workflowCustomizationUserEnabled: config.workflowCustomizationUserEnabled !== false
@@ -20,6 +22,8 @@ export const GET: RequestHandler = async () => {
   } catch (err: any) {
     return json({
       success: false,
+      revision: 0,
+      updatedAt: new Date(0).toISOString(),
       plans: DEFAULT_PLANS,
       enabledToolConnectors: DEFAULT_TOOL_CONNECTOR_IDS,
       workflowCustomizationUserEnabled: true,

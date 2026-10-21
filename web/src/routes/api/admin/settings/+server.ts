@@ -101,6 +101,14 @@ export const POST: RequestHandler = async ({ request }) => {
       cleanPatch.enabledToolConnectors = patch.enabledToolConnectors.filter((id: any) => typeof id === 'string');
     }
 
+    if (typeof patch.revision === 'number' && !isNaN(patch.revision)) {
+      cleanPatch.revision = patch.revision;
+    }
+
+    if (typeof patch.updatedAt === 'string' && patch.updatedAt.trim()) {
+      cleanPatch.updatedAt = patch.updatedAt.trim();
+    }
+
     const updated = updateAdminConfig(cleanPatch);
     const masked = getMaskedAdminConfig(true);
 

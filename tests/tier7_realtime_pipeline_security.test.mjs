@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { runAdminAutosaveColdstartTests } from './admin_autosave_coldstart_preview.test.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -885,4 +886,12 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
       assert.ok(chatServerContent.includes('userMessage: message'), 'api/chat must pass userMessage to buildCeoOrHelperSystemPrompt');
     });
   });
+
+  // ==========================================================================
+  // 11. Milestone 4: Admin Debounced Auto-Save, Cold-Start & Admin Preview Invariants
+  // ==========================================================================
+  describe('11. Milestone 4: Admin Auto-Save, Cold-Start Master Persistence & Dashboard Preview Suite', () => {
+    runAdminAutosaveColdstartTests(describe, it);
+  });
 });
+

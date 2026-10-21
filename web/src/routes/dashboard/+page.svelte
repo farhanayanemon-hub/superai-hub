@@ -709,11 +709,18 @@
           <button
             type="button"
             onclick={() => openWorkflowStudio()}
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#1677FF] to-[#38CFFF] hover:brightness-105 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+            title={isAdmin && $workflowCustomizationUserStore === false ? "👑 Admin Preview: (Locked for regular users)" : "Launch Visual Workflow Studio"}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl {isAdmin && $workflowCustomizationUserStore === false ? 'bg-gradient-to-r from-amber-500 to-amber-600 border border-amber-400' : 'bg-gradient-to-r from-[#1677FF] to-[#38CFFF]'} hover:brightness-105 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
             <Icon name="Sliders" size={14} />
             <span>Workflow Studio</span>
-            <span class="px-1.5 py-0.2 rounded text-[9px] bg-white/25 font-black uppercase">PRO</span>
+            {#if isAdmin && $workflowCustomizationUserStore === false}
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-200 text-amber-950 border border-amber-300 shadow-2xs flex items-center gap-1" title="👑 Admin Preview: (Locked for regular users)">
+                👑 Admin Preview: (Locked for regular users)
+              </span>
+            {:else}
+              <span class="px-1.5 py-0.2 rounded text-[9px] bg-white/25 font-black uppercase">PRO</span>
+            {/if}
           </button>
         {/if}
 
@@ -763,10 +770,16 @@
                 <button
                   type="button"
                   onclick={() => openWorkflowStudio()}
-                  class="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 border border-white/30 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  title={isAdmin && $workflowCustomizationUserStore === false ? "👑 Admin Preview: (Locked for regular users)" : "Customize Workflows"}
+                  class="px-4 py-2 rounded-xl {isAdmin && $workflowCustomizationUserStore === false ? 'bg-amber-500/30 hover:bg-amber-500/40 border border-amber-400/50' : 'bg-white/20 hover:bg-white/30 border border-white/30'} text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   <Icon name="Sliders" size={14} />
                   <span>Customize Workflows</span>
+                  {#if isAdmin && $workflowCustomizationUserStore === false}
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-300 text-amber-950 border border-amber-400 shadow-2xs flex items-center gap-1" title="👑 Admin Preview: (Locked for regular users)">
+                      👑 Admin Preview: (Locked for regular users)
+                    </span>
+                  {/if}
                 </button>
               {/if}
               <button
