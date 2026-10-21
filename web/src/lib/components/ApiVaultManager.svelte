@@ -27,7 +27,7 @@
       label: 'Google Gemini',
       placeholder: 'AIzaSy...',
       defaultModel: 'gemini-2.0-flash',
-      models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+      models: ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-1.5-flash'],
       color: 'text-[#1677FF]',
       docsUrl: 'https://aistudio.google.com/app/apikey'
     },

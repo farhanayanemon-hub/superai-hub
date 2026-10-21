@@ -89,6 +89,89 @@ const KEYWORD_RULES: Array<{ helperId: string; keywords: string[] }> = [
   { helperId: 'telegram_customer_support', keywords: ['telegram support', 'telegram helpdesk', 'telegram community bot', 'telegram customer', 'টেলিগ্রাম সাপোর্ট', 'হেল্পডেস্ক'] }
 ];
 
+export const GREETING_PATTERNS: RegExp[] = [
+  /^(hi|hello|hey|heya|yo|hola|howdy|sup|greetings)[\s!.,?]*$/i,
+  /^(good\s+(morning|afternoon|evening|day|night))[\s!.,?]*$/i,
+  /^(how\s+are\s+you|how're\s+you|how\s+do\s+you\s+do|who\s+are\s+you|what\s+is\s+your\s+name|what\s+can\s+you\s+do|help|help\s+me|start)[\s!.,?]*$/i,
+  /^(হাই|হ্যালো|হে|সালাম|আসসালামু\s*আলাইকুম|কেমন\s*(আছেন|আছো)|কি\s*খবর|কী\s*খবর|কে\s*তুমি|তুমি\s*কে|তোমার\s*নাম\s*কি)[\s!.,?]*$/i,
+  /^(salam|assalamu\s*alaikum|ki\s*khobor|kemon\s*(acho|achen)|ki\s*obostha|ke\s*tumi|tumi\s*k|apni\s*k|nam\s*ki)[\s!.,?]*$/i
+];
+
+export function isConversationalGreeting(message: string): boolean {
+  if (!message || typeof message !== 'string') return false;
+  const trimmed = message.trim();
+  if (!trimmed) return false;
+  if (trimmed.length <= 1) return true;
+  return GREETING_PATTERNS.some((pattern) => pattern.test(trimmed));
+}
+
+export const EXPLICIT_EXECUTION_COMMANDS: RegExp[] = [
+  /^\/(boost|teamwork-preview|run|execute|deploy|start)\b/i,
+  /\[⚡?\s*#(\d{1,2})\b/i,
+  /\b#(0[1-9]|[1-7][0-9]|80)\b/i,
+  /\b(run|execute|deploy|start|proceed\s+with)\s+(agent|helper)?\s*#?(\d{1,2})\b/i,
+  /\b(run|execute|deploy|start|proceed\s+with)\s+(this|the)\s+(agent|helper)\b/i,
+  /\b(yes\s+proceed|yes\s+run|yes\s+deploy|proceed\s+now|deploy\s+now|run\s+now)\b/i,
+  /(শুরু\s*করো|কাজে\s*লাগাঁও|চালাও|এজেন্ট\s*দিয়ে\s*করাও|হ্যাঁ\s*শুরু\s*করো|হ্যাঁ\s*চালাও)/i,
+  /(kaj\s*shuru\s*koro|kaj\s*koro|chalu\s*koro|run\s*koro|deploy\s*koro|proceed\s*koro|boost\s*koro)/i
+];
+
+export function isExplicitExecutionIntent(message: string): boolean {
+  if (!message || typeof message !== 'string') return false;
+  const trimmed = message.trim();
+  if (!trimmed) return false;
+  return EXPLICIT_EXECUTION_COMMANDS.some((pattern) => pattern.test(trimmed));
+}
+
+export function textMatchesKeyword(text: string, keyword: string): boolean {
+  const cleanKw = keyword.trim().toLowerCase();
+  if (!cleanKw) return false;
+  if (/^[a-z0-9\s_-]+$/i.test(cleanKw)) {
+    const escaped = cleanKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+    const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+    return regex.test(text);
+  }
+  return text.toLowerCase().includes(cleanKw);
+}
+
+/**
+ * Intelligently recommends the best-suited AI Helper for a given user query or task.
+ * Returns null if the message is a casual greeting or empty.
+ */
+export function recommendHelperForMessage(query: string): ToolConfig | null {
+  const clean = (query || '').trim();
+  if (!clean) return null;
+  if (isConversationalGreeting(clean)) return null;
+
+  // Check mention chips or #XX
+  const chipMatch = clean.match(/\[?⚡?\s*#(\d{1,2})\b/i);
+  if (chipMatch) {
+    const num = chipMatch[1].padStart(2, '0');
+    const byCode = TOOLS.find((t) => t.code === `#${num}`);
+    if (byCode) return byCode;
+  }
+
+  // Check keyword rules with word boundaries
+  for (const rule of KEYWORD_RULES) {
+    for (const kw of rule.keywords) {
+      if (textMatchesKeyword(clean, kw)) {
+        const found = TOOLS.find((t) => t.id === rule.helperId);
+        if (found) return found;
+      }
+    }
+  }
+
+  // Fallback name match
+  const lower = clean.toLowerCase();
+  for (const tool of TOOLS) {
+    if (lower.includes(tool.name.toLowerCase())) {
+      return tool;
+    }
+  }
+
+  return null;
+}
+
 export function matchHelperForMessage(query: string, explicitHelperId?: string): ToolConfig | null {
   if (explicitHelperId && explicitHelperId !== 'ceo') {
     const exact = TOOLS.find(
@@ -111,6 +194,11 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
   const clean = (query || '').trim();
   if (!clean) return null;
 
+  // STRICT: Greetings never trigger auto-delegation!
+  if (isConversationalGreeting(clean)) {
+    return null;
+  }
+
   // Check if message references slash command mention chip: [⚡ #01 Facebook Ad Copy] or #01 - #75 directly
   const chipMatch = clean.match(/\[?⚡?\s*#(\d{1,2})\b/i);
   if (chipMatch) {
@@ -119,22 +207,32 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
     if (byCode) return byCode;
   }
 
-  const lower = clean.toLowerCase();
-
-  // Check keyword rules
-  for (const rule of KEYWORD_RULES) {
-    for (const kw of rule.keywords) {
-      if (lower.includes(kw.toLowerCase())) {
-        const found = TOOLS.find((t) => t.id === rule.helperId);
-        if (found) return found;
-      }
+  // Visual image / logo commands always explicitly trigger
+  if (isVisualGenerationHelper(null, clean)) {
+    if (clean.toLowerCase().includes('logo') || clean.toLowerCase().startsWith('/logo')) {
+      const logoTool = TOOLS.find((t) => t.id === 'ai_business_logo_generator' || t.code === '#35');
+      if (logoTool) return logoTool;
     }
+    const imgTool = TOOLS.find((t) => t.id === 'ai_commercial_image_generator' || t.code === '#34');
+    if (imgTool) return imgTool;
   }
 
-  // Fallback name match
-  for (const tool of TOOLS) {
-    if (lower.includes(tool.name.toLowerCase())) {
-      return tool;
+  // Only auto-delegate if explicit execution intent is present
+  if (isExplicitExecutionIntent(clean)) {
+    for (const rule of KEYWORD_RULES) {
+      for (const kw of rule.keywords) {
+        if (textMatchesKeyword(clean, kw)) {
+          const found = TOOLS.find((t) => t.id === rule.helperId);
+          if (found) return found;
+        }
+      }
+    }
+
+    const lower = clean.toLowerCase();
+    for (const tool of TOOLS) {
+      if (lower.includes(tool.name.toLowerCase())) {
+        return tool;
+      }
     }
   }
 
@@ -147,7 +245,7 @@ export function matchHelperForMessage(query: string, explicitHelperId?: string):
  */
 export function matchMultiHelpersForMessage(query: string): ToolConfig[] {
   const clean = (query || '').trim();
-  if (!clean) return [];
+  if (!clean || isConversationalGreeting(clean)) return [];
 
   const matchedTools: ToolConfig[] = [];
   const seenIds = new Set<string>();
@@ -163,7 +261,7 @@ export function matchMultiHelpersForMessage(query: string): ToolConfig[] {
     }
   }
 
-  // 2. If chaining conjunctions exist or multiple distinct keywords are present
+  // 2. If chaining conjunctions exist and explicit execution is indicated
   const lower = clean.toLowerCase();
   const hasChainIntent =
     lower.includes('prothome') ||
@@ -176,11 +274,11 @@ export function matchMultiHelpersForMessage(query: string): ToolConfig[] {
     lower.includes('step by step') ||
     lower.includes('pipeline');
 
-  if (hasChainIntent || matchedTools.length <= 1) {
+  if ((hasChainIntent || matchedTools.length > 0) && isExplicitExecutionIntent(clean)) {
     for (const rule of KEYWORD_RULES) {
       if (seenIds.has(rule.helperId)) continue;
       for (const kw of rule.keywords) {
-        if (lower.includes(kw.toLowerCase())) {
+        if (textMatchesKeyword(clean, kw)) {
           const found = TOOLS.find((t) => t.id === rule.helperId);
           if (found && !seenIds.has(found.id)) {
             matchedTools.push(found);
@@ -338,6 +436,7 @@ export function buildCeoOrHelperSystemPrompt(
     ceoCustomPrompt?: string;
     planTier?: string;
     multiHelpers?: ToolConfig[];
+    recommendedHelper?: ToolConfig | null;
   }
 ): string {
   const langInstruction = options?.language
@@ -402,6 +501,20 @@ Begin your response with a brief 1-line executive header:
 "⚡ **AI CEO → Delegated to [${helper.code}] ${helper.name}**"
 Then execute the task using this specialist's protocol:
 ${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
+  }
+
+  if (options?.recommendedHelper) {
+    const rec = options.recommendedHelper;
+    return `${AI_CEO_PROFILE.systemPrompt}
+
+EXECUTIVE CONSULTATIVE & SPECIALIST RECOMMENDATION PROTOCOL:
+The user has asked about or requested a business, marketing, creative, or operational task.
+As Ezbo, the Master AI CEO of EzboAgents:
+1. Provide a sharp, concise 2-3 sentence executive perspective / strategic advice addressing the user's inquiry.
+2. Clearly and explicitly recommend our specialist helper **[${rec.code}] ${rec.name}** (${rec.badge || 'Specialist'}) to perform the detailed execution.
+3. Briefly outline what specialist [${rec.code}] will deliver (key components/outputs).
+4. Invite the user to launch execution: explain that they can click the **Deploy ${rec.code} Now** button below, or type **/boost**, **/teamwork-preview**, or **proceed** to begin immediately.
+Do NOT output the full specialist deliverable yet—provide executive guidance and recommend the specialist.${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
   }
 
   return `${AI_CEO_PROFILE.systemPrompt}

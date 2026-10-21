@@ -43,7 +43,7 @@
     ],
     "systemPrompt": "You are an elite direct-response e-commerce copywriter. Write a high-converting Facebook ad copy based on the provided product details.\nStructure the copy using proven direct-response frameworks:\n1. **Scroll-Stopping Hook Variations** (3 killer hook headlines)\n2. **Core Body Copy** (Highlight pain point, emotional trigger, product solution, why it's superior)\n3. **Bullet Points of Key Specs & Benefits** (With attractive emojis)\n4. **Offer & Urgency** (Limited stock, special discount, risk reversal)\n5. **Clear Call To Action (CTA)** (Order now button, DM us, link placeholder)\nInclude 4-5 relevant viral e-commerce hashtags. Output in clean, ready-to-publish markdown.",
     "keywords": [
-      "ad",
+      "viral ad",
       "facebook ad",
       "meta ad",
       "copywriting",

@@ -721,6 +721,16 @@
     }
   }
 
+  function executeRecommendedHelper(helper: { code: string; name: string }) {
+    inputMessage = `[⚡ ${helper.code} ${helper.name}] Please proceed and execute this task now.`;
+    handleSend();
+  }
+
+  function sendQuickCommand(cmd: string) {
+    inputMessage = cmd;
+    handleSend();
+  }
+
   async function handleSend() {
     const text = inputMessage.trim();
     if ((!text && !attachedImage) || isSending) return;
@@ -901,7 +911,9 @@
           toolMatched = toolMatched || '[#34] AI Commercial Image Generator';
         } else if (data.result.text) {
           replyContent = data.result.text;
-          toolMatched = toolMatched || data.result.toolMatched;
+          toolMatched = data.delegatedHelper
+            ? `[${data.delegatedHelper.code}] ${data.delegatedHelper.name}`
+            : undefined;
         } else if (typeof data.result === 'string') {
           replyContent = data.result;
         }
@@ -922,6 +934,7 @@
         imageUrl: replyImageUrl,
         navigationAction: navIntent || undefined,
         delegatedPipeline: data.delegatedPipeline,
+        recommendedHelper: data.recommendedHelper || undefined,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -1418,6 +1431,54 @@
                   >
                     {@html renderMarkdown(msg.content)}
                   </div>
+
+                  <!-- Interactive Recommended Helper Action Card -->
+                  {#if msg.recommendedHelper}
+                    <div class="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-[#F3F8FF] via-indigo-50/70 to-blue-50/70 border border-[#CFE2FA] space-y-2.5 animate-in fade-in duration-200">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <span class="px-2 py-0.5 rounded-lg bg-[#1677FF] text-white text-[11px] font-bold shadow-2xs">
+                            {msg.recommendedHelper.code}
+                          </span>
+                          <span class="text-xs font-bold text-[#102A56]">{msg.recommendedHelper.name}</span>
+                        </div>
+                        {#if msg.recommendedHelper.badge}
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E6F4FF] text-[#1677FF] border border-[#91CAFF]">
+                            {msg.recommendedHelper.badge}
+                          </span>
+                        {/if}
+                      </div>
+
+                      <p class="text-xs text-[#5A789A] leading-relaxed">
+                        Master AI CEO recommends deploying this specialist to execute your task with high-converting frameworks.
+                      </p>
+
+                      <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onclick={() => executeRecommendedHelper(msg.recommendedHelper!)}
+                          class="px-3.5 py-1.5 rounded-xl bg-[#1677FF] hover:bg-[#1466de] text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer hover:scale-102 active:scale-98 transition-all"
+                        >
+                          <Icon name="Zap" size={13} />
+                          <span>Deploy {msg.recommendedHelper.code} Now</span>
+                        </button>
+                        <button
+                          type="button"
+                          onclick={() => sendQuickCommand(`/boost ${msg.recommendedHelper!.code}`)}
+                          class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#CFE2FA] text-[#102A56] text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                        >
+                          <span>⚡ /boost</span>
+                        </button>
+                        <button
+                          type="button"
+                          onclick={() => sendQuickCommand(`/teamwork-preview ${msg.recommendedHelper!.code}`)}
+                          class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#CFE2FA] text-[#102A56] text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                        >
+                          <span>👥 /teamwork-preview</span>
+                        </button>
+                      </div>
+                    </div>
+                  {/if}
 
                   <!-- Interactive API Key Setup Action Card -->
                   {#if msg.keyProposal}

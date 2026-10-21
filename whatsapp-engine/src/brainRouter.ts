@@ -94,10 +94,29 @@ export class CentralBrainRouter {
 
   private isHelpIntent(query: string): boolean {
     const clean = query.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return ['help', 'menu', 'commands', 'tools', 'helpers', 'ceo', 'start'].includes(clean);
+    return [
+      'help',
+      'menu',
+      'commands',
+      'tools',
+      'helpers',
+      'ceo',
+      'start',
+      'hi',
+      'hello',
+      'hey',
+      'salam',
+      'assalamu'
+    ].includes(clean);
   }
 
   private findMatchingTool(query: string): ToolItem | undefined {
+    const clean = query.trim().toLowerCase();
+    const cleanAlphanumeric = clean.replace(/[^a-z0-9]/g, '');
+    if (['hi', 'hello', 'hey', 'salam', 'assalamu', 'start', 'help', 'menu'].includes(cleanAlphanumeric)) {
+      return undefined;
+    }
+
     const codeMatch = query.match(/#(\d{1,2})\b/);
     if (codeMatch) {
       const targetCode = `#${codeMatch[1].padStart(2, '0')}`;
@@ -108,7 +127,12 @@ export class CentralBrainRouter {
     const lower = query.toLowerCase();
     for (const tool of TOOLS) {
       for (const kw of tool.keywords || []) {
-        if (lower.includes(kw.toLowerCase())) {
+        const cleanKw = kw.trim().toLowerCase();
+        if (!cleanKw) continue;
+        if (/^[a-z0-9\s_-]+$/i.test(cleanKw)) {
+          const regex = new RegExp(`\\b${cleanKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          if (regex.test(query)) return tool;
+        } else if (lower.includes(cleanKw)) {
           return tool;
         }
       }
@@ -121,19 +145,17 @@ export class CentralBrainRouter {
     userQuery: string,
     tool?: ToolItem
   ): Promise<string> {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048
-        }
-      });
+    const GEMINI_MODELS = [
+      'gemini-2.0-flash',
+      'gemini-2.5-flash',
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro'
+    ];
 
-      let systemContext = '';
-      if (tool) {
-        systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, delegating this task to specialist helper [${tool.code || ''}] "${tool.name}" (${tool.categoryName}).
+    let systemContext = '';
+    if (tool) {
+      systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, delegating this task to specialist helper [${tool.code || ''}] "${tool.name}" (${tool.categoryName}).
 Begin your response with:
 "⚡ *AI CEO → Delegated to [${tool.code || ''}] ${tool.name}*"
 
@@ -144,21 +166,40 @@ Formatting Guidelines for WhatsApp:
 - Use clean WhatsApp markdown (*bold*, _italics_, bullet points).
 - Respond in the language requested by the user.
 - Jump straight into high-value, copy-paste ready output.`;
-      } else {
-        systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
+    } else {
+      systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
 Format with clean WhatsApp markdown (*bold*, _italics_, emojis, bullet points).
 Respond with executive, ready-to-use output.`;
-      }
-
-      const prompt = `${systemContext}\n\nUser Message:\n"${userQuery}"\n\nPlease output the response now:`;
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-
-      return text || 'Sorry, no response was generated. Please try again.';
-    } catch (err: any) {
-      console.error('Gemini generation error:', err);
-      return `❌ *AI CEO Brain Error:* ${err.message || 'Error processing request.'}`;
     }
+
+    const prompt = `${systemContext}\n\nUser Message:\n"${userQuery}"\n\nPlease output the response now:`;
+    let lastError = '';
+
+    for (const modelName of GEMINI_MODELS) {
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048
+          }
+        });
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+
+        if (text) {
+          return text;
+        }
+      } catch (err: any) {
+        lastError = err.message || String(err);
+        console.warn(`[brainRouter] Gemini model "${modelName}" failed: ${lastError}. Trying next model in list...`);
+        continue;
+      }
+    }
+
+    return `❌ *AI CEO Brain Error:* Unable to generate response with Gemini (${lastError || 'All fallback models failed'}).`;
   }
 
   private getHelpMenuText(): string {

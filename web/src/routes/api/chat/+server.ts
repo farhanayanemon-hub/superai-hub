@@ -3,11 +3,14 @@ import { getAdminConfig } from '$lib/server/adminSettings';
 import {
   matchHelperForMessage,
   matchMultiHelpersForMessage,
+  recommendHelperForMessage,
+  isConversationalGreeting,
   buildCeoOrHelperSystemPrompt,
   isVisualGenerationHelper,
   isRestrictedStarterIntent,
   getStarterGuardResponse
 } from '$lib/services/ceoRouter';
+import { GEMINI_FALLBACK_MODELS } from '$lib/services/gemini';
 
 const RAILWAY_ENGINE_URL =
   process.env.WHATSAPP_ENGINE_URL || 'https://whatsapp-engine-production-04f4.up.railway.app';
@@ -169,9 +172,16 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Match helper via AI CEO router or explicit helperId
-    const matchedHelper = matchHelperForMessage(message, helperId);
-    const multiHelpers = matchMultiHelpersForMessage(message);
+    const isGreeting = isConversationalGreeting(message);
+    const matchedHelper = isGreeting ? null : matchHelperForMessage(message, helperId);
+    const multiHelpers = isGreeting ? [] : matchMultiHelpersForMessage(message);
     const isMultiChain = multiHelpers.length > 1;
+
+    // Recommend helper when in CEO mode, no helper is matched, and query is not a greeting
+    const recommendedHelper =
+      !matchedHelper && !isGreeting && (!helperId || helperId === 'ceo') && mode === 'ceo'
+        ? recommendHelperForMessage(message)
+        : null;
 
     const delegatedHelperMeta = matchedHelper
       ? {
@@ -181,6 +191,17 @@ export const POST: RequestHandler = async ({ request }) => {
           icon: matchedHelper.icon,
           badge: matchedHelper.badge,
           category: matchedHelper.category
+        }
+      : null;
+
+    const recommendedHelperMeta = recommendedHelper
+      ? {
+          id: recommendedHelper.id,
+          code: recommendedHelper.code,
+          name: recommendedHelper.name,
+          icon: recommendedHelper.icon,
+          badge: recommendedHelper.badge,
+          category: recommendedHelper.category
         }
       : null;
 
@@ -200,7 +221,8 @@ export const POST: RequestHandler = async ({ request }) => {
       mode,
       ceoCustomPrompt,
       planTier: effectivePlanTier,
-      multiHelpers: isMultiChain ? multiHelpers : undefined
+      multiHelpers: isMultiChain ? multiHelpers : undefined,
+      recommendedHelper
     });
 
     // Determine the key and provider to use
@@ -324,82 +346,115 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // 1. Native Gemini Execution with Smart Round-Robin & Auto Failover across active keys
+    // 1. Native Gemini Execution with Smart Round-Robin & Auto Failover across active keys and fallback models
     if (resolvedProvider === 'gemini' && candidateKeys.length > 0) {
       let lastGeminiErr = '';
+
+      const contents = [
+        ...history.slice(-8).map((turn) => ({
+          role: turn.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: turn.content }]
+        })),
+        {
+          role: 'user',
+          parts: [{ text: message }]
+        }
+      ];
 
       for (const kObj of candidateKeys) {
         const geminiKey = kObj.key;
         if (!geminiKey) continue;
-        const geminiModel = kObj.model || requestedModel || 'gemini-2.0-flash';
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
-        const contents = [
-          ...history.slice(-8).map((turn) => ({
-            role: turn.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: turn.content }]
-          })),
-          {
-            role: 'user',
-            parts: [{ text: message }]
-          }
-        ];
+        const candidateModels: string[] = [
+          ...(kObj.model ? [kObj.model] : []),
+          ...(requestedModel && requestedModel !== kObj.model ? [requestedModel] : []),
+          ...GEMINI_FALLBACK_MODELS
+        ].filter((m, i, arr) => arr.indexOf(m) === i);
 
-        try {
-          const geminiRes = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: systemPrompt }]
-              },
-              contents,
-              generationConfig: {
-                temperature: 0.75,
-                maxOutputTokens: 2048
-              }
-            })
-          });
+        for (const geminiModel of candidateModels) {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            const reply =
-              geminiData?.candidates?.[0]?.content?.parts
-                ?.map((p: any) => p.text || '')
-                .join('\n') || 'No output received from Gemini.';
-
-            return json({
-              success: true,
-              input: message,
-              delegatedHelper: delegatedHelperMeta,
-              delegatedPipeline: delegatedPipelineMeta,
-              result: {
-                type: 'text',
-                text: reply
-              },
-              provider: 'gemini',
-              model: geminiModel,
-              keyLabel: kObj.label
+          try {
+            const geminiRes = await fetch(geminiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: {
+                  parts: [{ text: systemPrompt }]
+                },
+                contents,
+                generationConfig: {
+                  temperature: 0.75,
+                  maxOutputTokens: 2048
+                }
+              })
             });
-          }
 
-          const errBody = await geminiRes.text().catch(() => '');
-          lastGeminiErr = `HTTP ${geminiRes.status}: ${errBody}`;
-          const isRateLimitOrQuota =
-            geminiRes.status === 429 ||
-            /RESOURCE_EXHAUSTED|quota|rate_limit|exceeded/i.test(errBody);
+            if (geminiRes.ok) {
+              const geminiData = await geminiRes.json();
+              const reply =
+                geminiData?.candidates?.[0]?.content?.parts
+                  ?.map((p: any) => p.text || '')
+                  .join('\n') || 'No output received from Gemini.';
 
-          if (isRateLimitOrQuota) {
-            console.warn(
-              `[gemini-failover] Key "${kObj.label || 'key'}" hit rate-limit/quota. Failing over to next active key...`
-            );
+              return json({
+                success: true,
+                input: message,
+                delegatedHelper: delegatedHelperMeta,
+                delegatedPipeline: delegatedPipelineMeta,
+                recommendedHelper: recommendedHelperMeta,
+                result: {
+                  type: 'text',
+                  text: reply
+                },
+                provider: 'gemini',
+                model: geminiModel,
+                keyLabel: kObj.label
+              });
+            }
+
+            const errBody = await geminiRes.text().catch(() => '');
+            lastGeminiErr = `HTTP ${geminiRes.status} (${geminiModel}): ${errBody}`;
+
+            const isModelNotFound =
+              geminiRes.status === 404 ||
+              /not found|is not found|unsupported|not supported/i.test(errBody);
+
+            const isRateLimitOrQuota =
+              geminiRes.status === 429 ||
+              /RESOURCE_EXHAUSTED|quota|rate_limit|exceeded/i.test(errBody);
+
+            if (isModelNotFound) {
+              console.warn(
+                `[gemini-failover] Model "${geminiModel}" returned 404/not supported. Trying next fallback model...`
+              );
+              continue;
+            }
+
+            if (isRateLimitOrQuota) {
+              console.warn(
+                `[gemini-failover] Key "${kObj.label || 'key'}" hit rate-limit/quota on model "${geminiModel}". Failing over to next key...`
+              );
+              break; // Try next key
+            }
+
+            console.warn(`[gemini-failover] Model "${geminiModel}" error: ${errBody}. Trying next candidate model...`);
+            continue;
+          } catch (gErr: any) {
+            lastGeminiErr = gErr.message;
             continue;
           }
-        } catch (gErr: any) {
-          lastGeminiErr = gErr.message;
-          continue;
         }
       }
+
+      // If all keys and fallback models failed, return graceful 502 with friendly error
+      return json(
+        {
+          success: false,
+          error: `Gemini API Error: AI model service temporarily unavailable (${lastGeminiErr || 'All fallback models failed'}). Please verify your Gemini API key in the API Vault or switch to OpenRouter.`
+        },
+        { status: 502 }
+      );
     }
 
     // 2. OpenRouter & OpenAI-compatible execution with Multi-Model & Multi-Key Failover
@@ -500,6 +555,7 @@ export const POST: RequestHandler = async ({ request }) => {
           input: message,
           delegatedHelper: delegatedHelperMeta,
           delegatedPipeline: delegatedPipelineMeta,
+          recommendedHelper: recommendedHelperMeta,
           result: {
             type: 'text',
             text: successfulReply
@@ -521,7 +577,7 @@ export const POST: RequestHandler = async ({ request }) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `${systemPrompt}\n\nUSER REQUEST:\n${message}`,
+        message,
         apiKey: resolvedApiKey
       })
     });
@@ -531,17 +587,32 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: `Engine responded with status ${engineResponse.status}: ${errText}`
+          error: `AI engine service temporarily unavailable (${engineResponse.status}). Please check your API key in the API Vault.`
         },
         { status: engineResponse.status }
       );
     }
 
     const data = await engineResponse.json();
+
+    // Catch any legacy backend brain errors (like GoogleGenerativeAI 404) and present gracefully
+    if (data.result?.text && /GoogleGenerativeAI Error|404 Not Found|Brain Error/i.test(data.result.text)) {
+      return json({
+        success: false,
+        error: 'The AI model service encountered a temporary error. Please verify your Gemini API key in the API Vault or switch to OpenRouter.'
+      }, { status: 502 });
+    }
+
+    // Never leak accidental Railway tool matching when no delegation was intended
+    if (!delegatedHelperMeta && data.result?.toolMatched) {
+      data.result.toolMatched = undefined;
+    }
+
     return json({
       ...data,
       delegatedHelper: delegatedHelperMeta,
       delegatedPipeline: delegatedPipelineMeta,
+      recommendedHelper: recommendedHelperMeta,
       provider: resolvedProvider
     });
   } catch (error: any) {

@@ -712,4 +712,58 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
       assert.ok(studio.includes('enabledConnectors'), 'WorkflowStudio must derive enabledConnectors');
     });
   });
+
+  // ==========================================================================
+  // 10. Resilient Gemini Fallback Models & Conversational Greeting Routing
+  // ==========================================================================
+  describe('10. Resilient Gemini Fallback Models & Conversational Greeting Routing', () => {
+    it('10.1 gemini.ts exports GEMINI_FALLBACK_MODELS array with modern models', () => {
+      const geminiTsPath = path.join(WEB_DIR, 'src', 'lib', 'services', 'gemini.ts');
+      const content = readSafe(geminiTsPath);
+      assert.ok(content.includes('export const GEMINI_FALLBACK_MODELS'), 'Must export GEMINI_FALLBACK_MODELS');
+      assert.ok(content.includes('gemini-2.0-flash'), 'Fallback list must include gemini-2.0-flash');
+      assert.ok(content.includes('gemini-2.5-flash'), 'Fallback list must include gemini-2.5-flash');
+      assert.ok(content.includes('gemini-1.5-flash-latest'), 'Fallback list must include gemini-1.5-flash-latest');
+      assert.ok(content.includes('gemini-1.5-pro'), 'Fallback list must include gemini-1.5-pro');
+    });
+
+    it('10.2 validateGeminiKey and executeToolWithGemini iterate through fallback models on 404', () => {
+      const geminiTsPath = path.join(WEB_DIR, 'src', 'lib', 'services', 'gemini.ts');
+      const content = readSafe(geminiTsPath);
+      assert.ok(content.includes('for (const model of GEMINI_FALLBACK_MODELS)'), 'validateGeminiKey must loop over GEMINI_FALLBACK_MODELS');
+      assert.ok(content.includes('modelUsed: model'), 'Must record modelUsed upon successful validation');
+    });
+
+    it('10.3 chat/+server.ts implements resilient Gemini fallback and never exposes raw 404 crash', () => {
+      const content = readSafe(PATHS.chatApi);
+      assert.ok(content.includes('GEMINI_FALLBACK_MODELS'), 'chat/+server.ts must import and use GEMINI_FALLBACK_MODELS');
+      assert.ok(content.includes('for (const geminiModel of candidateModels)'), 'chat/+server.ts must loop over candidate models for Gemini');
+      assert.ok(content.includes('isModelNotFound'), 'Must detect 404/not supported errors and continue failover');
+      assert.ok(content.includes('status: 502'), 'Must return clean 502 status on total model failure');
+    });
+
+    it('10.4 ceoRouter.ts exports isConversationalGreeting and strictly prevents greetings from delegating', () => {
+      const content = readSafe(PATHS.ceoRouter);
+      assert.ok(content.includes('export function isConversationalGreeting'), 'Must export isConversationalGreeting');
+      assert.ok(content.includes('isConversationalGreeting(clean)'), 'matchHelperForMessage must guard against greetings');
+      assert.ok(content.includes('export function recommendHelperForMessage'), 'Must export recommendHelperForMessage');
+      assert.ok(content.includes('export function isExplicitExecutionIntent'), 'Must export isExplicitExecutionIntent');
+    });
+
+    it('10.5 FloatingCeoChat renders interactive recommendation card for advised helpers', () => {
+      const content = readSafe(PATHS.floatingCeoChat);
+      assert.ok(content.includes('msg.recommendedHelper'), 'Must check msg.recommendedHelper');
+      assert.ok(content.includes('Deploy {msg.recommendedHelper.code} Now'), 'Must render deploy button for recommended helper');
+      assert.ok(content.includes('executeRecommendedHelper'), 'Must define executeRecommendedHelper handler');
+      assert.ok(content.includes('/boost'), 'Must provide /boost button');
+      assert.ok(content.includes('/teamwork-preview'), 'Must provide /teamwork-preview button');
+    });
+
+    it('10.6 ApiVaultManager includes modern active models for Gemini', () => {
+      const apiVaultPath = path.join(WEB_DIR, 'src', 'lib', 'components', 'ApiVaultManager.svelte');
+      const content = readSafe(apiVaultPath);
+      assert.ok(content.includes("'gemini-2.0-flash'"), 'ApiVaultManager must include gemini-2.0-flash');
+      assert.ok(content.includes("'gemini-2.5-flash'"), 'ApiVaultManager must include gemini-2.5-flash');
+    });
+  });
 });

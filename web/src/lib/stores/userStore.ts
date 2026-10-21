@@ -86,6 +86,14 @@ export interface ChatMessage {
     icon?: string;
     badge?: string;
   }>;
+  recommendedHelper?: {
+    id: string;
+    code: string;
+    name: string;
+    icon?: string;
+    badge?: string;
+    category?: string;
+  };
 }
 
 // -------------------------------------------------------------
