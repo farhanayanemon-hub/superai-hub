@@ -751,13 +751,18 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
       assert.ok(content.includes('export function isExplicitExecutionIntent'), 'Must export isExplicitExecutionIntent');
     });
 
-    it('10.5 FloatingCeoChat renders interactive recommendation card for advised helpers', () => {
-      const content = readSafe(PATHS.floatingCeoChat);
-      assert.ok(content.includes('msg.recommendedHelper'), 'Must check msg.recommendedHelper');
-      assert.ok(content.includes('Deploy {msg.recommendedHelper.code} Now'), 'Must render deploy button for recommended helper');
-      assert.ok(content.includes('executeRecommendedHelper'), 'Must define executeRecommendedHelper handler');
-      assert.ok(content.includes('/boost'), 'Must provide /boost button');
-      assert.ok(content.includes('/teamwork-preview'), 'Must provide /teamwork-preview button');
+    it('10.5 FloatingCeoChat and ceoRouter execute tasks directly without intermediate recommendation cards', () => {
+      const floatContent = readSafe(PATHS.floatingCeoChat);
+      const dashContent = readSafe(path.join(WEB_DIR, 'src', 'lib', 'components', 'DashboardChat.svelte'));
+      const ceoRouterContent = readSafe(PATHS.ceoRouter);
+
+      // Verify intermediate recommendation buttons are eliminated per user directive
+      assert.ok(!floatContent.includes('Deploy {msg.recommendedHelper.code} Now'), 'FloatingCeoChat must not show intermediate Deploy Now card');
+      assert.ok(!dashContent.includes('Deploy {msg.recommendedHelper.code} Now'), 'DashboardChat must not show intermediate Deploy Now card');
+
+      // Verify autonomous direct execution in ceoRouter
+      assert.ok(ceoRouterContent.includes('Autonomous direct execution'), 'ceoRouter must support autonomous direct execution');
+      assert.ok(ceoRouterContent.includes('AUTONOMOUS EXECUTION DIRECTIVE'), 'ceoRouter must instruct autonomous execution');
     });
 
     it('10.6 ApiVaultManager includes modern active models for Gemini', () => {

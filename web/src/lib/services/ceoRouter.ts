@@ -229,42 +229,40 @@ export function matchHelperForMessage(
     if (imgTool) return imgTool;
   }
 
-  // Only auto-delegate if explicit execution intent is present
-  if (isExplicitExecutionIntent(clean)) {
-    for (const rule of KEYWORD_RULES) {
-      for (const kw of rule.keywords) {
-        if (textMatchesKeyword(clean, kw)) {
-          const found = TOOLS.find((t) => t.id === rule.helperId);
-          if (found) return found;
+  // Autonomous direct execution: keyword and tool name matching without intermediate confirmation cards
+  for (const rule of KEYWORD_RULES) {
+    for (const kw of rule.keywords) {
+      if (textMatchesKeyword(clean, kw)) {
+        const found = TOOLS.find((t) => t.id === rule.helperId);
+        if (found) return found;
+      }
+    }
+  }
+
+  const lower = clean.toLowerCase();
+  for (const tool of TOOLS) {
+    if (lower.includes(tool.name.toLowerCase())) {
+      return tool;
+    }
+  }
+
+  // Historical context resolution: if user says "proceed", "/boost", "start", "shuru koro", etc.
+  // without repeating the helper code, find the helper from prior turns in the chat history.
+  if (isExplicitExecutionIntent(clean) && history && history.length > 0) {
+    for (let i = history.length - 1; i >= 0; i--) {
+      const turn = history[i];
+      if (turn && turn.content) {
+        const histChipMatch =
+          turn.content.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
+          turn.content.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
+        if (histChipMatch) {
+          const num = histChipMatch[1].padStart(2, '0');
+          const byCode = TOOLS.find((t) => t.code === `#${num}`);
+          if (byCode) return byCode;
         }
-      }
-    }
-
-    const lower = clean.toLowerCase();
-    for (const tool of TOOLS) {
-      if (lower.includes(tool.name.toLowerCase())) {
-        return tool;
-      }
-    }
-
-    // Historical context resolution: if user says "proceed", "/boost", "start", "shuru koro", etc.
-    // without repeating the helper code, find the helper that was just recommended in the chat history.
-    if (history && history.length > 0) {
-      for (let i = history.length - 1; i >= 0; i--) {
-        const turn = history[i];
-        if (turn && turn.content) {
-          const histChipMatch =
-            turn.content.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
-            turn.content.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
-          if (histChipMatch) {
-            const num = histChipMatch[1].padStart(2, '0');
-            const byCode = TOOLS.find((t) => t.code === `#${num}`);
-            if (byCode) return byCode;
-          }
-          if (turn.role === 'user') {
-            const recFromPrev = recommendHelperForMessage(turn.content);
-            if (recFromPrev) return recFromPrev;
-          }
+        if (turn.role === 'user') {
+          const recFromPrev = recommendHelperForMessage(turn.content);
+          if (recFromPrev) return recFromPrev;
         }
       }
     }
@@ -578,30 +576,21 @@ Do not give generic filler. Deliver complete, copy-paste ready results immediate
     return `${AI_CEO_PROFILE.systemPrompt}
 
 EXPLICIT HELPER DELEGATION ACTIVE:
-The user has explicitly ordered deployment of specialist helper **[${helper.code}] ${helper.name}** (${helper.badge}).
+The user has commanded deployment of specialist helper **[${helper.code}] ${helper.name}** (${helper.badge}).
 Begin your response with a brief 1-line executive header:
 "⚡ **AI CEO → Delegated to [${helper.code}] ${helper.name}**"
-Then execute the task using this specialist's protocol:
+Then execute the task immediately using this specialist's framework:
 ${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
-  }
-
-  if (options?.recommendedHelper) {
-    const rec = options.recommendedHelper;
-    return `${AI_CEO_PROFILE.systemPrompt}
-
-EXECUTIVE CONSULTATIVE & SPECIALIST RECOMMENDATION PROTOCOL:
-The user has asked about or requested a business, marketing, creative, or operational task.
-As Ezbo, the Master AI CEO of EzboAgents:
-1. Provide a sharp, concise 2-3 sentence executive perspective / strategic advice addressing the user's inquiry.
-2. Clearly and explicitly recommend our specialist helper **[${rec.code}] ${rec.name}** (${rec.badge || 'Specialist'}) to perform the detailed execution.
-3. Briefly outline what specialist [${rec.code}] will deliver (key components/outputs).
-4. Invite the user to launch execution: explain that they can click the **Deploy ${rec.code} Now** button below, or type **/boost**, **/teamwork-preview**, or **proceed** to begin immediately.
-Do NOT output the full specialist deliverable yet—provide executive guidance and recommend the specialist.${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
   }
 
   return `${AI_CEO_PROFILE.systemPrompt}
 
-You oversee 75 specialized Business & Freelancer AI Helpers (#01 to #75) across 7 categories:
+AUTONOMOUS EXECUTION DIRECTIVE:
+You are Ezbo, Master AI CEO. You execute business, marketing, creative, technical, and operational tasks directly and autonomously.
+Deliver complete, high-converting, copy-paste ready results immediately with clear headings, bullet points, and actionable strategies.
+Do not stall, do not ask the user for intermediate confirmation, and do not offer optional command buttons—execute and deliver the full work requested in your response.
+
+You oversee 80 specialized Business & Freelancer AI Helpers (#01 to #80) across 8 categories:
 1. Ads & Marketing (#01-#12)
 2. Social Media & Content (#13-#23)
 3. Writing & AI Humanizer (#24-#33)

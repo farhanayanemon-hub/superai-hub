@@ -1,5 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
+import type { ToolConfig } from '$lib/config/tools';
 import {
   matchHelperForMessage,
   matchMultiHelpersForMessage,
@@ -177,11 +178,9 @@ export const POST: RequestHandler = async ({ request }) => {
     const multiHelpers = isGreeting ? [] : matchMultiHelpersForMessage(message, history);
     const isMultiChain = multiHelpers.length > 1;
 
-    // Recommend helper when in CEO mode, no helper is matched, and query is not a greeting
-    const recommendedHelper =
-      !matchedHelper && !isGreeting && (!helperId || helperId === 'ceo') && mode === 'ceo'
-        ? recommendHelperForMessage(message)
-        : null;
+    // Autonomous execution: direct execution on all commands without showing intermediate recommendation cards
+    const recommendedHelper: ToolConfig | null = null;
+    const recommendedHelperMeta = null;
 
     const delegatedHelperMeta = matchedHelper
       ? {
@@ -191,17 +190,6 @@ export const POST: RequestHandler = async ({ request }) => {
           icon: matchedHelper.icon,
           badge: matchedHelper.badge,
           category: matchedHelper.category
-        }
-      : null;
-
-    const recommendedHelperMeta = recommendedHelper
-      ? {
-          id: recommendedHelper.id,
-          code: recommendedHelper.code,
-          name: recommendedHelper.name,
-          icon: recommendedHelper.icon,
-          badge: recommendedHelper.badge,
-          category: recommendedHelper.category
         }
       : null;
 
