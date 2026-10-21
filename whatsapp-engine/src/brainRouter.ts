@@ -161,6 +161,11 @@ export class CentralBrainRouter {
       'gemini-1.5-pro'
     ];
 
+    const isBengali = /[\u0980-\u09FF]/.test(userQuery);
+    const langRule = isBengali
+      ? `🚨 STRICT LANGUAGE MIRRORING: The user wrote in BENGALI (বাংলায়). You MUST reply 100% in natural, fluent, professional BENGALI (সম্পূর্ণ বাংলায় উত্তর দিন).`
+      : `🚨 STRICT LANGUAGE MIRRORING: You MUST ALWAYS speak and reply in the EXACT SAME LANGUAGE and script used by the user (Bangla, Banglish, English, etc.). Never default to English if the user wrote in Bengali or Banglish.`;
+
     let systemContext = '';
     if (tool) {
       systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, delegating this task to specialist helper [${tool.code || ''}] "${tool.name}" (${tool.categoryName}).
@@ -172,10 +177,11 @@ ${tool.systemPrompt}
 
 Formatting Guidelines for WhatsApp:
 - Use clean WhatsApp markdown (*bold*, _italics_, bullet points).
-- Respond in the language requested by the user.
+- ${langRule}
 - Jump straight into high-value, copy-paste ready output.`;
     } else {
-      systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, controlling 75 specialized Business, Marketing & Freelancer AI Helpers (#01 to #75) directly inside the user's WhatsApp.
+      systemContext = `You are Ezbo, the Master AI CEO of EzboAgents, controlling 80 specialized Business, Marketing & Freelancer AI Helpers (#01 to #80) directly inside the user's WhatsApp.
+${langRule}
 Format with clean WhatsApp markdown (*bold*, _italics_, emojis, bullet points).
 Respond with executive, ready-to-use output.`;
     }

@@ -369,7 +369,8 @@ export const POST: RequestHandler = async ({ request }) => {
     touchUserInteraction(chatId);
 
     const systemPrompt = buildCeoOrHelperSystemPrompt(matchedHelper, {
-      mode: pinnedHelperId ? 'helper' : 'ceo'
+      mode: pinnedHelperId ? 'helper' : 'ceo',
+      userMessage: text
     });
 
     let resolvedApiKey = config.geminiApiKey || process.env.PLATFORM_GEMINI_KEY || '';

@@ -857,5 +857,22 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
       assert.ok(dashboardChatContent.includes('requiresApiKey'), 'DashboardChat must intercept requiresApiKey');
       assert.ok(dashboardChatContent.includes('AI CEO Service Notice'), 'DashboardChat must display friendly AI CEO Service Notice');
     });
+
+    it('10.10 ceoRouter and tools mandate strict dynamic language mirroring', () => {
+      const ceoRouterContent = readSafe(PATHS.ceoRouter);
+      const toolsContent = readSafe(path.join(WEB_DIR, 'src', 'lib', 'config', 'tools.ts'));
+      const chatServerContent = readSafe(path.join(WEB_DIR, 'src', 'routes', 'api', 'chat', '+server.ts'));
+
+      // Check export of detectUserLanguage and language detection
+      assert.ok(ceoRouterContent.includes('export function detectUserLanguage'), 'Must export detectUserLanguage');
+      assert.ok(ceoRouterContent.includes('MANDATORY LANGUAGE MIRRORING PROTOCOL'), 'Must define MANDATORY LANGUAGE MIRRORING PROTOCOL');
+      assert.ok(ceoRouterContent.includes('FINAL LANGUAGE MIRRORING OVERRIDE'), 'Must enforce FINAL LANGUAGE MIRRORING OVERRIDE');
+
+      // Check AI_CEO_PROFILE in tools.ts
+      assert.ok(toolsContent.includes('STRICT DYNAMIC LANGUAGE MIRRORING'), 'AI_CEO_PROFILE must mandate STRICT DYNAMIC LANGUAGE MIRRORING');
+
+      // Check api/chat passes userMessage
+      assert.ok(chatServerContent.includes('userMessage: message'), 'api/chat must pass userMessage to buildCeoOrHelperSystemPrompt');
+    });
   });
 });

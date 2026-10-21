@@ -507,6 +507,77 @@ export function buildVisualGenerationParams(
   };
 }
 
+export type DetectedLanguage = 'bengali' | 'banglish' | 'english' | 'arabic' | 'hindi' | 'other';
+
+const BANGLISH_WORDS = new Set([
+  'kemon', 'acho', 'asen', 'achen', 'amr', 'amar', 'apnr', 'apnar', 'tomar', 'tmr',
+  'tumi', 'apni', 'tui', 'koro', 'korben', 'korbe', 'kori', 'korte', 'kortam',
+  'bolbe', 'bolte', 'bolo', 'bolen', 'boli', 'likhe', 'likho', 'likhen', 'daw',
+  'dao', 'diben', 'den', 'dite', 'hobe', 'hoise', 'hoyeche', 'lagbe',
+  'khobor', 'obostha', 'shate', 'shathe', 'sathe', 'valo', 'bhalo', 'bujhte',
+  'parchi', 'parbo', 'dorkar', 'jonno', 'kintu', 'tobe', 'kivabe', 'konta',
+  'kunta', 'shuru', 'chalu', 'ekta', 'akta', 'kichu', 'dekhao', 'dekhan',
+  'eta', 'ota', 'tarpor', 'prothome', 'shesh', 'sesh', 'vai', 'bhai', 'apnader',
+  'amader', 'shob', 'sob', 'kortechi', 'korechi', 'korbo', 'thik', 'accha',
+  'acha', 'keno', 'kno', 'kobe', 'kothay', 'koi', 'ki', 'kee', 'pore',
+  'parben', 'banaw', 'banao', 'banate', 'banabo', 'dorkari', 'bujhi', 'bujina',
+  'jani', 'janen', 'shunte', 'parchen', 'ashole', 'shotti', 'dhonnobad', 'apnake',
+  'tomake', 'kaje', 'kaj'
+]);
+
+const BANGLISH_PHRASE_PATTERNS: RegExp[] = [
+  /\b(?:kemon\s+(?:acho|achen)|ki\s+(?:khobor|obostha|korcho)|valo\s+achi|bhalo\s+achi)\b/i,
+  /\b(?:likhe\s+(?:daw|dao|diben)|kore\s+(?:daw|dao|diben)|banie\s+(?:daw|dao|diben)|baniye\s+(?:daw|dao|diben))\b/i,
+  /\b(?:amr|amar)\s+(?:business|shathe|sathe|jonno|page|kaje)\b/i,
+  /\b(?:kaj|kaaj)\s+(?:shuru|chalu)\s+koro\b/i,
+  /\b(?:kivabe|konta)\s+(?:korbo|hobe)\b/i
+];
+
+export function detectUserLanguage(message: string): DetectedLanguage {
+  if (!message || typeof message !== 'string') return 'english';
+  const clean = message.trim();
+  if (!clean) return 'english';
+
+  // 1. Bengali script detection (Unicode range \u0980-\u09FF)
+  if (/[\u0980-\u09FF]/.test(clean)) {
+    return 'bengali';
+  }
+
+  // 2. Arabic script detection (\u0600-\u06FF)
+  if (/[\u0600-\u06FF]/.test(clean)) {
+    return 'arabic';
+  }
+
+  // 3. Devanagari / Hindi script detection (\u0900-\u097F)
+  if (/[\u0900-\u097F]/.test(clean)) {
+    return 'hindi';
+  }
+
+  // 4. Banglish detection (Bengali written using Latin alphabet)
+  const lower = clean.toLowerCase();
+  if (BANGLISH_PHRASE_PATTERNS.some((re) => re.test(lower))) {
+    return 'banglish';
+  }
+
+  const tokens = lower
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 2);
+
+  let matchCount = 0;
+  for (const t of tokens) {
+    if (BANGLISH_WORDS.has(t)) {
+      matchCount++;
+    }
+  }
+
+  if (matchCount >= 2 || (tokens.length <= 4 && matchCount >= 1)) {
+    return 'banglish';
+  }
+
+  return 'english';
+}
+
 export function buildCeoOrHelperSystemPrompt(
   helper: ToolConfig | null,
   options?: {
@@ -517,11 +588,35 @@ export function buildCeoOrHelperSystemPrompt(
     planTier?: string;
     multiHelpers?: ToolConfig[];
     recommendedHelper?: ToolConfig | null;
+    userMessage?: string;
   }
 ): string {
-  const langInstruction = options?.language
-    ? `\nOUTPUT LANGUAGE: Respond primarily in ${options.language}.`
-    : `\nOUTPUT LANGUAGE: Respond in the same language the user used (Bangla, English, or Banglish), unless they ask for a specific language.`;
+  const detected = detectUserLanguage(options?.userMessage || '');
+
+  let langInstruction = '';
+  if (options?.language) {
+    langInstruction = `\nOUTPUT LANGUAGE: Respond primarily in ${options.language}.\n🚨 MANDATORY LANGUAGE ENFORCEMENT: The user explicitly selected ${options.language}. All outputs, copy, headings, and explanations MUST be written in ${options.language}.`;
+  } else if (detected === 'bengali') {
+    langInstruction = `\nOUTPUT LANGUAGE: Respond in the same language the user used (Bangla, English, or Banglish), unless they ask for a specific language.
+🚨 MANDATORY LANGUAGE MIRRORING PROTOCOL:
+The user is speaking to you in BENGALI (বাংলায়).
+You MUST reply 100% in natural, fluent, professional BENGALI (সম্পূর্ণ বাংলায় উত্তর দিন).
+Do NOT reply in English. Every heading, explanation, bullet point, marketing framework, and call-to-action MUST be written in authentic বাংলা script.`;
+  } else if (detected === 'banglish') {
+    langInstruction = `\nOUTPUT LANGUAGE: Respond in the same language the user used (Bangla, English, or Banglish), unless they ask for a specific language.
+🚨 MANDATORY LANGUAGE MIRRORING PROTOCOL:
+The user is speaking to you in BANGLISH (Bengali written in English/Latin letters, e.g. "kemon acho", "likhe daw", "amr business").
+You MUST mirror the user's language by responding in natural, conversational Banglish or friendly Bengali.
+Do NOT default to stiff, formal English. Match the user's conversational flow, language, and friendly tone.`;
+  } else if (detected === 'arabic') {
+    langInstruction = `\nOUTPUT LANGUAGE: Respond in the same language the user used (Arabic).\n🚨 MANDATORY LANGUAGE MIRRORING PROTOCOL: The user is speaking in ARABIC (العربية). You MUST reply 100% in fluent ARABIC.`;
+  } else if (detected === 'hindi') {
+    langInstruction = `\nOUTPUT LANGUAGE: Respond in the same language the user used (Hindi).\n🚨 MANDATORY LANGUAGE MIRRORING PROTOCOL: The user is speaking in HINDI (हिन्दी). You MUST reply 100% in fluent HINDI.`;
+  } else {
+    langInstruction = `\nOUTPUT LANGUAGE: Respond in the same language the user used (Bangla, English, or Banglish), unless they ask for a specific language.
+🚨 MANDATORY LANGUAGE MIRRORING PROTOCOL:
+You MUST reply in the EXACT SAME LANGUAGE and tone used by the user. If the user writes in English, reply in crisp English. If the user writes in another language, detect and mirror that language seamlessly.`;
+  }
 
   const toneInstruction = options?.tone
     ? `\nTONE & STYLE: Use a ${options.tone} tone.`
@@ -562,14 +657,20 @@ EXECUTION PROTOCOL:
 "⚡ **Ezbo Master AI CEO → Coordinated Multi-Agent Pipeline (${options.multiHelpers.map((h) => h.code).join(' → ')})**"
 2. Execute each stage sequentially in complete detail, adhering to that specialist's exclusive prompt and framework:
 ${specialistInstructions}
-3. The output of each stage must naturally connect to and power the next stage, delivering a unified, executive-ready deliverable.${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
+3. The output of each stage must naturally connect to and power the next stage, delivering a unified, executive-ready deliverable.${langInstruction}${toneInstruction}${tierInstruction}${customDirective}
+
+🚨 FINAL LANGUAGE MIRRORING DIRECTIVE (CRITICAL):
+All stages of this pipeline must be delivered in the user's matched language. Never switch to English if the user communicated in Bengali or Banglish.`;
   }
 
   if (helper && options?.mode === 'helper') {
     return `You are [${helper.code}] ${helper.name} (${helper.badge}) on the EzboAgents Business & Freelancer AI Platform.
 SPECIALTY: ${helper.shortDesc}
 CORE INSTRUCTION: ${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}
-Do not give generic filler. Deliver complete, copy-paste ready results immediately.${customDirective}`;
+Do not give generic filler. Deliver complete, copy-paste ready results immediately.${customDirective}
+
+🚨 FINAL LANGUAGE MIRRORING DIRECTIVE (CRITICAL):
+Your entire output must be delivered in the user's matched language. Never switch to English if the user communicated in Bengali or Banglish.`;
   }
 
   if (helper) {
@@ -580,7 +681,10 @@ The user has commanded deployment of specialist helper **[${helper.code}] ${help
 Begin your response with a brief 1-line executive header:
 "⚡ **AI CEO → Delegated to [${helper.code}] ${helper.name}**"
 Then execute the task immediately using this specialist's framework:
-${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
+${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}${customDirective}
+
+🚨 FINAL LANGUAGE MIRRORING OVERRIDE (CRITICAL PRIORITY):
+Regardless of what language the specialist framework above is written in, your entire deliverable, copy, headings, and response MUST be written in the user's matched language (${detected === 'bengali' ? 'বাংলা' : detected === 'banglish' ? 'Banglish/বাংলা' : 'the user\'s language'}). Never switch to English if the user communicated in Bengali or Banglish.`;
   }
 
   return `${AI_CEO_PROFILE.systemPrompt}
@@ -599,7 +703,10 @@ You oversee 80 specialized Business & Freelancer AI Helpers (#01 to #80) across 
 6. Freelancing — Upwork, Fiverr & Client Hunting (#51-#62)
 7. Business Operations, Sales & Productivity (#63-#75)
 8. Omnichannel Auto-Reply & Customer Channels (#76-#80)
-${langInstruction}${toneInstruction}${tierInstruction}${customDirective}`;
+${langInstruction}${toneInstruction}${tierInstruction}${customDirective}
+
+🚨 FINAL LANGUAGE MIRRORING OVERRIDE (CRITICAL PRIORITY):
+Speak and deliver all outputs exclusively in the user's matched language (${detected === 'bengali' ? 'বাংলা' : detected === 'banglish' ? 'Banglish/বাংলা' : 'the user\'s language'}). Never default to English if the user communicated in Bengali or Banglish.`;
 }
 
 const RESTRICTED_PATTERNS: RegExp[] = [

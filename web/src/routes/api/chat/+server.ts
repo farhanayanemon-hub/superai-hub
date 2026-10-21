@@ -210,7 +210,8 @@ export const POST: RequestHandler = async ({ request }) => {
       ceoCustomPrompt,
       planTier: effectivePlanTier,
       multiHelpers: isMultiChain ? multiHelpers : undefined,
-      recommendedHelper
+      recommendedHelper,
+      userMessage: message
     });
 
     // Determine the key and provider to use
