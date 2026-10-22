@@ -6,7 +6,7 @@
   import {
     activeTool,
     isDrawerOpen,
-    closeToolDrawer,
+    closeToolDrawer as baseCloseToolDrawer,
     apiKey,
     isKeyValid,
     currentUser,
@@ -20,13 +20,50 @@
     apiVault,
     activeDashboardTab
   } from '$lib/stores/userStore';
+  import { activeBespokeAgent } from '$lib/config/agentRegistry';
   import { getBusinessChannelsState, type ConnectedToolState } from '$lib/config/toolConnectors';
   import { decryptVaultKey } from '$lib/services/crypto';
   import { executeToolWithGemini } from '$lib/services/gemini';
   import { marked } from 'marked';
   import { workflowCustomizationUserStore } from '$lib/stores/plansStore';
 
-  let { onOpenByok }: { onOpenByok?: () => void } = $props();
+  let {
+    onOpenByok,
+    agent = null,
+    onClose
+  }: {
+    onOpenByok?: () => void;
+    agent?: any;
+    onClose?: () => void;
+  } = $props();
+
+  $effect(() => {
+    if (agent) {
+      activeTool.set({
+        id: agent.id,
+        name: agent.name,
+        nameEn: agent.nameEn,
+        description: agent.description,
+        shortDesc: agent.shortDesc || agent.description,
+        icon: agent.icon || 'Sparkles',
+        badge: agent.badge || 'Bespoke Agent',
+        categoryName: agent.category || 'Custom Agent',
+        category: agent.category || 'custom',
+        inputs: agent.inputs || [],
+        systemPrompt: agent.systemPrompt,
+        code: ''
+      } as any);
+      isDrawerOpen.set(true);
+    }
+  });
+
+  function closeToolDrawer() {
+    baseCloseToolDrawer();
+    activeTool.set(null);
+    if (onClose) {
+      onClose();
+    }
+  }
 
   let isStudioOpen = $state(false);
   let showUpgradeModal = $state(false);
@@ -55,7 +92,7 @@
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && $isDrawerOpen) {
+    if (e.key === 'Escape' && ($isDrawerOpen || agent)) {
       if (showUpgradeModal) {
         showUpgradeModal = false;
       } else if (isStudioOpen) {
@@ -97,7 +134,8 @@
     $activeTool?.id === 'whatsapp_business_support' ||
     $activeTool?.id === 'messenger_customer_support' ||
     $activeTool?.id === 'instagram_dm_support' ||
-    $activeTool?.id === 'telegram_customer_support'
+    $activeTool?.id === 'telegram_customer_support' ||
+    $activeTool?.category === 'business_automation'
   );
 
   function handleNavigateToChannels() {
@@ -171,7 +209,7 @@
       studioChatHistory = [];
       followUpInput = '';
       const initial: Record<string, string> = {};
-      for (const input of $activeTool.inputs) {
+      for (const input of ($activeTool.inputs || [])) {
         initial[input.name] = input.defaultValue || (input.options ? input.options[0] : '');
       }
       formValues = initial;
@@ -181,7 +219,7 @@
   function fillSampleInputs() {
     if (!$activeTool) return;
     const sample: Record<string, string> = {};
-    for (const input of $activeTool.inputs) {
+    for (const input of ($activeTool.inputs || [])) {
       if (input.type === 'select' && input.options?.length) {
         sample[input.name] = input.options[0];
       } else {
@@ -193,7 +231,7 @@
 
   function buildPromptFromInputs(): string {
     if (!$activeTool) return '';
-    const entries = $activeTool.inputs
+    const entries = ($activeTool.inputs || [])
       .map((inp) => {
         const val = (formValues[inp.name] || '').trim();
         return val ? `- **${inp.label}**: ${val}` : null;
@@ -201,7 +239,7 @@
       .filter(Boolean)
       .join('\n');
 
-    return `Execute [${$activeTool.code}] ${$activeTool.name} with these specifications:\n${entries || '- Standard best-practice execution'}\n- **Output Language**: ${outputLanguage}\n- **Tone**: ${outputTone}`;
+    return `Execute ${$activeTool.name} with these specifications:\n${entries || '- Standard best-practice execution'}\n- **Output Language**: ${outputLanguage}\n- **Tone**: ${outputTone}`;
   }
 
   async function runHelperRequest(userPrompt: string, isInitialForm = false) {
@@ -363,7 +401,7 @@
   function sendToWhatsApp(textToShare = outputText) {
     if (!textToShare) return;
     const shareText = encodeURIComponent(
-      `*[${$activeTool?.code}] ${$activeTool?.name}*\n\n${textToShare}`
+      `*${$activeTool?.code ? `[${$activeTool.code}] ` : ''}${$activeTool?.name}*\n\n${textToShare}`
     );
     window.open(`https://api.whatsapp.com/send?text=${shareText}`, '_blank');
   }
@@ -379,7 +417,7 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-{#if $isDrawerOpen && $activeTool}
+{#if $isDrawerOpen && $activeTool && (agent || !$activeBespokeAgent)}
   <!-- Expansive Full-Viewport Executive Studio Workspace -->
   <div
     class="fixed inset-0 z-50 w-full h-full bg-[#F8FAFC] flex flex-col overflow-hidden animate-in fade-in duration-200"
@@ -404,11 +442,13 @@
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
-            <span
-              class="px-2 py-0.5 text-[10px] font-mono font-extrabold rounded-md bg-[#102A56] text-white"
-            >
-              {$activeTool.code}
-            </span>
+            {#if $activeTool.code && !$activeTool.code.startsWith('#')}
+              <span
+                class="px-2 py-0.5 text-[10px] font-mono font-extrabold rounded-md bg-[#102A56] text-white"
+              >
+                {$activeTool.code}
+              </span>
+            {/if}
             <h2 class="font-extrabold text-sm sm:text-base text-[#102A56] truncate">
               {$activeTool.name}
             </h2>
@@ -496,8 +536,8 @@
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[#38CFFF]"></span>
             <span>
-              <strong class="text-white">AI CEO / Channels Command:</strong> Send
-              <code class="px-1.5 py-0.5 rounded bg-white/10 text-[#38CFFF] font-mono font-bold">{$activeTool.code}</code>
+              <strong class="text-white">AI CEO / Channels Command:</strong> Mention
+              <code class="px-1.5 py-0.5 rounded bg-white/10 text-[#38CFFF] font-mono font-bold">{$activeTool.name}</code>
               to trigger directly!
             </span>
           </div>
@@ -545,7 +585,7 @@
           </div>
         {/if}
 
-        <!-- ⚡ Connected Business Channels (for Omnichannel Customer Reply Agents #76 to #80) -->
+        <!-- ⚡ Connected Business Channels (for Omnichannel Customer Reply Agents) -->
         {#if isCustomerReplyAgent}
           <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#F0F5FF] via-white to-[#F8FAFD] border border-[#CFE2FA] shadow-xs space-y-3.5 animate-in fade-in">
             <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -650,7 +690,7 @@
           <div class="flex items-center justify-between flex-wrap gap-2">
             <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#102A56] flex items-center gap-1.5">
               <Icon name="Sliders" size={14} class="text-[#1677FF]" />
-              <span>Helper Custom Options ({$activeTool.inputs.length})</span>
+              <span>Helper Custom Options ({($activeTool.inputs || []).length})</span>
             </h3>
             <button
               type="button"
@@ -662,7 +702,7 @@
             </button>
           </div>
 
-          {#each $activeTool.inputs as input}
+          {#each ($activeTool.inputs || []) as input}
             <div class="space-y-1.5">
               <label
                 for={'input-' + input.name}
@@ -746,7 +786,7 @@
           >
             {#if isGenerating}
               <Icon name="Loader2" size={18} class="animate-spin text-white" />
-              <span>Running [{$activeTool.code}] {$activeTool.name}...</span>
+              <span>Running {$activeTool.name}...</span>
             {:else}
               <Icon name="Sparkles" size={18} />
               <span>Generate with {$activeTool.name}</span>
@@ -845,7 +885,7 @@
               </div>
               <div class="max-w-md space-y-1">
                 <h4 class="text-sm font-extrabold text-[#102A56]">
-                  Ready to Execute [{$activeTool.code}] {$activeTool.name}
+                  Ready to Execute {$activeTool.name}
                 </h4>
                 <p class="text-xs text-[#5E7694] leading-relaxed">
                   Fill in your custom specifications on the left pane and click <strong>Generate with {$activeTool.name}</strong> to produce executive-grade deliverables in real time.
@@ -892,7 +932,7 @@
                     <Icon name="Loader2" size={18} class="animate-spin text-[#1677FF]" />
                   </div>
                   <div>
-                    <p class="text-xs font-bold text-[#102A56]">Executing [{$activeTool.code}] {$activeTool.name}...</p>
+                    <p class="text-xs font-bold text-[#102A56]">Executing {$activeTool.name}...</p>
                     <p class="text-[10px] text-[#5E7694]">Synthesizing structured deliverable with configured tone and language parameters</p>
                   </div>
                 </div>

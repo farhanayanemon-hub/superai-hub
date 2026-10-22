@@ -352,7 +352,7 @@
         <div class="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1.5">
           <div class="flex items-center gap-2 text-white font-bold text-xs sm:text-sm">
             <Icon name="Bot" size={16} class="text-[#38CFFF]" />
-            <span>75 AI Helpers Unlocked</span>
+            <span>Bespoke Agents Unlocked</span>
           </div>
           <p class="text-[11px] text-white/75 leading-relaxed">
             Full unlimited access across Web, WhatsApp, and Telegram with zero setup.
@@ -429,7 +429,7 @@
           <span>Execution & Routing Strategy</span>
         </h3>
         <p class="text-xs text-[#5E7694] mt-0.5">
-          Choose how the AI CEO and 75 Specialist Helpers execute prompts across your models.
+          Choose how the Master AI CEO and bespoke agents execute prompts across your models.
         </p>
       </div>
 
@@ -961,7 +961,7 @@
           <ul class="space-y-1.5 text-[11px] text-[#4B6382]">
             <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Unlimited API keys per provider with auto round-robin</li>
             <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Multi-model failover chains (HTTP 429 auto-retry)</li>
-            <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Full access to all 75+ AI Helpers and AI CEO</li>
+            <li class="flex items-center gap-2"><Icon name="Check" size={13} class="text-emerald-500 shrink-0" /> Full access to Master AI CEO and bespoke agent workflows</li>
           </ul>
         </div>
 

@@ -21,7 +21,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const message = update?.message;
 
     if (message?.chat?.id && message?.text) {
-      // Inbound customer query or support command for Telegram Helpdesk (#80) / Omnichannel (#76)
+      // Inbound customer query or support command for Telegram Helpdesk / Omnichannel Support Agent
       const chatId = message.chat.id;
       const text = message.text.trim();
       // Acknowledged and logged

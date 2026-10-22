@@ -60,17 +60,15 @@ describe('Tier 3: Cross-Feature Interactions', () => {
       const pageContent = fs.readFileSync(pagePath, 'utf8');
 
       // Verify link href in Navbar
-      const hasNavbarLink = navbarContent.includes('/#helpers') || navbarContent.includes('#helpers');
-      assert.ok(hasNavbarLink, 'Navbar does not contain helpers anchor link');
+      const hasNavbarLink = navbarContent.includes('/#features') || navbarContent.includes('#features');
+      assert.ok(hasNavbarLink, 'Navbar does not contain features anchor link');
 
       // Verify section target in +page.svelte
-      const hasPageTarget = pageContent.includes('id="helpers"');
-      assert.ok(hasPageTarget, '+page.svelte does not contain matching id="helpers" section');
+      const hasPageTarget = pageContent.includes('id="features"');
+      assert.ok(hasPageTarget, '+page.svelte does not contain matching id="features" section');
 
-      // Verify that the section encapsulates RobotShowcase
-      const sectionMatch = pageContent.match(/<section[^>]*id="helpers"[^>]*>([\s\S]*?)<\/section>/);
-      assert.ok(sectionMatch, 'Could not find closed <section id="helpers">...</section>');
-      assert.ok(sectionMatch[1].includes('<RobotShowcase'), 'RobotShowcase is not inside <section id="helpers">');
+      // Verify that legacy helpers section is removed
+      assert.ok(!pageContent.includes('id="helpers"'), '+page.svelte still contains legacy id="helpers" section');
     });
   });
 

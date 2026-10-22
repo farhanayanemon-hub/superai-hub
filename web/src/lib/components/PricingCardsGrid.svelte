@@ -3,7 +3,6 @@
   import { plansStore } from '$lib/stores/plansStore';
   import { subscription, isAuthenticated, type PlanTier } from '$lib/stores/userStore';
   import type { PlanTierId, PlanConfig } from '$lib/config/plans';
-  import { ALL_TOOLS } from '$lib/config/tools';
 
   let {
     context = 'landing',
@@ -35,12 +34,7 @@
   });
 
   function getHelperCountBadge(plan: PlanConfig): string {
-    const toggles = plan?.featureToggles;
-    if (!toggles || toggles.allHelpersEnabled !== false) {
-      return `All ${ALL_TOOLS.length}+ AI Helpers Included`;
-    }
-    const count = toggles.enabledHelpers?.length || 0;
-    return `${count} of ${ALL_TOOLS.length} AI Helpers Included`;
+    return 'Bespoke Agent Workspace Access';
   }
 
   function isUserCurrentPlan(planId: PlanTierId): boolean {

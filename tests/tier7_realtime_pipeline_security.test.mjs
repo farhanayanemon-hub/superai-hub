@@ -447,83 +447,48 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
   // 4. Comprehensive 75 AI Helpers & Store Bots Invariant
   // ==========================================================================
   describe('4. Comprehensive 75 AI Helpers & Store Bots Invariant', () => {
-    it('4.1 At least 75 AI Helpers (all 80 helpers) must be defined and exported in tools.ts', async () => {
+    it('4.1 Legacy 80 AI Helpers have been purged in favor of Bespoke Agent Registry', async () => {
       assert.ok(fs.existsSync(PATHS.toolsTs), 'tools.ts must exist');
       const { TOOLS, ALL_TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
       const helperList = ALL_TOOLS || TOOLS;
       assert.ok(Array.isArray(helperList), 'tools.ts must export array of helpers');
-      assert.ok(helperList.length >= 75, `Expected >= 75 AI Helpers, got ${helperList.length}`);
-      assert.strictEqual(helperList.length, 80, 'Must contain all 80 AI Helpers');
+      assert.strictEqual(helperList.length, 0, 'tools.ts must have 0 legacy pre-packaged helpers');
     });
 
-    it('4.2 Every single AI Helper (#01 to #80) has non-empty typed inputs, roles, and deep executive prompts', async () => {
-      const { TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
-      const expectedCodes = Array.from({ length: 80 }, (_, i) => `#${String(i + 1).padStart(2, '0')}`);
-
-      for (let i = 0; i < 80; i++) {
-        const helper = TOOLS[i];
-        assert.ok(helper, `Helper at index ${i} must exist`);
-        assert.strictEqual(helper.code, expectedCodes[i], `Helper ${i + 1} code must match ${expectedCodes[i]}`);
-        assert.ok(helper.id && helper.id.trim().length > 0, `Helper ${helper.code} must have non-empty id`);
-        assert.ok(helper.name && helper.name.trim().length > 0, `Helper ${helper.code} must have non-empty name`);
-        assert.ok(helper.category && helper.category.trim().length > 0, `Helper ${helper.code} must have category`);
-        assert.ok(helper.agentName && helper.agentName.trim().length > 0, `Helper ${helper.code} must have agentName`);
-        assert.ok(helper.agentRole && helper.agentRole.trim().length > 0, `Helper ${helper.code} must have agentRole`);
-        assert.ok(helper.agentTagline && helper.agentTagline.trim().length > 0, `Helper ${helper.code} must have agentTagline`);
-        assert.ok(helper.agentAvatar && helper.agentAvatar.trim().length > 0, `Helper ${helper.code} must have agentAvatar`);
-
-        // Inputs validation
-        assert.ok(Array.isArray(helper.inputs) && helper.inputs.length > 0, `Helper ${helper.code} must have >=1 input`);
-        for (const input of helper.inputs) {
-          assert.ok(input.name && input.name.trim().length > 0, `Helper ${helper.code} input must have name`);
-          assert.ok(input.label && input.label.trim().length > 0, `Helper ${helper.code} input must have label`);
-          assert.ok(['text', 'textarea', 'select'].includes(input.type), `Helper ${helper.code} input type must be valid`);
-          if (input.type === 'select') {
-            assert.ok(Array.isArray(input.options) && input.options.length > 0, `Helper ${helper.code} select must have options`);
-          }
-        }
-
-        // Deep executive system prompt validation: no dummy or canned mock text
-        assert.ok(helper.systemPrompt && helper.systemPrompt.length >= 100, `Helper ${helper.code} systemPrompt must be >=100 chars`);
-        assert.ok(!helper.systemPrompt.includes('Lorem ipsum'), `Helper ${helper.code} must not contain placeholder text`);
-        assert.ok(!helper.systemPrompt.includes('TODO:'), `Helper ${helper.code} must not contain TODO marker`);
-      }
+    it('4.2 Modular Bespoke Agent Registry is established in agentRegistry.ts', async () => {
+      const registryPath = path.join(WEB_DIR, 'src', 'lib', 'config', 'agentRegistry.ts');
+      assert.ok(fs.existsSync(registryPath), 'agentRegistry.ts must exist');
+      const content = readSafe(registryPath);
+      assert.ok(content.includes('export interface BespokeAgentMetadata'), 'Must export BespokeAgentMetadata');
+      assert.ok(content.includes('export interface BespokeAgent'), 'Must export BespokeAgent');
+      assert.ok(content.includes('DEFAULT_REGISTERED_AGENTS'), 'Must export DEFAULT_REGISTERED_AGENTS');
+      assert.ok(content.includes('registerAgent'), 'Must export registerAgent');
+      assert.ok(content.includes('unregisterAgent'), 'Must export unregisterAgent');
+      assert.ok(content.includes('getRegisteredAgents'), 'Must export getRegisteredAgents');
+      assert.ok(content.includes('openBespokeAgent'), 'Must export openBespokeAgent');
     });
 
-    it('4.2b Hybrid Omnichannel Customer Reply Agents (#76 to #80) exist with required inputs and deep prompts', async () => {
-      const { TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
-      const replyAgentIds = [
-        'omnichannel_customer_support',
-        'whatsapp_business_support',
-        'messenger_customer_support',
-        'instagram_dm_support',
-        'telegram_customer_support'
-      ];
-      for (const id of replyAgentIds) {
-        const agent = TOOLS.find((t) => t.id === id);
-        assert.ok(agent, `Customer reply agent ${id} must exist in TOOLS`);
-        const inputNames = agent.inputs.map((inp) => inp.name);
-        assert.ok(inputNames.includes('businessName'), `${id} must have businessName input`);
-        assert.ok(inputNames.includes('businessDescription'), `${id} must have businessDescription input`);
-        assert.ok(inputNames.includes('deliveryReturnPolicy'), `${id} must have deliveryReturnPolicy input`);
-        assert.ok(inputNames.includes('faqKnowledgeBase'), `${id} must have faqKnowledgeBase input`);
-        assert.ok(inputNames.includes('toneOfVoice'), `${id} must have toneOfVoice input`);
-        assert.ok(inputNames.includes('customerMessage'), `${id} must have customerMessage input`);
-      }
+    it('4.2b Bespoke Agent Architecture supports dynamic registration and clean default state', async () => {
+      const registryModule = await import(pathToFileURL(path.join(WEB_DIR, 'src', 'lib', 'config', 'agentRegistry.ts')).href);
+      const { getRegisteredAgents, registerAgent, unregisterAgent } = registryModule;
+      assert.ok(Array.isArray(getRegisteredAgents()), 'getRegisteredAgents must return array');
+
+      const testAgent = {
+        id: 'test_bespoke_agent',
+        name: 'Test Bespoke Agent',
+        description: 'Custom bespoke agent for automation'
+      };
+      registerAgent(testAgent);
+      assert.ok(getRegisteredAgents().some((a) => a.id === 'test_bespoke_agent'), 'registerAgent must add agent');
+      unregisterAgent('test_bespoke_agent');
+      assert.ok(!getRegisteredAgents().some((a) => a.id === 'test_bespoke_agent'), 'unregisterAgent must remove agent');
     });
 
-    it('4.3 Visual image generation helpers #34 and #35 are correctly configured', async () => {
-      const { TOOLS } = await import(pathToFileURL(PATHS.toolsTs).href);
-      const helper34 = TOOLS.find((t) => t.code === '#34');
-      const helper35 = TOOLS.find((t) => t.code === '#35');
-
-      assert.ok(helper34, 'Helper #34 must exist');
-      assert.strictEqual(helper34.id, 'ai_commercial_image_generator');
-      assert.ok(helper34.inputs.some((inp) => inp.name === 'aspectRatio'), 'Helper #34 must have aspectRatio input');
-
-      assert.ok(helper35, 'Helper #35 must exist');
-      assert.strictEqual(helper35.id, 'ai_business_logo_generator');
-      assert.ok(helper35.inputs.some((inp) => inp.name === 'brandName'), 'Helper #35 must have brandName input');
+    it('4.3 Visual image generation params and dimensions in ceoRouter.ts support clean bespoke architecture', async () => {
+      assert.ok(fs.existsSync(PATHS.ceoRouter), 'ceoRouter.ts must exist');
+      const content = readSafe(PATHS.ceoRouter);
+      assert.ok(content.includes('VISUAL_ASPECT_RATIO_DIMS'), 'ceoRouter must export VISUAL_ASPECT_RATIO_DIMS');
+      assert.ok(content.includes('buildVisualGenerationParams'), 'ceoRouter must export buildVisualGenerationParams');
     });
 
     it('4.4 Store bots invariant: STORE_BOTS array exported from storeBots.ts', async () => {

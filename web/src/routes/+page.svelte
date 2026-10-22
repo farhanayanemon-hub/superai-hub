@@ -5,7 +5,6 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import PaymentMethods from '$lib/components/PaymentMethods.svelte';
-  import RobotShowcase from '$lib/components/robots/RobotShowcase.svelte';
   import PricingCardsGrid from '$lib/components/PricingCardsGrid.svelte';
   import MobileAppShowcase from '$lib/components/MobileAppShowcase.svelte';
   import { isAuthenticated, currentUser } from '$lib/stores/userStore';
@@ -43,16 +42,16 @@
 
   const faqs = [
     {
-      q: 'What is the Master AI CEO and how does it control all 75+ AI Helpers?',
-      a: 'You do not have to open 75 separate chat windows if you do not want to! Simply tell the Master AI CEO what you need from the Web Console, WhatsApp, or Telegram — and the AI CEO automatically selects and commands the right helper (#01 to #75) for you. Or, if you prefer custom dropdowns and fields, you can open any helper’s dedicated Studio anytime.'
+      q: 'What is the Master AI CEO and how does it orchestrate custom agents?',
+      a: 'You do not have to open separate chat windows if you do not want to! Simply tell the Master AI CEO what you need from the Web Console, WhatsApp, or Telegram — and the AI CEO automatically orchestrates the right workflow and bespoke agents for you. Or, if you prefer custom controls, you can open any agent workspace anytime.'
     },
     {
-      q: 'Will I get newly added AI Helpers in the same subscription?',
-      a: 'Yes! We regularly release new Business, Marketing, and Freelancer AI Helpers every month. All new AI Helpers are unlocked automatically inside your single active subscription at zero extra cost.'
+      q: 'Can I add custom agents and workflows in the same subscription?',
+      a: 'Yes! Custom business agents and workflows can be orchestrated directly. All updates and capabilities are included automatically inside your single active subscription at zero extra cost.'
     },
     {
       q: 'What is the difference between Starter Plan and Pro Plan?',
-      a: 'The Starter Plan (৳499/mo) gives you run-only access to all 75 pre-built agent workflows, 100+ enterprise tool connectors, and tier-guarded Master AI CEO. The Pro Plan (৳899/mo) unlocks the visual workflow studio with node graph editing, unlimited custom agent building, unrestricted Master AI CEO, and multi-key auto-failover.'
+      a: 'The Starter Plan (৳499/mo) gives you run-only access to executive agent workflows, 100+ enterprise tool connectors, and tier-guarded Master AI CEO. The Pro Plan (৳899/mo) unlocks the visual workflow studio with node graph editing, custom bespoke agent building, unrestricted Master AI CEO, and multi-key auto-failover.'
     },
     {
       q: 'Do I need my own API keys to use EzboAgents?',
@@ -78,10 +77,10 @@
 </script>
 
 <svelte:head>
-  <title>EzboAgents — 1 Master AI CEO + 75+ Business & Freelancer AI Helpers</title>
+  <title>EzboAgents — Master AI CEO & Enterprise Agent Workflows</title>
   <meta
     name="description"
-    content="1 Master AI CEO that controls 75+ specialized Business, Marketing & Freelancer AI Helpers across Web, WhatsApp, and Telegram. Regular new bots unlocked in 1 subscription."
+    content="1 Master AI CEO that orchestrates custom Business, Marketing & Freelancer AI workflows across Web, WhatsApp, and Telegram. Modular Bespoke Agent Architecture in 1 subscription."
   />
 </svelte:head>
 
@@ -111,12 +110,12 @@
           >
             1 Master AI CEO Controlling
             <br class="hidden sm:inline" />
-            75+ Business & Freelancer Helpers.
+            Enterprise Business Workflows.
           </h1>
 
           <!-- Subtitle -->
           <p class="text-base sm:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed mt-5">
-            Every helper features its own custom options and interactive Studio chat — or skip individual chats altogether and command the <strong class="font-semibold text-gray-900">Master AI CEO</strong> directly from Web, <strong class="font-semibold text-gray-900">WhatsApp</strong>, or <strong class="font-semibold text-gray-900">Telegram</strong> to orchestrate all 75+ helpers for you.
+            Every bespoke agent features its own custom options and interactive Studio workspace — or skip individual tools altogether and command the <strong class="font-semibold text-gray-900">Master AI CEO</strong> directly from Web, <strong class="font-semibold text-gray-900">WhatsApp</strong>, or <strong class="font-semibold text-gray-900">Telegram</strong> to orchestrate workflows for you.
           </p>
 
           <!-- Centered Dual Button Group -->
@@ -129,7 +128,7 @@
                 <span>
                   {$currentUser?.isSubscribed
                     ? 'Enter AI CEO Console'
-                    : 'Select Your Plan & Unlock All 75+ Helpers'}
+                    : 'Select Your Plan & Unlock Enterprise Workflows'}
                 </span>
                 <Icon name="ArrowRight" size={16} />
               </a>
@@ -138,14 +137,14 @@
                 href="/signup"
                 class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Unlock AI CEO + 75+ Helpers</span>
+                <span>Unlock AI CEO & Workflows</span>
                 <Icon name="ArrowRight" size={16} />
               </a>
               <a
-                href="#helpers"
+                href="/#features"
                 class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-semibold text-sm shadow-2xs transition-all flex items-center justify-center gap-2"
               >
-                <span>Explore All 75+ AI Helpers</span>
+                <span>Explore Platform Features</span>
               </a>
             {/if}
           </div>
@@ -167,7 +166,7 @@
 
             <!-- Micro-caption -->
             <p class="text-xs sm:text-sm font-medium text-gray-500 mt-4 tracking-wide">
-              75+ AI Specialists & 2,000+ Workflows orchestrated via WhatsApp, Telegram & Web
+              Enterprise AI Specialists & Custom Workflows orchestrated via WhatsApp, Telegram & Web
             </p>
           </div>
         </div>
@@ -175,25 +174,16 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 2. MASTER AI CEO + 75+ TRANSPARENT ANIMATED HELPERS SHOWCASE -->
-    <!-- ======================================================== -->
-    <section id="helpers" class="scroll-mt-16 py-12 sm:py-20 relative overflow-hidden bg-white border-t border-gray-100">
-      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <RobotShowcase signupUrl="/signup" />
-      </div>
-    </section>
-
-    <!-- ======================================================== -->
-    <!-- 3. WHATSAPP & TELEGRAM ENGINE ARCHITECTURE -->
+    <!-- 2. WHATSAPP & TELEGRAM ENGINE ARCHITECTURE -->
     <!-- ======================================================== -->
     <section id="features" class="py-16 sm:py-24 bg-white border-t border-gray-100 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
           <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
-            Control Your AI CEO & 75+ Helpers via WhatsApp & Telegram
+            Control Your AI CEO & Custom Agents via WhatsApp & Telegram
           </h2>
           <p class="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Alongside the Web Console, you can command the Master AI CEO and all 75 AI Helpers directly from your personal WhatsApp and Telegram.
+            Alongside the Web Console, you can command the Master AI CEO and custom agents directly from your personal WhatsApp and Telegram.
           </p>
         </div>
 
@@ -202,7 +192,7 @@
             <div
               class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 font-mono font-semibold text-sm"
             >
-              01
+              1
             </div>
             <h3 class="text-base sm:text-lg font-semibold text-gray-900">Link WhatsApp or Telegram</h3>
             <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
@@ -214,13 +204,11 @@
             <div
               class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 font-mono font-semibold text-sm"
             >
-              02
+              2
             </div>
-            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Instruct AI CEO or #01–#75</h3>
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Instruct AI CEO or Custom Agents</h3>
             <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
-              Describe any task in plain language and the Master AI CEO will automatically route it to the right helper, or type <code
-                class="text-[#4F46E5] font-mono font-medium bg-indigo-50/60 px-1.5 py-0.5 rounded border border-indigo-100">#01</code
-              > through <code class="text-[#4F46E5] font-mono font-medium bg-indigo-50/60 px-1.5 py-0.5 rounded border border-indigo-100">#75</code> to target a specific helper.
+              Describe any task in plain language and the Master AI CEO will automatically route and execute it, or instruct your custom agents directly.
             </p>
           </div>
 
@@ -228,7 +216,7 @@
             <div
               class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 font-mono font-semibold text-sm"
             >
-              03
+              3
             </div>
             <h3 class="text-base sm:text-lg font-semibold text-gray-900">Instant Executive Output</h3>
             <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
@@ -240,7 +228,7 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 3B. 120HZ MOBILE APP & ORBITING 100+ TOOLS SHOWCASE -->
+    <!-- 3. 120HZ MOBILE APP & ORBITING 100+ TOOLS SHOWCASE -->
     <!-- ======================================================== -->
     <MobileAppShowcase />
 
@@ -251,10 +239,10 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
-            One Subscription. All 75+ Helpers + Future Bots Included.
+            One Subscription. Master AI CEO + Custom Workflows Included.
           </h2>
           <p class="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Unlock the Master AI CEO, all 75+ AI Helpers, and 100+ Tool Connectors across Starter & Pro plans.
+            Unlock the Master AI CEO, custom bespoke agents, and 100+ Tool Connectors across Starter & Pro plans.
           </p>
         </div>
 
@@ -279,7 +267,7 @@
             Frequently Asked Questions
           </h2>
           <p class="text-xs sm:text-sm text-gray-500">
-            Everything you need to know about the Master AI CEO, 75+ AI Helpers, and WhatsApp/Telegram control.
+            Everything you need to know about the Master AI CEO, Bespoke Agents, and WhatsApp/Telegram control.
           </p>
         </div>
 

@@ -45,5 +45,5 @@ export const EXPECTED_PROPS_CONTRACT = {
   studioUrl: undefined
 };
 
-export const EXPECTED_NAVBAR_LINK = '/#helpers';
-export const EXPECTED_SECTION_ID = 'helpers';
+export const EXPECTED_NAVBAR_LINK = '/#features';
+export const EXPECTED_SECTION_ID = 'features';

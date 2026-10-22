@@ -123,7 +123,7 @@
           Connect Customer Support Channels
         </h1>
         <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
-          Connect official Meta APIs and Telegram bots to EzboAgents. Once connected, your Omnichannel AI Agent (#76) and specialized channel concierges automatically reply to incoming customer messages, confirm cash-on-delivery orders, and answer customer inquiries 24/7.
+          Connect official Meta APIs and Telegram bots to EzboAgents. Once connected, your Omnichannel AI Agent and specialized channel concierges automatically reply to incoming customer messages, confirm cash-on-delivery orders, and answer customer inquiries 24/7.
         </p>
       </div>
 
@@ -728,7 +728,7 @@
         <div class="p-5 rounded-2xl bg-[#F8FAFD] border border-[#E3ECF7] space-y-2">
           <h4 class="text-sm font-bold text-[#102A56]">Which AI Agents handle incoming channel messages?</h4>
           <p class="text-xs text-[#4B6382] leading-relaxed">
-            The master <strong>Omnichannel Customer Support Agent (#76)</strong> orchestrates replies across all 4 channels. You can also customize channel-specific behavior with WhatsApp Concierge (#77), Messenger Closer (#78), Instagram DM Closer (#79), and Telegram Helpdesk (#80).
+            The master <strong>Omnichannel Customer Support Agent</strong> orchestrates replies across all 4 channels. You can also customize channel-specific behavior with WhatsApp Concierge, Messenger Closer, Instagram DM Closer, and Telegram Helpdesk.
           </p>
         </div>
 

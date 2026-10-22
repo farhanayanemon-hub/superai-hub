@@ -104,7 +104,7 @@
 
 <svelte:head>
   <title>Select Membership Plan • EzboAgents</title>
-  <meta name="description" content="Select a subscription plan to activate your EzboAgents Workspace and unlock the Master AI CEO plus 75+ specialized AI Helpers." />
+  <meta name="description" content="Select a subscription plan to activate your EzboAgents Workspace and unlock the Master AI CEO plus bespoke agent workflows." />
 </svelte:head>
 
 <div class="min-h-screen bg-[#F3F8FF] text-[#102A56] flex flex-col justify-between relative overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
@@ -174,7 +174,7 @@
 
       <!-- Transparent High-Clarity Description -->
       <p class="text-xs sm:text-sm text-[#4B6382] max-w-xl mx-auto mt-2.5 px-3 leading-relaxed font-medium">
-        To protect computing clusters and activate your personal neural channels, select a plan below. Your dashboard and <strong class="text-[#102A56] font-bold">75+ AI helpers</strong> will unlock immediately upon checkout confirmation.
+        To protect computing clusters and activate your personal neural channels, select a plan below. Your dashboard and <strong class="text-[#102A56] font-bold">bespoke agent workspace</strong> will unlock immediately upon checkout confirmation.
       </p>
     </div>
 
@@ -184,7 +184,7 @@
         Activate Your<br class="sm:hidden" /> Executive Workspace
       </h1>
       <p class="text-xs sm:text-sm text-[#4B6382] leading-relaxed px-3">
-        Choose the ideal plan for your workflow: start with 75 ready-made AI agents or unlock the full visual workflow studio.
+        Choose the ideal plan for your workflow: start with executive agent workflows or unlock the full visual workflow studio.
       </p>
 
     </div>

@@ -91,15 +91,11 @@ export function runAdminAutosaveColdstartTests(describeFn = describe, itFn = it)
       );
     });
 
-    itFn('A.6 admin/+page.svelte renders co-located "Saved ✅" badge on AI Helpers Access Matrix master and roster', () => {
+    itFn('A.6 admin/+page.svelte has cleanly purged legacy helpers matrix in favor of bespoke architecture', () => {
       const content = readSafe(PATHS.adminPage);
       assert.ok(
-        content.includes("autoSaveStatus === 'saved' && activeAutoSaveSection === 'helpers'"),
-        'AI Helpers section must conditionally render Saved badge when activeAutoSaveSection is helpers'
-      );
-      assert.ok(
-        content.includes("triggerAutoSave('helpers')"),
-        'AI Helpers toggles must invoke triggerAutoSave with "helpers"'
+        !content.includes('AI Helpers Access Matrix'),
+        'AI Helpers Access Matrix must be purged from admin'
       );
     });
 

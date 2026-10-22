@@ -1,4 +1,5 @@
-import { TOOLS, AI_CEO_PROFILE, type ToolConfig } from '$lib/config/tools';
+import { TOOLS, AI_CEO_PROFILE, type ToolConfig, type AITool } from '$lib/config/tools';
+import { getRegisteredAgents } from '$lib/config/agentRegistry';
 import { DEFAULT_PLANS, type PlansSettings, type PlanConfig } from '$lib/config/plans';
 import { TOOL_CONNECTORS } from '$lib/config/toolConnectors';
 
@@ -110,9 +111,7 @@ export function isConversationalGreeting(message: string): boolean {
 
 export const EXPLICIT_EXECUTION_COMMANDS: RegExp[] = [
   /^\/(boost|teamwork-preview|run|execute|deploy|start)\b/i,
-  /\[⚡?\s*#(\d{1,2})\b/i,
-  /(?:^|\s|\[⚡?)#(0[1-9]|[1-7][0-9]|80)\b/i,
-  /\b(run|execute|deploy|start|proceed\s+with)\s+(agent|helper)?\s*#?(\d{1,2})\b/i,
+  /\b(run|execute|deploy|start|proceed\s+with)\s+(agent|helper)?\s*#?(\w+)\b/i,
   /\b(run|execute|deploy|start|proceed\s+with)\s+(this|the)\s+(agent|helper)\b/i,
   /\b(yes\s+proceed|yes\s+run|yes\s+deploy|proceed\s+now|deploy\s+now|run\s+now|proceed|deploy|execute)\b/i,
   /(শুরু\s*করো|কাজে\s*লাগাঁও|চালাও|এজেন্ট\s*দিয়ে\s*করাও|হ্যাঁ\s*শুরু\s*করো|হ্যাঁ\s*চালাও)/i,
@@ -146,14 +145,32 @@ export function recommendHelperForMessage(query: string): ToolConfig | null {
   if (!clean) return null;
   if (isConversationalGreeting(clean)) return null;
 
-  // Check mention chips or #XX
-  const chipMatch =
-    clean.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
-    clean.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
-  if (chipMatch) {
-    const num = chipMatch[1].padStart(2, '0');
-    const byCode = TOOLS.find((t) => t.code === `#${num}`);
-    if (byCode) return byCode;
+  // Check registered bespoke agents
+  const registered = getRegisteredAgents();
+  for (const agent of registered) {
+    if (textMatchesKeyword(clean, agent.name) || (agent.nameEn && textMatchesKeyword(clean, agent.nameEn))) {
+      return agent as unknown as ToolConfig;
+    }
+    if (agent.keywords) {
+      for (const kw of agent.keywords) {
+        if (textMatchesKeyword(clean, kw)) {
+          return agent as unknown as ToolConfig;
+        }
+      }
+    }
+  }
+
+  // Check mention chips [⚡ Agent Name]
+  const mentionChipMatch = clean.match(/\[⚡?\s*([^\]]+)\]/i);
+  if (mentionChipMatch) {
+    const target = mentionChipMatch[1].trim().toLowerCase();
+    const byTarget = registered.find(
+      (a) =>
+        a.id.toLowerCase() === target ||
+        a.name.toLowerCase() === target ||
+        (a.nameEn && a.nameEn.toLowerCase() === target)
+    );
+    if (byTarget) return byTarget as unknown as ToolConfig;
   }
 
   // Check keyword rules with word boundaries
@@ -183,22 +200,34 @@ export function matchHelperForMessage(
   history?: Array<{ role: string; content: string }>
 ): ToolConfig | null {
   if (explicitHelperId && explicitHelperId !== 'ceo') {
+    const registered = getRegisteredAgents();
+    const foundAgent = registered.find(
+      (a) =>
+        a.id.toLowerCase() === explicitHelperId.toLowerCase() ||
+        a.name.toLowerCase() === explicitHelperId.toLowerCase()
+    );
+    if (foundAgent) return foundAgent as unknown as ToolConfig;
+
     const exact = TOOLS.find(
       (t) =>
         t.id.toLowerCase() === explicitHelperId.toLowerCase() ||
-        t.code.toLowerCase() === explicitHelperId.toLowerCase() ||
-        t.code.replace('#', '') === explicitHelperId.replace('#', '')
+        (t.code &&
+          (t.code.toLowerCase() === explicitHelperId.toLowerCase() ||
+            t.code.replace('#', '') === explicitHelperId.replace('#', '')))
     );
     if (exact) return exact;
 
-    // Check if explicitHelperId references a mention chip or #XX
-    const explicitChipMatch =
-      explicitHelperId.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
-      explicitHelperId.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
+    // Check if explicitHelperId references a mention chip [⚡ Agent Name]
+    const explicitChipMatch = explicitHelperId.match(/\[⚡?\s*([^\]]+)\]/i);
     if (explicitChipMatch) {
-      const num = explicitChipMatch[1].padStart(2, '0');
-      const byCode = TOOLS.find((t) => t.code === `#${num}`);
-      if (byCode) return byCode;
+      const target = explicitChipMatch[1].trim().toLowerCase();
+      const byTarget = registered.find(
+        (a) =>
+          a.id.toLowerCase() === target ||
+          a.name.toLowerCase() === target ||
+          (a.nameEn && a.nameEn.toLowerCase() === target)
+      );
+      if (byTarget) return byTarget as unknown as ToolConfig;
     }
   }
 
@@ -210,25 +239,42 @@ export function matchHelperForMessage(
     return null;
   }
 
-  // Check if message references slash command mention chip: [⚡ #01 Facebook Ad Copy] or #01 - #75 directly or /boost 01 etc.
-  const chipMatch =
-    clean.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
-    clean.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i) ||
-    clean.match(/(?:\/boost|\/teamwork-preview|\/run|\/deploy|\/start|run|deploy|start|proceed\s+with)\s+(?:agent\s+|helper\s+)?#?(\d{1,2})\b/i);
-  if (chipMatch) {
-    const num = chipMatch[1].padStart(2, '0');
-    const byCode = TOOLS.find((t) => t.code === `#${num}`);
-    if (byCode) return byCode;
+  // Check registered bespoke agents first
+  const registered = getRegisteredAgents();
+  for (const agent of registered) {
+    if (textMatchesKeyword(clean, agent.name) || (agent.nameEn && textMatchesKeyword(clean, agent.nameEn))) {
+      return agent as unknown as ToolConfig;
+    }
+    if (agent.keywords) {
+      for (const kw of agent.keywords) {
+        if (textMatchesKeyword(clean, kw)) {
+          return agent as unknown as ToolConfig;
+        }
+      }
+    }
+  }
+
+  // Check if message references slash command or explicit execution command for an agent
+  const cmdMatch = clean.match(
+    /(?:\/boost|\/teamwork-preview|\/run|\/deploy|\/start|run|deploy|start|proceed\s+with)\s+(?:agent\s+|helper\s+)?([a-zA-Z0-9_\-\s]+)\b/i
+  );
+  if (cmdMatch) {
+    const target = cmdMatch[1].trim().toLowerCase();
+    const byTarget = registered.find(
+      (a) =>
+        a.id.toLowerCase() === target ||
+        a.name.toLowerCase() === target ||
+        (a.nameEn && a.nameEn.toLowerCase() === target)
+    );
+    if (byTarget) return byTarget as unknown as ToolConfig;
   }
 
   // Visual image / logo commands always explicitly trigger
   if (isVisualGenerationHelper(null, clean)) {
-    if (clean.toLowerCase().includes('logo') || clean.toLowerCase().startsWith('/logo')) {
-      const logoTool = TOOLS.find((t) => t.id === 'ai_business_logo_generator' || t.code === '#35');
-      if (logoTool) return logoTool;
-    }
-    const imgTool = TOOLS.find((t) => t.id === 'ai_commercial_image_generator' || t.code === '#34');
-    if (imgTool) return imgTool;
+    const isLogo = clean.toLowerCase().includes('logo') || clean.toLowerCase().startsWith('/logo');
+    const targetId = isLogo ? 'ai_business_logo_generator' : 'ai_commercial_image_generator';
+    const visualTool = registered.find((a) => a.id === targetId) || TOOLS.find((t) => t.id === targetId);
+    if (visualTool) return visualTool as unknown as ToolConfig;
   }
 
   // Autonomous direct execution: keyword and tool name matching without intermediate confirmation cards
@@ -249,19 +295,11 @@ export function matchHelperForMessage(
   }
 
   // Historical context resolution: if user says "proceed", "/boost", "start", "shuru koro", etc.
-  // without repeating the helper code, find the helper from prior turns in the chat history.
+  // without repeating the helper name, find the helper from prior turns in the chat history.
   if (isExplicitExecutionIntent(clean) && history && history.length > 0) {
     for (let i = history.length - 1; i >= 0; i--) {
       const turn = history[i];
       if (turn && turn.content) {
-        const histChipMatch =
-          turn.content.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
-          turn.content.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
-        if (histChipMatch) {
-          const num = histChipMatch[1].padStart(2, '0');
-          const byCode = TOOLS.find((t) => t.code === `#${num}`);
-          if (byCode) return byCode;
-        }
         if (turn.role === 'user') {
           const recFromPrev = recommendHelperForMessage(turn.content);
           if (recFromPrev) return recFromPrev;
@@ -275,7 +313,7 @@ export function matchHelperForMessage(
 
 /**
  * Detects multiple agents mentioned or required in sequence for a multi-specialist pipeline.
- * Extracts explicit mention chips (#01, #34, etc.) or distinct keyword triggers.
+ * Extracts explicit mention chips, agent names, or distinct keyword triggers.
  */
 export function matchMultiHelpersForMessage(
   query: string,
@@ -289,14 +327,18 @@ export function matchMultiHelpersForMessage(
 
   const isTeamworkCmd = /^\/teamwork-preview\b/i.test(clean) || clean.toLowerCase().includes('teamwork preview');
 
-  // 1. Match all explicit mention chips or #XX codes: [⚡ #01 ...], #34, etc.
-  const chipMatches = clean.matchAll(/(?:\[?⚡?\s*#(\d{1,2})\b)/gi);
-  for (const m of chipMatches) {
-    const num = m[1].padStart(2, '0');
-    const tool = TOOLS.find((t) => t.code === `#${num}`);
-    if (tool && !seenIds.has(tool.id)) {
-      matchedTools.push(tool);
-      seenIds.add(tool.id);
+  // 1. Match registered bespoke agents mentioned in query or mention chips
+  const registered = getRegisteredAgents();
+  for (const agent of registered) {
+    if (
+      textMatchesKeyword(clean, agent.name) ||
+      (agent.nameEn && textMatchesKeyword(clean, agent.nameEn)) ||
+      (agent.keywords && agent.keywords.some((kw) => textMatchesKeyword(clean, kw)))
+    ) {
+      if (!seenIds.has(agent.id)) {
+        matchedTools.push(agent as unknown as ToolConfig);
+        seenIds.add(agent.id);
+      }
     }
   }
 
@@ -305,18 +347,6 @@ export function matchMultiHelpersForMessage(
     for (let i = history.length - 1; i >= 0; i--) {
       const turn = history[i];
       if (turn && turn.content) {
-        const histChipMatch =
-          turn.content.match(/\[?⚡?\s*#(\d{1,2})\b/i) ||
-          turn.content.match(/(?:^|\s|\[⚡?)#(\d{1,2})\b/i);
-        if (histChipMatch) {
-          const num = histChipMatch[1].padStart(2, '0');
-          const tool = TOOLS.find((t) => t.code === `#${num}`);
-          if (tool && !seenIds.has(tool.id)) {
-            matchedTools.push(tool);
-            seenIds.add(tool.id);
-            break;
-          }
-        }
         if (turn.role === 'user') {
           const recFromPrev = recommendHelperForMessage(turn.content);
           if (recFromPrev && !seenIds.has(recFromPrev.id)) {
@@ -332,10 +362,10 @@ export function matchMultiHelpersForMessage(
   // For teamwork-preview, auto-complement with related category team specialists if fewer than 3
   if (isTeamworkCmd && matchedTools.length > 0 && matchedTools.length < 3) {
     const primary = matchedTools[0];
-    const categoryPeers = TOOLS.filter((t) => t.category === primary.category && t.id !== primary.id);
+    const categoryPeers = registered.filter((t) => t.category === primary.category && t.id !== primary.id);
     for (const peer of categoryPeers) {
       if (!seenIds.has(peer.id)) {
-        matchedTools.push(peer);
+        matchedTools.push(peer as unknown as ToolConfig);
         seenIds.add(peer.id);
         if (matchedTools.length >= 3) break;
       }
@@ -385,15 +415,8 @@ export function isVisualGenerationHelper(
     helperId === 'ai_commercial_image_generator' ||
     helperId === 'ai_commercial_image_gen' ||
     helperId === 'ai_business_logo_generator' ||
-    helperId === 'ai_business_logo_gen' ||
-    helperId === '#34' ||
-    helperId === '34' ||
-    helperId === '#35' ||
-    helperId === '35'
+    helperId === 'ai_business_logo_gen'
   ) {
-    return true;
-  }
-  if (typeof helper === 'object' && helper !== null && (helper.code === '#34' || helper.code === '#35')) {
     return true;
   }
   const lower = (query || (typeof helper === 'string' && !query ? helper : '')).toLowerCase().trim();
@@ -471,8 +494,6 @@ export function buildVisualGenerationParams(
   const isLogo =
     options?.helperId === 'ai_business_logo_generator' ||
     options?.helperId === 'ai_business_logo_gen' ||
-    options?.helperId === '#35' ||
-    options?.helperId === '35' ||
     cleanPrompt.toLowerCase().includes('logo');
 
   let qualityTags = 'ultra detailed commercial quality, 8k resolution, professional lighting';
@@ -485,14 +506,12 @@ export function buildVisualGenerationParams(
 
   let captionHeader = '✨ **EzboAgents AI Visual Engine**\n\nYour commercial visual render is ready. Preview or download below:';
   if (isLogo) {
-    captionHeader = '⚡ **AI CEO → Delegated to [#35] AI Business Logo Generator**\n\nYour commercial brand logo render is ready. Preview or download below:';
+    captionHeader = '⚡ **AI CEO → Delegated to AI Business Logo Generator**\n\nYour commercial brand logo render is ready. Preview or download below:';
   } else if (
     options?.helperId === 'ai_commercial_image_generator' ||
-    options?.helperId === 'ai_commercial_image_gen' ||
-    options?.helperId === '#34' ||
-    options?.helperId === '34'
+    options?.helperId === 'ai_commercial_image_gen'
   ) {
-    captionHeader = '⚡ **AI CEO → Delegated to [#34] AI Commercial Image Generator**\n\nYour commercial visual render is ready. Preview or download below:';
+    captionHeader = '⚡ **AI CEO → Delegated to AI Commercial Image Generator**\n\nYour commercial visual render is ready. Preview or download below:';
   }
 
   const caption = `${captionHeader}\n\n**Prompt:** ${cleanPrompt}\n**Aspect Ratio:** ${ratioKey} (${width}x${height})`;
@@ -642,13 +661,15 @@ export function extractPlanCapabilities(
 
   const platformTools = TOOL_CONNECTORS.filter((t) => masterEnabledConnectors.includes(t.id));
 
+  const registered = getRegisteredAgents();
+  const allHelpersList: any[] = registered.length > 0 ? registered : TOOLS;
   const allHelpersUnlocked = !isFree && toggles.allHelpersEnabled !== false;
-  const unlockedHelpers = TOOLS.filter((h) => {
+  const unlockedHelpers = allHelpersList.filter((h: any) => {
     if (isFree) return false;
     if (toggles.allHelpersEnabled !== false) return true;
     return Array.isArray(toggles.enabledHelpers) && toggles.enabledHelpers.includes(h.id);
   });
-  const lockedHelpers = TOOLS.filter((h) => !unlockedHelpers.some((u) => u.id === h.id));
+  const lockedHelpers = allHelpersList.filter((h: any) => !unlockedHelpers.some((u: any) => u.id === h.id));
 
   const allToolsUnlocked = !isFree && toggles.allToolsEnabled !== false;
   const unlockedTools = platformTools.filter((t) => {
@@ -672,14 +693,14 @@ export function extractPlanCapabilities(
     badge,
     isFree,
     unlockedHelpersCount: unlockedHelpers.length,
-    totalHelpersCount: TOOLS.length,
-    unlockedHelpers: unlockedHelpers.map((h) => ({
+    totalHelpersCount: allHelpersList.length,
+    unlockedHelpers: unlockedHelpers.map((h: any) => ({
       id: h.id,
-      code: h.code,
+      code: h.code || '',
       name: h.name,
-      category: h.categoryName || h.category
+      category: h.categoryName || h.category || 'General'
     })),
-    lockedHelpers: lockedHelpers.map((h) => ({ id: h.id, code: h.code, name: h.name })),
+    lockedHelpers: lockedHelpers.map((h: any) => ({ id: h.id, code: h.code || '', name: h.name })),
     allHelpersUnlocked,
     unlockedToolsCount: unlockedTools.length,
     totalToolsCount: platformTools.length,
@@ -704,8 +725,10 @@ export function extractPlanCapabilities(
 
 export function buildPlanCapabilityDirective(caps: PlanCapabilityContext): string {
   const helpersSummary = caps.allHelpersUnlocked
-    ? `All 80 AI Helpers (#01 to #80 across all 8 business categories) are unlocked and authorized for execution.`
-    : `Access is granted to ${caps.unlockedHelpersCount} of ${caps.totalHelpersCount} AI Helpers. Unlocked (${caps.unlockedHelpersCount}): [${caps.unlockedHelpers.map((h) => `${h.code} ${h.name}`).join(', ') || 'None'}]. Locked (${caps.lockedHelpers.length}): [${caps.lockedHelpers.map((h) => `${h.code} ${h.name}`).join(', ') || 'None'}].`;
+    ? (caps.totalHelpersCount > 0
+        ? `All ${caps.totalHelpersCount} AI Agents are unlocked and authorized for execution.`
+        : `All bespoke AI agents and workflows are unlocked and authorized for execution.`)
+    : `Access is granted to ${caps.unlockedHelpersCount} of ${caps.totalHelpersCount} AI Agents. Unlocked (${caps.unlockedHelpersCount}): [${caps.unlockedHelpers.map((h) => `${h.code ? h.code + ' ' : ''}${h.name}`).join(', ') || 'None'}]. Locked (${caps.lockedHelpers.length}): [${caps.lockedHelpers.map((h) => `${h.code ? h.code + ' ' : ''}${h.name}`).join(', ') || 'None'}].`;
 
   const toolsSummary = caps.allToolsUnlocked
     ? `Full access to all 100+ Enterprise Tool Connectors across 10 categories (Google Workspace, WhatsApp, Telegram, E-Commerce, CRMs, Social Media, Marketing & Ads, Microsoft 365, Storage & Media, Productivity).`
@@ -734,7 +757,7 @@ PRICING: BDT ${caps.pricing.monthlyPrice}/mo (BDT ${caps.pricing.yearlyMonthlyPr
   - Clearly guide them on how to upgrade: navigate to "Subscription Plans" in the sidebar or click "Upgrade Plan" to unlock Pro / Cloud Managed.
   - State this explanation naturally in the user's matching language (Bengali, Banglish, or English).
 • PLAN DIFFERENCES & COMPARISON KNOWLEDGE: You possess authoritative knowledge of all Ezbo subscription tiers:
-  - Starter Plan (BDT 499/mo | BDT 399/mo yearly): 80 readymade agent workflows (#01–#80), 100+ tool connectors, Single-Key BYOK (Free Gemini key supported with 1,500 free calls/day), run-only execution, standard support. Cannot visually edit workflow nodes or build custom agents.
+  - Starter Plan (BDT 499/mo | BDT 399/mo yearly): Curated agent workflows, 100+ tool connectors, Single-Key BYOK (Free Gemini key supported with 1,500 free calls/day), run-only execution, standard support. Cannot visually edit workflow nodes or build custom agents.
   - Pro Plan (BDT 899/mo | BDT 719/mo yearly): Everything in Starter, PLUS Visual Workflow Studio with node graph canvas & curved cables, full workflow customization, unlimited custom agent builder, Multi-Key Vault with round-robin rotation & auto-failover, OpenRouter model chains, priority WhatsApp & email support.
   - All-Inclusive Cloud Managed Plan (BDT 1,499/mo | BDT 1,199/mo yearly): 100% plug & play zero-setup cloud, NO API keys required, 5,000 fast-lane requests/month on high-speed cluster (Gemini 2.0 Flash & GPT-4o), VIP WhatsApp concierge & 24/7 priority support.
   Answer any plan comparison or upgrade questions accurately, objectively, and persuasively in the user's matching language.
@@ -797,12 +820,12 @@ You MUST reply in the EXACT SAME LANGUAGE and tone used by the user. If the user
 
   if (options?.multiHelpers && options.multiHelpers.length > 1) {
     const pipelineList = options.multiHelpers
-      .map((h, i) => `Stage ${i + 1}: [${h.code}] ${h.name} (${h.agentRole})`)
+      .map((h, i) => `Stage ${i + 1}: ${h.code ? `[${h.code}] ` : ''}${h.name} (${h.agentRole || 'Executive Specialist'})`)
       .join('\n');
 
     const specialistInstructions = options.multiHelpers
       .map(
-        (h, i) => `### Stage ${i + 1}: [${h.code}] ${h.name} (${h.agentRole})
+        (h, i) => `### Stage ${i + 1}: ${h.code ? `[${h.code}] ` : ''}${h.name} (${h.agentRole || 'Executive Specialist'})
 Framework & Specialist Instructions:
 ${h.systemPrompt}`
       )
@@ -816,7 +839,7 @@ ${pipelineList}
 
 EXECUTION PROTOCOL:
 1. Begin your response with an executive pipeline header:
-"⚡ **Ezbo Master AI CEO → Coordinated Multi-Agent Pipeline (${options.multiHelpers.map((h) => h.code).join(' → ')})**"
+"⚡ **Ezbo Master AI CEO → Coordinated Multi-Agent Pipeline (${options.multiHelpers.map((h) => h.code || h.name).join(' → ')})**"
 2. Execute each stage sequentially in complete detail, adhering to that specialist's exclusive prompt and framework:
 ${specialistInstructions}
 3. The output of each stage must naturally connect to and power the next stage, delivering a unified, executive-ready deliverable.${langInstruction}${toneInstruction}${tierInstruction}${customDirective}
@@ -826,8 +849,8 @@ All stages of this pipeline must be delivered in the user's matched language. Ne
   }
 
   if (helper && options?.mode === 'helper') {
-    return `You are [${helper.code}] ${helper.name} (${helper.badge}) on the EzboAgents Business & Freelancer AI Platform.
-SPECIALTY: ${helper.shortDesc}
+    return `You are ${helper.code ? `[${helper.code}] ` : ''}${helper.name} (${helper.badge || 'Specialist Agent'}) on the EzboAgents Business & Freelancer AI Platform.
+SPECIALTY: ${helper.shortDesc || helper.description || helper.name}
 CORE INSTRUCTION: ${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}
 Do not give generic filler. Deliver complete, copy-paste ready results immediately.${customDirective}
 
@@ -839,9 +862,9 @@ Your entire output must be delivered in the user's matched language. Never switc
     return `${AI_CEO_PROFILE.systemPrompt}
 
 EXPLICIT HELPER DELEGATION ACTIVE:
-The user has commanded deployment of specialist helper **[${helper.code}] ${helper.name}** (${helper.badge}).
+The user has commanded deployment of specialist helper **${helper.code ? `[${helper.code}] ` : ''}${helper.name}** (${helper.badge || 'Specialist Agent'}).
 Begin your response with a brief 1-line executive header:
-"⚡ **AI CEO → Delegated to [${helper.code}] ${helper.name}**"
+"⚡ **AI CEO → Delegated to ${helper.code ? `[${helper.code}] ` : ''}${helper.name}**"
 Then execute the task immediately using this specialist's framework:
 ${helper.systemPrompt}${langInstruction}${toneInstruction}${tierInstruction}${customDirective}
 
@@ -856,15 +879,7 @@ You are Ezbo, Master AI CEO. You execute business, marketing, creative, technica
 Deliver complete, high-converting, copy-paste ready results immediately with clear headings, bullet points, and actionable strategies.
 Do not stall, do not ask the user for intermediate confirmation, and do not offer optional command buttons—execute and deliver the full work requested in your response.
 
-You oversee 80 specialized Business & Freelancer AI Helpers (#01 to #80) across 8 categories:
-1. Ads & Marketing (#01-#12)
-2. Social Media & Content (#13-#23)
-3. Writing & AI Humanizer (#24-#33)
-4. Image, Logo & Visual Design (#34-#41)
-5. SEO & Website Traffic (#42-#50)
-6. Freelancing — Upwork, Fiverr & Client Hunting (#51-#62)
-7. Business Operations, Sales & Productivity (#63-#75)
-8. Omnichannel Auto-Reply & Customer Channels (#76-#80)
+You oversee a modular fleet of specialized bespoke business and freelancer agents across marketing, sales, content, design, SEO, freelancing, and omnichannel operations.
 ${langInstruction}${toneInstruction}${tierInstruction}${customDirective}
 
 🚨 FINAL LANGUAGE MIRRORING OVERRIDE (CRITICAL PRIORITY):
@@ -975,7 +990,7 @@ export function isRestrictedStarterIntent(message: string): boolean {
 export function getStarterGuardResponse(): string {
   return `সম্মানিত গ্রাহক, আপনি বর্তমানে **Starter Plan** ব্যবহার করছেন।
 
-Starter Plan-এ আপনি সব **৭৫টি তৈরি এআই হেল্পারের রেডিমেড ওয়ার্কফ্লো** চালানো এবং **১০০+ এন্টারপ্রাইজ টুল কানেক্টর** ব্যবহারের সম্পূর্ণ সুবিধা উপভোগ করতে পারেন।
+Starter Plan-এ আপনি **রেডিমেড এআই ওয়ার্কফ্লো** চালানো এবং **১০০+ এন্টারপ্রাইজ টুল কানেক্টর** ব্যবহারের সম্পূর্ণ সুবিধা উপভোগ করতে পারেন।
 
 তবে **ভিজ্যুয়াল নোড এডিটিং (Visual Workflow Studio)**, **কাস্টম ওয়ার্কফ্লো মডিফিকেশন**, **নতুন কাস্টম এজেন্ট তৈরি**, এবং **মাল্টি-কি অটো-ফেইলওভার ভল্ট** সুবিধাগুলো ব্যবহার করতে **Pro Plan**-এ আপগ্রেড করা প্রয়োজন।
 
@@ -983,6 +998,6 @@ Starter Plan-এ আপনি সব **৭৫টি তৈরি এআই হ�
 👉 [Upgrade to Pro Plan](/plans)
 
 ---
-*Dear User, you are currently on the **Starter Plan**. Your current plan allows you to run all 75 specialized agent workflows and connect 100+ enterprise tool connectors. However, visual workflow customization, node canvas editing, custom agent building, and multi-key failover require the **Pro Plan**. Please [Upgrade to Pro Plan](/plans) to unlock full visual workflow customization and custom agent creation!*`;
+*Dear User, you are currently on the **Starter Plan**. Your current plan allows you to run specialized agent workflows and connect 100+ enterprise tool connectors. However, visual workflow customization, node canvas editing, custom agent building, and multi-key failover require the **Pro Plan**. Please [Upgrade to Pro Plan](/plans) to unlock full visual workflow customization and custom agent creation!*`;
 }
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte';
   import { TOOLS, AI_CEO_PROFILE } from '$lib/config/tools';
+  import { registeredAgents } from '$lib/config/agentRegistry';
   import {
     chatMessages,
     addChatMessage,
@@ -35,24 +36,24 @@
       text: 'Build a complete 30-day Facebook Ads + Social Content + Offer launch strategy for my e-commerce clothing brand.'
     },
     {
-      label: '#01 Facebook Ad Copy',
-      text: '#01 Write 3 high-converting Facebook & Instagram ad copies for a premium wireless earbud.'
+      label: 'Facebook Ad Copy',
+      text: 'Write 3 high-converting Facebook & Instagram ad copies for a premium wireless earbud.'
     },
     {
-      label: '#24 AI Text Humanizer',
-      text: '#24 Humanize this AI text so it sounds 100% natural and bypasses AI detectors: "Our company leverages cutting-edge solutions to maximize operational efficiency."'
+      label: 'AI Text Humanizer',
+      text: 'Humanize this AI text so it sounds 100% natural and bypasses AI detectors: "Our company leverages cutting-edge solutions to maximize operational efficiency."'
     },
     {
-      label: '#34 Commercial Image Gen',
-      text: '#34 Luxury perfume bottle on black volcanic stone with golden water splashes, commercial studio lighting, 8k'
+      label: 'Commercial Image Gen',
+      text: 'Luxury perfume bottle on black volcanic stone with golden water splashes, commercial studio lighting, 8k'
     },
     {
-      label: '#51 Upwork Proposal',
-      text: '#51 Write a winning Upwork proposal for a Full-Stack E-Commerce Website Development project.'
+      label: 'Upwork Proposal',
+      text: 'Write a winning Upwork proposal for a Full-Stack E-Commerce Website Development project.'
     },
     {
-      label: '#63 Daily Time Block',
-      text: '#63 Build an optimized hour-by-hour daily time-block schedule for my top priorities: client meetings, ad optimization, and content planning.'
+      label: 'Daily Time Block',
+      text: 'Build an optimized hour-by-hour daily time-block schedule for my top priorities: client meetings, ad optimization, and content planning.'
     }
   ];
 
@@ -297,11 +298,11 @@
           <span
             class="px-2.5 py-0.5 rounded-full ui-badge-sky text-[10px] tracking-wide uppercase"
           >
-            Controls All 75 AI Helpers
+            Executive Orchestrator
           </span>
         </div>
         <p class="text-[11px] text-[#CFE2FA] hidden sm:block">
-          Instruct the Master AI CEO directly to orchestrate any helper — or control via WhatsApp & Telegram
+          Instruct the Master AI CEO directly to orchestrate tasks — or control via WhatsApp & Telegram
         </p>
       </div>
     </div>
@@ -313,9 +314,9 @@
         aria-label="Select AI CEO or Specific Helper"
         class="bg-[#0B1F42] hover:bg-[#15366E] text-white border border-[#38CFFF]/25 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#38CFFF] w-full sm:w-auto max-w-full sm:max-w-[230px] cursor-pointer"
       >
-        <option value="ceo">👑 AI CEO (Auto-Route All 75 Helpers)</option>
-        {#each TOOLS as helper}
-          <option value={helper.id}>{helper.code} — {helper.name}</option>
+        <option value="ceo">👑 Master AI CEO (Executive Orchestrator)</option>
+        {#each $registeredAgents as agent}
+          <option value={agent.id}>{agent.name}</option>
         {/each}
       </select>
 
@@ -356,7 +357,7 @@
           Master AI CEO Ready to Orchestrate
         </h3>
         <p class="text-xs text-[#4B6382] max-w-md mt-1 leading-relaxed">
-          Select a quick command chip below or type any instruction (or <code class="text-[#1677FF] font-mono font-bold">#01</code>–<code class="text-[#1677FF] font-mono font-bold">#75</code>) to command your AI Helpers.
+          Select a quick command chip below or type any instruction to command the Master AI CEO directly.
         </p>
       </div>
     {/if}
@@ -546,7 +547,7 @@
           bind:value={inputMessage}
           onkeydown={handleKeyDown}
           rows="1"
-          placeholder="Instruct the AI CEO on any task, or type #01 to #75 to command a specific helper..."
+          placeholder="Instruct the Master AI CEO on any task, or ask Ezbo to execute workflows..."
           class="w-full ui-textarea px-3.5 py-2.5 text-sm resize-none max-h-32"
         ></textarea>
       </div>
@@ -563,10 +564,10 @@
     </form>
     <div class="flex items-center justify-between mt-2 text-[10px] text-[#4B6382] px-1 flex-wrap gap-1">
       <span>
-        Press <strong>Enter</strong> to send • <strong>#01–#75</strong> to target any helper directly
+        Press <strong>Enter</strong> to send • Natural language execution
       </span>
       <span class="text-[#1677FF] font-semibold">
-        👑 AI CEO + 75 Helpers (Controllable via Web, WhatsApp & Telegram)
+        👑 Master AI CEO (Controllable via Web, WhatsApp & Telegram)
       </span>
     </div>
   </div>

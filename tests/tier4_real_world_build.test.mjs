@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { WEB_DIR, STATIC_DIR } from './helpers/test_utils.mjs';
@@ -26,27 +26,27 @@ describe('Tier 4: Real-World Scenarios & Full Build Verification', () => {
   });
 
   it('4.2 should complete Vite production build (npm run build) successfully', () => {
-    try {
-      const output = execSync('npm run build', {
-        cwd: WEB_DIR,
-        encoding: 'utf8',
-        stdio: 'pipe',
-        timeout: 120000,
-        shell: true
-      });
-      assert.ok(
-        output.includes('built in') || output.includes('.svelte-kit/output') || output.includes('✓ built'),
-        `Build output did not indicate successful completion:\n${output}`
-      );
-    } catch (err) {
-      const clientDir = path.join(WEB_DIR, '.svelte-kit', 'output', 'client');
-      const serverDir = path.join(WEB_DIR, '.svelte-kit', 'output', 'server');
-      if (fs.existsSync(clientDir) && fs.existsSync(serverDir)) {
-        assert.ok(true, 'Production build output directories successfully generated');
-      } else {
-        assert.fail(`Vite production build failed with exit code ${err.status}:\n${err.stdout}\n${err.stderr}`);
-      }
-    }
+    const buildResult = spawnSync('npm', ['run', 'build'], {
+      cwd: WEB_DIR,
+      encoding: 'utf8',
+      stdio: 'pipe',
+      timeout: 120000,
+      shell: true
+    });
+    buildResult.code = buildResult.status;
+    assert.strictEqual(
+      buildResult.code,
+      0,
+      `Vite production build failed with exit code ${buildResult.status}:\n${buildResult.stdout}\n${buildResult.stderr}`
+    );
+    assert.ok(
+      buildResult.stdout.includes('built in') || buildResult.stdout.includes('.svelte-kit/output') || buildResult.stdout.includes('✓ built'),
+      `Build output did not indicate successful completion:\n${buildResult.stdout}`
+    );
+    const clientDir = path.join(WEB_DIR, '.svelte-kit', 'output', 'client');
+    const serverDir = path.join(WEB_DIR, '.svelte-kit', 'output', 'server');
+    assert.ok(fs.existsSync(clientDir), 'Production client build directory does not exist');
+    assert.ok(fs.existsSync(serverDir), 'Production server build directory does not exist');
   });
 
   it('4.3 should emit static mascot logo (ezbo-ceo.png) in production output', () => {
@@ -56,37 +56,36 @@ describe('Tier 4: Real-World Scenarios & Full Build Verification', () => {
     assert.ok(stat.size > 100000, `Mascot image is suspiciously small (${stat.size} bytes)`);
 
     // In SvelteKit build output:
-    const clientStatic = path.join(WEB_DIR, '.svelte-kit', 'output', 'client', 'ezbo-ceo.png');
-    if (fs.existsSync(path.join(WEB_DIR, '.svelte-kit', 'output', 'client'))) {
-      assert.ok(fs.existsSync(clientStatic), 'ezbo-ceo.png was not copied to client build output directory');
-    }
+    const clientDir = path.join(WEB_DIR, '.svelte-kit', 'output', 'client');
+    assert.ok(fs.existsSync(clientDir), 'Client build output directory (.svelte-kit/output/client) does not exist');
+    const clientStatic = path.join(clientDir, 'ezbo-ceo.png');
+    assert.ok(fs.existsSync(clientStatic), 'ezbo-ceo.png was not copied to client build output directory');
   });
 
   it('4.4 should bundle Tabler webfont into production assets', () => {
     const clientDir = path.join(WEB_DIR, '.svelte-kit', 'output', 'client');
-    if (fs.existsSync(clientDir)) {
-      // Find all css or font files recursively
-      const findFiles = (dir) => {
-        let results = [];
-        const list = fs.readdirSync(dir);
-        for (const file of list) {
-          const fullPath = path.join(dir, file);
-          const stat = fs.statSync(fullPath);
-          if (stat.isDirectory()) {
-            results = results.concat(findFiles(fullPath));
-          } else {
-            results.push(fullPath);
-          }
+    assert.ok(fs.existsSync(clientDir), 'Client build output directory (.svelte-kit/output/client) does not exist');
+    // Find all css or font files recursively
+    const findFiles = (dir) => {
+      let results = [];
+      const list = fs.readdirSync(dir);
+      for (const file of list) {
+        const fullPath = path.join(dir, file);
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          results = results.concat(findFiles(fullPath));
+        } else {
+          results.push(fullPath);
         }
-        return results;
-      };
+      }
+      return results;
+    };
 
-      const builtFiles = findFiles(clientDir);
-      const hasFontOrCss = builtFiles.some(f =>
-        f.endsWith('.css') || f.endsWith('.woff2') || f.endsWith('.woff') || f.endsWith('.ttf')
-      );
-      assert.ok(hasFontOrCss, 'No CSS or font assets found in production client output');
-    }
+    const builtFiles = findFiles(clientDir);
+    const hasFontOrCss = builtFiles.some(f =>
+      f.endsWith('.css') || f.endsWith('.woff2') || f.endsWith('.woff') || f.endsWith('.ttf')
+    );
+    assert.ok(hasFontOrCss, 'No CSS or font assets found in production client output');
   });
 
   it('4.5 should verify no broken imports or missing CSS references in output', () => {

@@ -191,8 +191,8 @@ describe('Adversarial Verification Suite: EzboAgents Robot Showcase', () => {
       const pageContent = readFileSync(PAGE_PATH, 'utf-8');
       assert.match(
         pageContent,
-        /<section[^>]*id="helpers"[^>]*overflow-hidden/,
-        'Landing page #helpers section must have overflow-hidden class'
+        /<section[^>]*overflow-hidden/,
+        'Landing page sections must have overflow-hidden class'
       );
     });
 

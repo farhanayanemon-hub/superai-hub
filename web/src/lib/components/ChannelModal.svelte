@@ -244,7 +244,7 @@
           Connect Multi-Channel Gateway
         </h2>
         <p class="text-xs sm:text-sm text-[#4B6382] mt-1 leading-relaxed">
-          Command your Master AI CEO and 75 Helpers remotely via WhatsApp and Telegram with zero latency.
+          Command your Master AI CEO and bespoke agents remotely via WhatsApp and Telegram with zero latency.
         </p>
       </div>
 
@@ -355,7 +355,7 @@
                 WhatsApp is Live & Synced
               </h3>
               <p class="text-xs text-[#5E7694] max-w-md mx-auto leading-relaxed">
-                Send messages from your mobile device to chat with the Master AI CEO or command any specialist using commands like <code class="px-1.5 py-0.5 rounded bg-[#F3F8FF] text-[#1677FF] font-mono font-bold">#01</code> through <code class="px-1.5 py-0.5 rounded bg-[#F3F8FF] text-[#1677FF] font-mono font-bold">#75</code>.
+                Send messages from your mobile device to chat with the Master AI CEO or command bespoke agents directly in natural language.
               </p>
               <div class="pt-2">
                 <button
@@ -703,7 +703,7 @@
                   </code>
                   <div>
                     <p class="font-bold text-[#102A56]">List & Switch Agents</p>
-                    <p class="text-[11px] text-[#5E7694]">Explore and switch between all 75 AI specialist personas.</p>
+                    <p class="text-[11px] text-[#5E7694]">Explore and switch between custom AI agent personas.</p>
                   </div>
                 </div>
 

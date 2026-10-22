@@ -75,7 +75,7 @@ export async function executeToolWithGemini(
   const inputEntries = Object.entries(userInputs)
     .filter(([_, val]) => val && val.trim().length > 0)
     .map(([key, val]) => {
-      const inputDef = tool.inputs.find((i) => i.name === key);
+      const inputDef = (tool.inputs || []).find((i) => i.name === key);
       const label = inputDef?.label || key;
       return `[${label}]: ${val}`;
     })

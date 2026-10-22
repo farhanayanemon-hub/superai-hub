@@ -4,7 +4,6 @@
   import { onMount, onDestroy } from 'svelte';
   import { DEFAULT_PLANS, type PlansSettings, type PlanConfig, type PlanTierId } from '$lib/config/plans';
   import { STORE_BOTS } from '$lib/config/storeBots';
-  import { ALL_TOOLS, CATEGORIES, type AITool } from '$lib/config/tools';
   import { TOOL_CONNECTORS, TOOL_CONNECTOR_CATEGORIES, type ToolConnector, type ToolConnectorCategory } from '$lib/config/toolConnectors';
   import {
     currentUser,
@@ -97,8 +96,6 @@
   let isCurrentPlanActive = $derived(editablePlans[activePlanTab]?.isEnabled !== false);
   let newFeatureText = $state('');
   let previewBillingInterval = $state<'monthly' | 'yearly'>('monthly');
-  let helperSearch = $state('');
-  let helperCategoryFilter = $state('all');
   let planToolSearch = $state('');
   let planToolCategoryFilter = $state('all');
 
@@ -758,73 +755,6 @@
     editablePlans[planId].isEnabled = true;
     triggerAutoSave('plan-visibility');
   }
-
-  function toggleHelperForPlan(planId: PlanTierId, helperId: string) {
-    const plan = editablePlans[planId];
-    if (!plan.featureToggles) {
-      plan.featureToggles = {
-        aiCeo: true,
-        whatsapp: true,
-        telegram: true,
-        multiKeyVault: planId === 'byok_pro',
-        multiModelFailover: planId !== 'byok_starter',
-        commercialImages: true,
-        customPrompts: true,
-        prioritySupport: planId !== 'byok_starter',
-        allHelpersEnabled: false,
-        enabledHelpers: [helperId],
-        allToolsEnabled: true,
-        enabledTools: []
-      };
-      triggerAutoSave('helpers');
-      return;
-    }
-    if (!Array.isArray(plan.featureToggles.enabledHelpers)) {
-      plan.featureToggles.enabledHelpers = [];
-    }
-    plan.featureToggles.allHelpersEnabled = false;
-    const currentList = plan.featureToggles.enabledHelpers;
-    if (currentList.includes(helperId)) {
-      plan.featureToggles.enabledHelpers = currentList.filter((id) => id !== helperId);
-    } else {
-      plan.featureToggles.enabledHelpers = [...currentList, helperId];
-    }
-    triggerAutoSave('helpers');
-  }
-
-  function selectAllHelpersForPlan(planId: PlanTierId) {
-    const plan = editablePlans[planId];
-    if (!plan.featureToggles) return;
-    plan.featureToggles.allHelpersEnabled = false;
-    plan.featureToggles.enabledHelpers = ALL_TOOLS.map((t) => t.id);
-    triggerAutoSave('helpers');
-  }
-
-  function clearAllHelpersForPlan(planId: PlanTierId) {
-    const plan = editablePlans[planId];
-    if (!plan.featureToggles) return;
-    plan.featureToggles.allHelpersEnabled = false;
-    plan.featureToggles.enabledHelpers = [];
-    triggerAutoSave('helpers');
-  }
-
-  const filteredMatrixHelpers = $derived.by(() => {
-    let list = ALL_TOOLS;
-    if (helperCategoryFilter !== 'all') {
-      list = list.filter((t) => t.category === helperCategoryFilter);
-    }
-    if (helperSearch.trim()) {
-      const q = helperSearch.trim().toLowerCase();
-      list = list.filter(
-        (t) =>
-          t.name.toLowerCase().includes(q) ||
-          t.code.toLowerCase().includes(q) ||
-          (t.shortDesc && t.shortDesc.toLowerCase().includes(q)) ||
-          t.categoryName.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  });
 
   function toggleToolForPlan(planId: PlanTierId, toolId: string) {
     const plan = editablePlans[planId];
@@ -2650,7 +2580,7 @@
                       <label class="p-3 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-between cursor-pointer hover:border-[#1677FF]/40 transition-colors">
                         <div class="space-y-0.5">
                           <span class="text-xs font-bold text-[#102A56] block">Commercial Images & Logos</span>
-                          <span class="text-[10px] text-[#5E7694] block">Helpers #34 & #35 generation</span>
+                          <span class="text-[10px] text-[#5E7694] block">Commercial image generation</span>
                         </div>
                         <input type="checkbox" bind:checked={editablePlans[activePlanTab].featureToggles.commercialImages} onchange={() => triggerAutoSave('general')} class="w-4 h-4 text-[#1677FF] rounded cursor-pointer" />
                       </label>
@@ -2675,136 +2605,12 @@
                     </div>
                   </div>
 
-                  <!-- 4. AI Helpers Access Matrix -->
+                  <!-- 4. Tool Connectors Access Matrix -->
                   <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <div class="flex items-center gap-2">
-                          <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">4. AI Helpers Access Matrix ({ALL_TOOLS.length} Total)</h4>
-                          {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'helpers'}
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
-                              <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
-                              <span>Saved ✅</span>
-                            </span>
-                          {:else if autoSaveStatus === 'saving' && activeAutoSaveSection === 'helpers'}
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#1677FF] text-xs font-bold animate-in fade-in duration-150">
-                              <span class="w-2.5 h-2.5 border-2 border-[#1677FF] border-t-transparent rounded-full animate-spin"></span>
-                              <span>Saving...</span>
-                            </span>
-                          {/if}
-                        </div>
-                        <p class="text-[11px] text-[#4B6382]">Control which AI specialists are unlocked for this subscription tier.</p>
-                      </div>
-
-                      <!-- Master Toggle -->
-                      <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] cursor-pointer shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={editablePlans[activePlanTab].featureToggles.allHelpersEnabled !== false}
-                          onchange={(e) => {
-                            const checked = e.currentTarget.checked;
-                            editablePlans[activePlanTab].featureToggles.allHelpersEnabled = checked;
-                            if (!Array.isArray(editablePlans[activePlanTab].featureToggles.enabledHelpers)) {
-                              editablePlans[activePlanTab].featureToggles.enabledHelpers = [];
-                            }
-                            triggerAutoSave('helpers');
-                          }}
-                          class="w-4 h-4 text-[#1677FF] rounded cursor-pointer"
-                        />
-                        <span class="text-xs font-extrabold text-[#102A56]">All {ALL_TOOLS.length} Helpers Enabled</span>
-                      </label>
-                    </div>
-
-                    {#if editablePlans[activePlanTab].featureToggles.allHelpersEnabled === false}
-                      <div class="space-y-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CFE2FA] animate-in fade-in duration-200">
-                        <!-- Controls: Search, Category Filter, Select All / Clear All -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div class="relative flex-1">
-                            <Icon name="Search" size={14} class="absolute left-3 top-1/2 -translate-y-1/2 text-[#5E7694]" />
-                            <input
-                              type="text"
-                              bind:value={helperSearch}
-                              placeholder="Search helpers by name, code (#01), or category..."
-                              class="w-full ui-input bg-white pl-8 pr-3 py-2 text-xs"
-                            />
-                          </div>
-                          <div class="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onclick={() => selectAllHelpersForPlan(activePlanTab)}
-                              class="px-2.5 py-1.5 rounded-lg bg-white border border-[#CFE2FA] text-[#1677FF] text-[11px] font-bold hover:bg-[#F3F8FF] transition-all cursor-pointer"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onclick={() => clearAllHelpersForPlan(activePlanTab)}
-                              class="px-2.5 py-1.5 rounded-lg bg-white border border-rose-200 text-rose-600 text-[11px] font-bold hover:bg-rose-50 transition-all cursor-pointer"
-                            >
-                              Clear All
-                            </button>
-                          </div>
-                        </div>
-
-                        <!-- Category Filter Chips -->
-                        <div use:draggableScroll class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar cursor-grab active:cursor-grabbing select-none">
-                          <button
-                            type="button"
-                            onclick={() => helperCategoryFilter = 'all'}
-                            class="px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-all {helperCategoryFilter === 'all' ? 'bg-[#102A56] text-white' : 'bg-white text-[#4B6382] border border-[#CFE2FA]'}"
-                          >
-                            All ({ALL_TOOLS.length})
-                          </button>
-                          {#each CATEGORIES as cat}
-                            <button
-                              type="button"
-                              onclick={() => helperCategoryFilter = cat.id}
-                              class="px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-all {helperCategoryFilter === cat.id ? 'bg-[#1677FF] text-white' : 'bg-white text-[#4B6382] border border-[#CFE2FA]'}"
-                            >
-                              {cat.name} ({cat.count})
-                            </button>
-                          {/each}
-                        </div>
-
-                        <!-- Helpers Checklist Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
-                          {#each filteredMatrixHelpers as helper (helper.id)}
-                            {@const isEnabled = editablePlans[activePlanTab].featureToggles.enabledHelpers?.includes(helper.id)}
-                            <button
-                              type="button"
-                              onclick={() => toggleHelperForPlan(activePlanTab, helper.id)}
-                              class="p-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer {isEnabled ? 'bg-white border-[#1677FF] shadow-2xs' : 'bg-white/60 border-[#E3ECF7] opacity-60'}"
-                            >
-                              <div class="flex items-center gap-2 min-w-0">
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#102A56] text-white shrink-0">
-                                  {helper.code}
-                                </span>
-                                <div class="min-w-0">
-                                  <p class="text-xs font-bold text-[#102A56] truncate">{helper.name}</p>
-                                  <p class="text-[10px] text-[#5E7694] truncate">{helper.categoryName}</p>
-                                </div>
-                              </div>
-                              <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 {isEnabled ? 'border-[#1677FF] bg-[#1677FF] text-white' : 'border-[#CFE2FA]' }">
-                                {#if isEnabled}
-                                  <Icon name="Check" size={10} />
-                                {/if}
-                              </span>
-                            </button>
-                          {/each}
-                        </div>
-                        <p class="text-[10px] text-[#5E7694] text-right">
-                          Currently Enabled: {editablePlans[activePlanTab].featureToggles.enabledHelpers?.length || 0} of {ALL_TOOLS.length} helpers
-                        </p>
-                      </div>
-                    {/if}
-                  </div>
-
-                  <!-- 5. Tool Connectors Access Matrix -->
-                  <div class="space-y-4 pt-2 border-t border-[#E3ECF7]">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <div class="flex items-center gap-2">
-                          <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">5. Tool Connectors Access Matrix ({TOOL_CONNECTORS.length} Total)</h4>
+                          <h4 class="text-xs font-bold uppercase tracking-wider text-[#5E7694]">4. Tool Connectors Access Matrix ({TOOL_CONNECTORS.length} Total)</h4>
                           {#if autoSaveStatus === 'saved' && activeAutoSaveSection === 'tools'}
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-in fade-in zoom-in-95 duration-200 shadow-2xs">
                               <Icon name="Check" size={13} class="text-emerald-600 stroke-[3]" />
@@ -3053,14 +2859,10 @@
                       {editablePlans[activePlanTab].description}
                     </p>
 
-                    <!-- Helper Count Preview Badge -->
+                    <!-- Bespoke Agent Architecture Preview Badge -->
                     <div class="mb-2 px-3 py-1.5 rounded-xl bg-[#F3F8FF] border border-[#CFE2FA] text-xs font-bold text-[#102A56] flex items-center gap-1.5">
                       <Icon name="Bot" size={14} class="text-[#1677FF]" />
-                      {#if editablePlans[activePlanTab].featureToggles?.allHelpersEnabled !== false}
-                        <span>All {ALL_TOOLS.length}+ AI Helpers Included</span>
-                      {:else}
-                        <span>{editablePlans[activePlanTab].featureToggles?.enabledHelpers?.length || 0} of {ALL_TOOLS.length} AI Helpers Included</span>
-                      {/if}
+                      <span>Bespoke Agent Workspace Unlocked</span>
                     </div>
 
                     <!-- Tool Connectors Count Preview Badge -->

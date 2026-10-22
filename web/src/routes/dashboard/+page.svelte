@@ -21,6 +21,13 @@
 
   import { TOOLS, CATEGORIES, type AITool } from '$lib/config/tools';
   import {
+    registeredAgents,
+    activeBespokeAgent,
+    openBespokeAgent,
+    closeBespokeAgent,
+    type BespokeAgent
+  } from '$lib/config/agentRegistry';
+  import {
     currentUser,
     isAuthenticated,
     logout,
@@ -414,7 +421,9 @@
       all: accessibleTools.length
     };
     for (const tool of accessibleTools) {
-      counts[tool.category] = (counts[tool.category] || 0) + 1;
+      if (tool.category) {
+        counts[tool.category] = (counts[tool.category] || 0) + 1;
+      }
     }
     return CATEGORIES.map((cat) => ({
       ...cat,
@@ -431,11 +440,25 @@
       return (
         matchCategory &&
         (tool.name.toLowerCase().includes(query) ||
-          tool.code.toLowerCase().includes(query) ||
-          tool.nameEn.toLowerCase().includes(query) ||
+          (tool.code || '').toLowerCase().includes(query) ||
+          (tool.nameEn || '').toLowerCase().includes(query) ||
           (tool.shortDesc || '').toLowerCase().includes(query) ||
           tool.description.toLowerCase().includes(query) ||
-          tool.keywords.some((k) => k.toLowerCase().includes(query)))
+          (tool.keywords || []).some((k) => k.toLowerCase().includes(query)))
+      );
+    })
+  );
+
+  const filteredBespokeAgents = $derived(
+    $registeredAgents.filter((agent) => {
+      const q = $searchQuery.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        agent.name.toLowerCase().includes(q) ||
+        (agent.nameEn || '').toLowerCase().includes(q) ||
+        agent.description.toLowerCase().includes(q) ||
+        (agent.category || '').toLowerCase().includes(q) ||
+        (agent.keywords && agent.keywords.some((k) => k.toLowerCase().includes(q)))
       );
     })
   );
@@ -443,7 +466,7 @@
 
 <svelte:head>
   <title>Executive Console • EzboAgents (ezboagents.com)</title>
-  <meta name="description" content="EzboAgents Executive Console - Master AI CEO Orchestrator, 75 Business & Freelancer AI Helpers, WhatsApp & Telegram Sync, and Multi-Provider AI Vault." />
+  <meta name="description" content="EzboAgents Executive Console - Master AI CEO Orchestrator, Bespoke AI Agents & Workflows, WhatsApp & Telegram Sync, and Multi-Provider AI Vault." />
 </svelte:head>
 
 <div class="h-screen w-full max-w-full bg-[#F3F8FF] text-[#102A56] flex overflow-hidden font-sans selection:bg-[#1677FF] selection:text-white">
@@ -745,7 +768,7 @@
     <!-- Tab View Router -->
     <div class="flex-1 overflow-hidden p-3 sm:p-5">
       <!-- ==================================================== -->
-      <!-- TAB 1: 75 AI HELPERS STUDIO -->
+      <!-- TAB 1: BESPOKE AGENT WORKSPACE -->
       <!-- ==================================================== -->
       {#if $activeDashboardTab === 'agents' || $activeDashboardTab === 'chat'}
         <div class="h-full flex flex-col space-y-4 overflow-y-auto pr-1">
@@ -762,7 +785,7 @@
                 <input
                   type="text"
                   bind:value={$searchQuery}
-                  placeholder="Search #01-#80 or helper name..."
+                  placeholder="Search custom agents..."
                   class="w-full sm:w-60 bg-[#0B1F42]/70 border border-[#38CFFF]/30 focus:border-[#38CFFF] focus:bg-[#0B1F42] rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/60 outline-none transition-all"
                 />
               </div>
@@ -793,44 +816,68 @@
             </div>
           </div>
 
-          <!-- Base Tools Catalog -->
-          {#if filteredTools.length === 0}
-            <div class="text-center py-20 bg-white/60 backdrop-blur-xl border border-[#CFE2FA]/70 rounded-3xl p-8 space-y-4 shadow-xs hover:shadow-md hover:border-[#1677FF]/40 transition-all">
-              <div class="w-16 h-16 rounded-2xl bg-[#F3F8FF] border border-[#E3ECF7] flex items-center justify-center text-[#1677FF] mx-auto shadow-2xs">
-                <Icon name="Sparkles" size={28} />
+          <!-- Empty State or Dynamic Registered Agents Grid -->
+          {#if $registeredAgents.length === 0}
+            <!-- Elegant Empty State per R3 -->
+            <div class="text-center py-20 bg-white/70 backdrop-blur-xl border border-[#CFE2FA]/80 rounded-3xl p-8 sm:p-12 space-y-5 shadow-xs transition-all max-w-3xl mx-auto my-auto">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#F3F8FF] to-[#E3ECF7] border border-[#CFE2FA] flex items-center justify-center text-[#1677FF] mx-auto shadow-sm">
+                <Icon name="Bot" size={36} />
               </div>
-              <div class="space-y-1">
-                <h3 class="text-base font-bold text-[#102A56]">No Matching AI Helper Found</h3>
-                <p class="text-xs text-[#4B6382] max-w-md mx-auto">
-                  Try clearing your search filter or ask the Master AI CEO directly.
+              <div class="space-y-2 max-w-lg mx-auto">
+                <h3 class="text-lg sm:text-xl font-bold text-[#102A56]">Agent Workspace</h3>
+                <p class="text-sm text-[#4B6382] leading-relaxed">
+                  Your agent workspace is clean. Custom agents will appear here as you add them, or you can command the Master AI CEO directly.
                 </p>
               </div>
-              <button
-                type="button"
-                onclick={() => { $searchQuery = ''; activeCategory.set('all'); }}
-                class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer"
-              >
-                <span>Show All 80 Helpers</span>
-              </button>
-            </div>
-          {:else if filteredTools.length > 0}
-            <!-- Category Filter Tabs -->
-            <div use:draggableScroll class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar shrink-0 cursor-grab active:cursor-grabbing select-none">
-              {#each dynamicCategories as cat}
+              <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button
                   type="button"
-                  onclick={() => activeCategory.set(cat.id)}
-                  class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer {$activeCategory === cat.id ? 'bg-[#1677FF] text-white shadow-xs font-bold' : 'bg-white border border-[#E3ECF7] text-[#4B6382] hover:border-[#1677FF] hover:text-[#1677FF]'}"
+                  onclick={() => switchTab('chat')}
+                  class="px-5 py-2.5 rounded-xl blue-btn text-white text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
                 >
-                  {cat.name} ({cat.count})
+                  <Icon name="Crown" size={14} />
+                  <span>Command Master AI CEO</span>
                 </button>
-              {/each}
+                {#if isWorkflowStudioVisible && ($isProPlan || isAdmin)}
+                  <button
+                    type="button"
+                    onclick={() => openWorkflowStudio()}
+                    class="px-5 py-2.5 rounded-xl bg-white border border-[#CFE2FA] hover:border-[#1677FF] text-[#1677FF] text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <Icon name="Plus" size={14} />
+                    <span>Create Custom Agent</span>
+                  </button>
+                {/if}
+              </div>
             </div>
-
-            <!-- Tools Grid -->
+          {:else}
+            <!-- Dynamic Bespoke Agents Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pb-12">
-              {#each filteredTools as tool (tool.id)}
-                <ToolCard {tool} />
+              {#each filteredBespokeAgents as agent (agent.id)}
+                <div
+                  role="button"
+                  tabindex="0"
+                  onclick={() => openBespokeAgent(agent)}
+                  onkeydown={(e) => e.key === 'Enter' && openBespokeAgent(agent)}
+                  class="group relative rounded-2xl glass-card p-4 sm:p-5 flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 hover:border-[#1677FF]"
+                >
+                  <div>
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-10 h-10 rounded-xl bg-[#F3F8FF] border border-[#E3ECF7] group-hover:border-[#1677FF] flex items-center justify-center text-[#1677FF]">
+                        <Icon name={agent.icon || 'Sparkles'} size={20} />
+                      </div>
+                      <div>
+                        <h3 class="font-extrabold text-sm text-[#102A56] group-hover:text-[#1677FF] transition-colors">{agent.name}</h3>
+                        <p class="text-[11px] font-semibold text-[#5E7694]">{agent.category || 'Custom Agent'}</p>
+                      </div>
+                    </div>
+                    <p class="text-xs text-[#4B6382] line-clamp-2">{agent.description}</p>
+                  </div>
+                  <div class="mt-4 pt-3 border-t border-[#E3ECF7] flex items-center justify-between text-xs font-bold text-[#1677FF]">
+                    <span>Open Custom Workspace</span>
+                    <Icon name="ArrowRight" size={13} />
+                  </div>
+                </div>
               {/each}
             </div>
           {/if}
@@ -903,15 +950,15 @@
               </a>
             </div>
 
-            <!-- 2. Master AI CEO & 80 Helpers -->
+            <!-- 2. Master AI CEO & Bespoke Agents -->
             <div class="p-6 rounded-3xl bg-white/70 backdrop-blur-xl border border-[#CFE2FA] hover:border-[#1677FF]/50 hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
               <div class="space-y-3">
                 <div class="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#1677FF]">
                   <Icon name="Zap" size={20} />
                 </div>
-                <h3 class="text-base font-bold text-[#102A56]">Master AI CEO & 80 AI Helpers</h3>
+                <h3 class="text-base font-bold text-[#102A56]">Master AI CEO & Bespoke Agents</h3>
                 <p class="text-xs text-[#5E7694] leading-relaxed">
-                  Command the Master AI CEO autonomously. In the chat, type <code class="px-1.5 py-0.5 rounded bg-blue-50 text-[#1677FF] font-mono">/</code> to search all 80 specialists, or simply instruct Ezbo in natural language to execute immediately.
+                  Command the Master AI CEO autonomously. Instruct Ezbo in natural language to execute immediately, or command custom agents with dedicated workspaces.
                 </p>
               </div>
               <button
@@ -919,7 +966,7 @@
                 onclick={() => switchTab('agents')}
                 class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1677FF] hover:text-[#0E63E0] pt-2 cursor-pointer text-left"
               >
-                <span>Explore All 80 AI Helpers</span>
+                <span>Explore Agent Workspace</span>
                 <Icon name="ArrowRight" size={13} />
               </button>
             </div>
@@ -1768,6 +1815,18 @@
 
   <!-- Interactive Tool Drawer (Active when user clicks Launch on any tool in the Tools Catalog) -->
   <ToolDrawer onOpenByok={() => { closeToolDrawer(); switchTab('api-keys'); }} />
+
+  <!-- Bespoke Dedicated Agent Dynamic Component Host -->
+  {#if $activeBespokeAgent?.component}
+    {@const CustomComponent = $activeBespokeAgent.component}
+    <CustomComponent agent={$activeBespokeAgent} onClose={closeBespokeAgent} />
+  {:else if $activeBespokeAgent}
+    <ToolDrawer
+      agent={$activeBespokeAgent}
+      onClose={closeBespokeAgent}
+      onOpenByok={() => { closeBespokeAgent(); switchTab('api-keys'); }}
+    />
+  {/if}
 
   <!-- Floating ChatGPT-style Master AI CEO Chat Window & Launcher -->
   <FloatingCeoChat

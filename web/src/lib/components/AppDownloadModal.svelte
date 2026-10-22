@@ -98,7 +98,7 @@
             ⚡ 120Hz Fluid Wave UI
           </span>
           <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            🤖 75 AI Specialists
+            🤖 Enterprise AI Studio
           </span>
           <span class="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
             📦 Compact 19.1 MB

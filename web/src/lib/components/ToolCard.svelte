@@ -54,11 +54,13 @@
 
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <span
-              class="px-2 py-0.5 text-[10px] font-mono font-extrabold rounded-md bg-[#102A56] text-white tracking-wider"
-            >
-              {tool.code}
-            </span>
+            {#if tool.code && !tool.code.startsWith('#')}
+              <span
+                class="px-2 py-0.5 text-[10px] font-mono font-extrabold rounded-md bg-[#102A56] text-white tracking-wider"
+              >
+                {tool.code}
+              </span>
+            {/if}
             {#if tool.badge}
               <span
                 class="px-2 py-0.5 text-[9px] font-bold rounded-full ui-badge-primary tracking-wide uppercase"
@@ -68,13 +70,13 @@
             {/if}
           </div>
           <p class="text-[11px] font-semibold text-[#1677FF] mt-0.5 line-clamp-1">
-            {tool.categoryName}
+            {tool.categoryName || tool.category || 'Specialist'}
           </p>
         </div>
       </div>
 
       {#if isUnlocked}
-        {#if tool.code === '#76' || tool.code === '#77' || tool.code === '#78' || tool.code === '#79' || tool.code === '#80'}
+        {#if tool.category === 'business_automation' || tool.id.includes('customer') || tool.id.includes('reply')}
           <span
             class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-blue-50 border border-blue-200 text-blue-700 shrink-0 flex items-center gap-1"
             title="Omnichannel Auto-Reply: WhatsApp • Facebook • Instagram • Telegram"
@@ -119,7 +121,7 @@
   >
     <span class="text-[11px] text-[#5E7694] flex items-center gap-1.5 font-medium">
       <Icon name="Sliders" size={12} class="text-[#1677FF]" />
-      <span>{tool.inputs.length} Custom Options + Chat</span>
+      <span>{(tool.inputs || []).length} Custom Options + Chat</span>
     </span>
 
     {#if isUnlocked}

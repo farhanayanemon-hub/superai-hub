@@ -25,8 +25,8 @@
 </script>
 
 <svelte:head>
-  <title>Download EzboAgents Mobile App — 1 Master AI CEO + 75 Specialists</title>
-  <meta name="description" content="Download EzboAgents native Android app (APK). 120Hz smooth fluid wave navigation, offline chat history, and 75 AI specialists in your pocket." />
+  <title>Download EzboAgents Mobile App — Master AI CEO & Enterprise Agents</title>
+  <meta name="description" content="Download EzboAgents native Android app (APK). 120Hz smooth fluid wave navigation, offline chat history, and bespoke AI specialists in your pocket." />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-[#F3F8FF] via-white to-[#F3F8FF] flex flex-col justify-between p-4 sm:p-8 text-[#102A56]">
@@ -63,7 +63,7 @@
         EzboAgents for Android
       </h1>
       <p class="text-xs text-[#5E7694] max-w-xs mx-auto leading-relaxed">
-        1 Master AI CEO + 75 Specialized AI Specialists in your pocket. 120Hz native wave interface.
+        1 Master AI CEO + Bespoke AI Specialists in your pocket. 120Hz native wave interface.
       </p>
     </div>
 

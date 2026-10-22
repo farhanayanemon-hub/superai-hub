@@ -1,6 +1,7 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getAdminConfig } from '$lib/server/adminSettings';
 import { TOOLS, CATEGORIES, AI_CEO_PROFILE } from '$lib/config/tools';
+import { getRegisteredAgents } from '$lib/config/agentRegistry';
 import {
   matchHelperForMessage,
   buildCeoOrHelperSystemPrompt,
@@ -81,12 +82,12 @@ export const POST: RequestHandler = async ({ request }) => {
             `<b>🎉 Welcome ${escapeHtml(user.userName)}!</b>\n\nYour <b>EzboAgents</b> account is now synced with Telegram!\n\n` +
             `💎 <b>Subscription Plan:</b> ${escapeHtml(tierLabel)}\n` +
             `🟢 <b>Status:</b> ${user.isSubscribed ? 'Active' : 'Inactive'}\n` +
-            `👑 <b>Active Commander:</b> ${escapeHtml(AI_CEO_PROFILE.name)} (Controls All 80 AI Helpers)\n\n` +
+            `👑 <b>Active Commander:</b> ${escapeHtml(AI_CEO_PROFILE.name)} (Master AI CEO)\n\n` +
             `<b>Available Commands:</b>\n` +
-            `• <code>/ceo</code> - Activate Master AI CEO Mode (Auto-controls all 80 helpers)\n` +
-            `• <code>/helpers</code> - View all 80 AI Helpers by category (#01–#80)\n` +
-            `• <code>/helper #01</code> - Pin a specific AI Helper\n` +
-            `• <code>/image [prompt]</code> - Generate commercial AI visuals (#34)\n` +
+            `• <code>/ceo</code> - Activate Master AI CEO Mode\n` +
+            `• <code>/agents</code> - View custom agents\n` +
+            `• <code>/agent [name]</code> - Pin a specific agent\n` +
+            `• <code>/image [prompt]</code> - Generate commercial AI visuals\n` +
             `• <code>/status</code> - View your account and plan status\n\n` +
             `<i>ℹ️ Note: Autonomous Agents from the "Agents Store" operate exclusively on the Web Dashboard and cannot be controlled via Telegram or WhatsApp.</i>`;
 
@@ -103,8 +104,8 @@ export const POST: RequestHandler = async ({ request }) => {
       if (existingUser) {
         const msg =
           `👋 <b>Welcome back, ${escapeHtml(existingUser.userName)}!</b>\n\n` +
-          `👑 Your <b>Master AI CEO</b> and <b>80 AI Helpers (#01–#80)</b> are online.\n` +
-          `Send any instruction directly or type <code>/helpers</code> to browse the catalog.`;
+          `👑 Your <b>Master AI CEO</b> is online.\n` +
+          `Send any instruction directly or type <code>/agents</code> to browse custom agents.`;
         await sendTelegramMessage(botToken, chatId, msg);
         return json({ ok: true });
       }
@@ -130,7 +131,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
       if (linkRes.success && linkRes.user) {
         const user = linkRes.user;
-        const msg = `<b>✅ Account Linked Successfully!</b>\n\nWelcome, <b>${escapeHtml(user.userName)}</b>!\nYour <b>Master AI CEO</b> and all <b>75 AI Helpers</b> are ready on Telegram.`;
+        const msg = `<b>✅ Account Linked Successfully!</b>\n\nWelcome, <b>${escapeHtml(user.userName)}</b>!\nYour <b>Master AI CEO</b> and custom agents are ready on Telegram.`;
         await sendTelegramMessage(botToken, chatId, msg);
         return json({ ok: true });
       } else {
@@ -152,7 +153,7 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `🔒 <b>Autonomous Store Agents Notice:</b>\n\nAgents unlocked from the <b>Agents Store</b> operate as standalone <b>Autonomous Agents</b>. They must be configured and used directly inside the Web Dashboard (<a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>) and cannot be controlled via Telegram or WhatsApp.\n\nHowever, you can control the <b>Master AI CEO</b> and all <b>80 AI Helpers (#01–#80)</b> right here!`
+        `🔒 <b>Autonomous Store Agents Notice:</b>\n\nAgents unlocked from the <b>Agents Store</b> operate as standalone <b>Autonomous Agents</b>. They must be configured and used directly inside the Web Dashboard (<a href="https://ezboagents.com/dashboard">ezboagents.com/dashboard</a>) and cannot be controlled via Telegram or WhatsApp.\n\nHowever, you can command the <b>Master AI CEO</b> directly right here!`
       );
       return json({ ok: true });
     }
@@ -182,7 +183,7 @@ export const POST: RequestHandler = async ({ request }) => {
       const activeHelper = matchHelperForMessage('', linkedUser.activeAgent);
       const activeLabel = activeHelper
         ? `[${activeHelper.code}] ${activeHelper.name}`
-        : `👑 ${AI_CEO_PROFILE.name} (Auto-Controls All 80 Helpers)`;
+        : `👑 ${AI_CEO_PROFILE.name} (Master AI CEO)`;
 
       const statusCard =
         `<b>📊 Your EzboAgents Account Status</b>\n\n` +
@@ -190,8 +191,8 @@ export const POST: RequestHandler = async ({ request }) => {
         `💎 <b>Plan:</b> ${escapeHtml(tierLabel)}\n` +
         `🟢 <b>Subscription:</b> ${linkedUser.isSubscribed ? 'Active' : 'Expired'}\n` +
         `🤖 <b>Current Mode:</b> ${escapeHtml(activeLabel)}\n` +
-        `✨ <b>Available AI Helpers:</b> 80 (#01 to #80)\n\n` +
-        `<i>Type <code>/ceo</code> for Master AI CEO mode or <code>/helpers</code> to browse all helpers.</i>`;
+        `✨ <b>Bespoke Agent Workspace:</b> Active\n\n` +
+        `<i>Type <code>/ceo</code> for Master AI CEO mode.</i>`;
 
       await sendTelegramMessage(botToken, chatId, statusCard);
       return json({ ok: true });
@@ -207,32 +208,23 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `👑 <b>Master AI CEO Mode Activated!</b>\n\nSend any task or instruction — the <b>AI CEO</b> will automatically select and command the right specialist helper from all 80 AI Helpers (#01–#80).`
+        `👑 <b>Master AI CEO Mode Activated!</b>\n\nSend any task or instruction — the <b>AI CEO</b> will execute it autonomously or route to your custom agents.`
       );
       return json({ ok: true });
     }
 
     if (text === '/helpers' || text === '/agents') {
-      const catLines = CATEGORIES.filter((c) => c.id !== 'all')
-        .map((cat) => {
-          const items = TOOLS.filter((t) => t.category === cat.id);
-          const firstCode = items[0]?.code || '';
-          const lastCode = items[items.length - 1]?.code || '';
-          return `• <b>${escapeHtml(cat.name)}</b> (${firstCode}–${lastCode})\n  Examples: <code>${items
-            .slice(0, 3)
-            .map((i) => `${i.code} ${i.name}`)
-            .join(', ')}</code>`;
-        })
-        .join('\n\n');
+      const agents = getRegisteredAgents();
+      const agentLines = agents.length > 0
+        ? agents.map((a) => `• <b>${escapeHtml(a.name)}</b>: ${escapeHtml(a.shortDesc || a.description)}`).join('\n')
+        : 'Your agent workspace is clean. Custom agents will appear here as you add them, or you can command the Master AI CEO directly.';
 
       const helperListMsg =
-        `<b>👑 1 Master AI CEO + 80 AI Helpers (#01–#80)</b>\n\n` +
-        `${catLines}\n\n` +
+        `<b>👑 Ezbo Master AI CEO & Custom Agents</b>\n\n` +
+        `${agentLines}\n\n` +
         `👉 <b>How to use:</b>\n` +
-        `• Just write your task in plain language — the <b>AI CEO</b> will automatically delegate to the best helper.\n` +
-        `• Or start your message with a code: e.g. <code>#01 Write Facebook ad copy for a clothing brand</code>\n` +
-        `• Pin a specific helper: <code>/helper #24</code>\n` +
-        `• Return to Master AI CEO: <code>/ceo</code>`;
+        `• Just write your task in plain language — the <b>AI CEO</b> executes business, marketing, design, and operations directly.\n` +
+        `• Return to Master AI CEO anytime: <code>/ceo</code>`;
 
       await sendTelegramMessage(botToken, chatId, helperListMsg);
       return json({ ok: true });
@@ -255,7 +247,7 @@ export const POST: RequestHandler = async ({ request }) => {
         await sendTelegramMessage(
           botToken,
           chatId,
-          `⚠️ Could not find an AI Helper matching "${escapeHtml(target)}". Use a code from <code>#01</code> to <code>#80</code> or type <code>/helpers</code>.`
+          `⚠️ Could not find an AI agent matching "${escapeHtml(target)}". Type <code>/agents</code> or <code>/ceo</code>.`
         );
         return json({ ok: true });
       }
@@ -267,13 +259,13 @@ export const POST: RequestHandler = async ({ request }) => {
       await sendTelegramMessage(
         botToken,
         chatId,
-        `✅ <b>AI Helper Selected: [${escapeHtml(matched.code)}] ${escapeHtml(matched.name)}</b>\n<i>${escapeHtml(matched.shortDesc)}</i>\n\nSend your instruction now. (Type <code>/ceo</code> anytime to return to Master AI CEO mode)`
+        `✅ <b>AI Agent Selected: ${escapeHtml(matched.name)}</b>\n<i>${escapeHtml(matched.shortDesc || '')}</i>\n\nSend your instruction now. (Type <code>/ceo</code> anytime to return to Master AI CEO mode)`
       );
       return json({ ok: true });
     }
 
     // -----------------------------------------------------------------
-    // 6. COMMAND: /image [prompt] or #34 / #35
+    // 6. COMMAND: /image [prompt]
     // -----------------------------------------------------------------
     if (text.startsWith('/image')) {
       const prompt = text.replace('/image', '').trim();
@@ -301,7 +293,7 @@ export const POST: RequestHandler = async ({ request }) => {
         botToken,
         chatId,
         imageUrl,
-        `🎨 <b>[#34] AI Commercial Image Generator:</b> ${escapeHtml(prompt)}`
+        `🎨 <b>AI Commercial Image Generator:</b> ${escapeHtml(prompt)}`
       );
       touchUserInteraction(chatId);
       return json({ ok: true });
@@ -312,13 +304,12 @@ export const POST: RequestHandler = async ({ request }) => {
     // -----------------------------------------------------------------
     if (text === '/help') {
       const helpMsg =
-        `<b>💡 EzboAgents — Master AI CEO & 80 Helpers Guide</b>\n\n` +
-        `• <code>/ceo</code> - Master AI CEO Mode (Auto-controls all 80 helpers)\n` +
-        `• <code>/helpers</code> - View all 80 AI Helpers by category (#01–#80)\n` +
-        `• <code>/helper #01</code> - Pin a specific helper\n` +
+        `<b>💡 EzboAgents — Master AI CEO & Custom Agents Guide</b>\n\n` +
+        `• <code>/ceo</code> - Master AI CEO Mode\n` +
+        `• <code>/agents</code> - View custom agents\n` +
         `• <code>/image [prompt]</code> - Commercial AI image generation\n` +
         `• <code>/status</code> - View your account and plan status\n\n` +
-        `<b>Quick Tip:</b> Prefix any message with <code>#01</code> through <code>#80</code> to invoke that helper directly, or simply write your request and let the <b>Master AI CEO</b> route it automatically!`;
+        `<b>Quick Tip:</b> Simply write your request in natural language and let the <b>Master AI CEO</b> execute it directly!`;
       await sendTelegramMessage(botToken, chatId, helpMsg);
       return json({ ok: true });
     }
@@ -350,7 +341,7 @@ export const POST: RequestHandler = async ({ request }) => {
         : undefined;
     const matchedHelper = matchHelperForMessage(text, pinnedHelperId);
 
-    // Visual generation check (#34 or #35)
+    // Visual generation check
     if (isVisualGenerationHelper(matchedHelper, text)) {
       await sendTelegramChatAction(botToken, chatId, 'upload_photo');
       const cleanPrompt = text.replace(/^#\d+\s*/, '').trim();
@@ -359,7 +350,7 @@ export const POST: RequestHandler = async ({ request }) => {
         botToken,
         chatId,
         imageUrl,
-        `👑 <b>AI CEO → [${escapeHtml(matchedHelper?.code || '#34')}] ${escapeHtml(matchedHelper?.name || 'Visual Generator')}</b>\nPrompt: ${escapeHtml(cleanPrompt)}`
+        `👑 <b>AI CEO → ${escapeHtml(matchedHelper?.name || 'AI Visual Generator')}</b>\nPrompt: ${escapeHtml(cleanPrompt)}`
       );
       touchUserInteraction(chatId);
       return json({ ok: true });

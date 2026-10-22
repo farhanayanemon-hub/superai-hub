@@ -15,7 +15,7 @@
 
     <!-- Desktop Navigation Links -->
     <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-      <a href="/#helpers" class="hover:text-gray-900 transition-colors">Helpers</a>
+      <a href="/#features" class="hover:text-gray-900 transition-colors">Features</a>
       <a href="/#mobile-app" class="hover:text-gray-900 transition-colors">Mobile App</a>
       <a href="/#pricing" class="hover:text-gray-900 transition-colors">Pricing</a>
       <a href="/#faq" class="hover:text-gray-900 transition-colors">FAQ</a>
@@ -73,10 +73,10 @@
     <div class="md:hidden border-b border-gray-100 bg-white/95 backdrop-blur-xl px-4 py-4 space-y-3 shadow-lg transition-all">
       <div class="flex flex-col space-y-1">
         <a
-          href="/#helpers"
+          href="/#features"
           onclick={() => (mobileMenuOpen = false)}
           class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-        >Helpers</a>
+        >Features</a>
         <a
           href="/#mobile-app"
           onclick={() => (mobileMenuOpen = false)}

@@ -68,7 +68,7 @@
       </h2>
 
       <p class="text-sm sm:text-base text-[#5E7694] max-w-2xl mx-auto leading-relaxed">
-        Command the Master AI CEO on the go. Seamlessly orchestrate all 75+ AI specialists with our custom 120Hz animated wave navigation, offline session memory, and instant tool connectors.
+        Command the Master AI CEO on the go. Seamlessly orchestrate bespoke AI workflows with our custom 120Hz animated wave navigation, offline session memory, and instant tool connectors.
       </p>
 
       <!-- Quick Action CTA Group -->
@@ -221,10 +221,10 @@
                     <div class="max-w-[88%] space-y-1.5">
                       <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E4F0FF] text-[#1677FF] text-[9px] font-extrabold border border-[#CFE2FA]">
                         <Icon name="Zap" size={9} />
-                        <span>Delegating to #01 Ad Copywriter</span>
+                        <span>Delegating to Ad Copywriter Specialist</span>
                       </div>
                       <div class="p-2.5 rounded-2xl rounded-tl-xs bg-white border border-[#E3ECF7] text-[11px] text-[#102A56] shadow-xs space-y-1">
-                        <p class="font-bold text-[#1677FF]">⚡ High-ROAS Hook #1:</p>
+                        <p class="font-bold text-[#1677FF]">⚡ High-ROAS Ad Hook:</p>
                         <p class="text-[10px] text-[#5E7694] leading-relaxed">
                           "Stop wasting 60% of your ad spend on outdated audiences..."
                         </p>
@@ -286,7 +286,7 @@
         <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 mx-auto flex items-center justify-center">
           <Icon name="Bot" size={20} />
         </div>
-        <h4 class="text-sm font-black text-[#102A56]">1 CEO + 75 Specialists</h4>
+        <h4 class="text-sm font-black text-[#102A56]">Master AI CEO + Bespoke Agents</h4>
         <p class="text-xs text-[#5E7694] leading-relaxed">
           Orchestrate ad creators, coders, writers, and image engines with instant slash (/) autocomplete.
         </p>

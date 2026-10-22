@@ -425,27 +425,22 @@ describe('Tier 1: Feature Coverage (>=5 tests per feature)', () => {
     });
   });
 
-  describe('Feature 9: Landing Page Replacement under <section id="helpers">', () => {
+  describe('Feature 9: Landing Page Clean Bespoke Architecture', () => {
     const pagePath = path.join(WEB_DIR, 'src', 'routes', '+page.svelte');
 
-    it('9.1 should import RobotShowcase component in +page.svelte', () => {
+    it('9.1 should have purged legacy RobotShowcase component from +page.svelte', () => {
       assert.ok(fs.existsSync(pagePath), 'Missing +page.svelte');
       const content = fs.readFileSync(pagePath, 'utf8');
-      assert.ok(content.includes('RobotShowcase'), '+page.svelte does not import RobotShowcase');
+      assert.ok(!content.includes('<RobotShowcase'), '+page.svelte still mounts legacy RobotShowcase');
     });
 
-    it('9.2 should wrap RobotShowcase inside <section id="helpers">', () => {
+    it('9.2 should have purged legacy <section id="helpers"> from landing page', () => {
       const content = fs.readFileSync(pagePath, 'utf8');
-      assert.ok(
-        content.includes('<section id="helpers">') || content.includes('<section id="helpers"'),
-        '+page.svelte missing <section id="helpers">'
-      );
-      assert.ok(content.includes('<RobotShowcase'), 'RobotShowcase not rendered inside page');
+      assert.ok(!content.includes('id="helpers"'), '+page.svelte still contains legacy id="helpers"');
     });
 
     it('9.3 should have removed the legacy 75-card static catalog', () => {
       const content = fs.readFileSync(pagePath, 'utf8');
-      // The old static catalog had hardcoded helper cards array or 75 card divs
       assert.ok(!content.includes('helpers = [') && !content.includes('const helpers ='), 'Found old static helpers array in +page.svelte');
       assert.ok(!content.includes('id="catalog"'), 'Old #catalog section still present');
     });
@@ -457,39 +452,38 @@ describe('Tier 1: Feature Coverage (>=5 tests per feature)', () => {
       assert.ok(content.includes('FAQ') || content.includes('faq'), 'Missing FAQ section');
     });
 
-    it('9.5 should link Hero CTA button to #helpers', () => {
+    it('9.5 should not link Hero CTA button to legacy #helpers', () => {
       const content = fs.readFileSync(pagePath, 'utf8');
       assert.ok(
-        content.includes('href="#helpers"') || content.includes('href="/#helpers"'),
-        'Hero CTA button does not link to #helpers'
+        !content.includes('href="#helpers"') && !content.includes('href="/#helpers"'),
+        'Hero CTA button still links to legacy #helpers'
       );
     });
   });
 
-  describe('Feature 10: Navbar "Helpers" Link', () => {
+  describe('Feature 10: Navbar "Features" Link', () => {
     const navbarPath = path.join(WEB_DIR, 'src', 'lib', 'components', 'Navbar.svelte');
     const layoutCssPath = path.join(WEB_DIR, 'src', 'routes', 'layout.css');
     const appHtmlPath = path.join(WEB_DIR, 'src', 'app.html');
 
-    it('10.1 should contain desktop navigation link pointing to /#helpers', () => {
+    it('10.1 should contain desktop navigation link pointing to /#features', () => {
       assert.ok(fs.existsSync(navbarPath), 'Missing Navbar.svelte');
       const content = fs.readFileSync(navbarPath, 'utf8');
       assert.ok(
-        content.includes('href="/#helpers"') || content.includes("href='/#helpers'") || content.includes('href="#helpers"'),
-        'Navbar desktop navigation missing link to /#helpers'
+        content.includes('href="/#features"') || content.includes("href='/#features'") || content.includes('href="#features"'),
+        'Navbar desktop navigation missing link to /#features'
       );
     });
 
-    it('10.2 should contain mobile drawer navigation link pointing to /#helpers', () => {
+    it('10.2 should contain mobile drawer navigation link pointing to /#features', () => {
       const content = fs.readFileSync(navbarPath, 'utf8');
-      // Should appear in mobile menu as well (count at least 2 instances of helpers href)
-      const matches = content.match(/href="[\/]?[#]helpers"/g) || content.match(/href='[\/]?[#]helpers'/g) || [];
-      assert.ok(matches.length >= 2, `Expected at least 2 helpers links (desktop + mobile), found ${matches.length}`);
+      const matches = content.match(/href="[\/]?[#]features"/g) || content.match(/href='[\/]?[#]features'/g) || [];
+      assert.ok(matches.length >= 2, `Expected at least 2 features links (desktop + mobile), found ${matches.length}`);
     });
 
-    it('10.3 should display label "Helpers" in navigation links', () => {
+    it('10.3 should display label "Features" in navigation links', () => {
       const content = fs.readFileSync(navbarPath, 'utf8');
-      assert.ok(content.includes('Helpers'), 'Navigation link text does not contain Helpers');
+      assert.ok(content.includes('Features'), 'Navigation link text does not contain Features');
     });
 
     it('10.4 should configure smooth scrolling in CSS or app.html', () => {
@@ -510,10 +504,10 @@ describe('Tier 1: Feature Coverage (>=5 tests per feature)', () => {
       assert.ok(hasSmooth, 'Smooth scrolling behavior not configured');
     });
 
-    it('10.5 should target valid section id="helpers" on landing page', () => {
+    it('10.5 should target valid section id="features" on landing page', () => {
       const pagePath = path.join(WEB_DIR, 'src', 'routes', '+page.svelte');
       const content = fs.readFileSync(pagePath, 'utf8');
-      assert.ok(content.includes('id="helpers"'), 'Target section id="helpers" missing in landing page');
+      assert.ok(content.includes('id="features"'), 'Target section id="features" missing in landing page');
     });
   });
 });

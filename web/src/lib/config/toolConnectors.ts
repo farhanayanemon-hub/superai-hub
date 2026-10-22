@@ -1663,7 +1663,7 @@ export const BUSINESS_CHANNELS: BusinessChannelConfig[] = [
     icon: 'MessageSquareCheck',
     description: 'Auto-reply to customer inquiries, confirm Cash-on-Delivery orders, and send WhatsApp delivery updates 24/7.',
     webhookPath: '/api/webhooks/whatsapp-business',
-    usedByAgents: 'Omnichannel Agent (#76) & WhatsApp Concierge (#77)',
+    usedByAgents: 'Omnichannel Agent & WhatsApp Concierge',
     fields: [
       { key: 'phoneNumberId', label: 'Phone Number ID', type: 'text', placeholder: '109823471092837', required: true },
       { key: 'wabaId', label: 'WhatsApp Business Account (WABA) ID', type: 'text', placeholder: '987654321098765', required: true },
@@ -1680,7 +1680,7 @@ export const BUSINESS_CHANNELS: BusinessChannelConfig[] = [
     icon: 'MessageSquare',
     description: 'Automate customer support on your Facebook Page inbox. Instant product replies, price answers, and lead qualification.',
     webhookPath: '/api/webhooks/messenger',
-    usedByAgents: 'Omnichannel Agent (#76) & Messenger Support (#78)',
+    usedByAgents: 'Omnichannel Agent & Messenger Support',
     fields: [
       { key: 'pageId', label: 'Facebook Page ID', type: 'text', placeholder: '102938475610293', required: true },
       { key: 'pageAccessToken', label: 'Page Access Token', type: 'password', placeholder: 'EAAG...', required: true },
@@ -1697,7 +1697,7 @@ export const BUSINESS_CHANNELS: BusinessChannelConfig[] = [
     icon: 'Camera',
     description: 'Automatically engage customers replying to your Instagram Stories, Reels, and direct DMs with emojis and product links.',
     webhookPath: '/api/webhooks/instagram-dm',
-    usedByAgents: 'Omnichannel Agent (#76) & Instagram DM Closer (#79)',
+    usedByAgents: 'Omnichannel Agent & Instagram DM Closer',
     fields: [
       { key: 'instagramAccountId', label: 'Instagram Business Account ID', type: 'text', placeholder: '1784140530921', required: true },
       { key: 'pageAccessToken', label: 'Linked Page Access Token', type: 'password', placeholder: 'EAAG...', required: true },
@@ -1713,7 +1713,7 @@ export const BUSINESS_CHANNELS: BusinessChannelConfig[] = [
     icon: 'Send',
     description: 'Provide an instant customer helpdesk bot on Telegram. Handles user questions, FAQs, and support ticket commands.',
     webhookPath: '/api/webhooks/telegram-support',
-    usedByAgents: 'Omnichannel Agent (#76) & Telegram Helpdesk (#80)',
+    usedByAgents: 'Omnichannel Agent & Telegram Helpdesk',
     fields: [
       { key: 'botToken', label: 'Bot Token (from @BotFather)', type: 'password', placeholder: '123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ', required: true },
       { key: 'botUsername', label: 'Bot Username', type: 'text', placeholder: '@YourBrandSupportBot', required: true },

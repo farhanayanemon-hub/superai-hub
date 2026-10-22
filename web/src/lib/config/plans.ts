@@ -42,18 +42,18 @@ const DEFAULT_BYOK_STARTER: PlanConfig = {
   badge: 'Essential Starter',
   highlightBadge: '',
   description:
-    'For freelancers, marketers, and solo creators. Run-only access to all 75 pre-built agent workflows, 100+ tool connectors, and tier-guarded Master AI CEO.',
+    'For freelancers, marketers, and solo creators. Run-only access to executive agent workflows, 100+ tool connectors, and tier-guarded Master AI CEO.',
   monthlyPrice: 499,
   yearlyMonthlyPrice: 399,
   yearlyTotal: 4790,
   features: [
-    '1 Master AI CEO + All 75+ Specialized Business & Freelancer AI Helpers (#01–#75)',
-    'Run-Only Access to 75 Readymade Agent Workflows',
+    '1 Master AI CEO + Bespoke Business & Freelancer AI Agents',
+    'Run-Only Access to Ready-Made Agent Workflows',
     'Full Access to 100+ Enterprise Tool Connectors',
-    'Control AI CEO & All 75 Helpers via Web, WhatsApp & Telegram',
+    'Control AI CEO & Custom Agents via Web, WhatsApp & Telegram',
     '1 Active API Key per Provider (Gemini, ChatGPT, Grok, DeepSeek, OpenRouter & Replicate)',
     'Zero Token Markups — Direct Provider Billing (1,500/day FREE via Google Gemini Key)',
-    'Commercial Image & Logo Generation (#34 & #35)',
+    'Commercial Image & Logo Generation',
     'Standard Technical Support'
   ],
   featureToggles: {
@@ -122,12 +122,12 @@ const DEFAULT_MANAGED: PlanConfig = {
   yearlyTotal: 14390,
   features: [
     'ZERO API Keys Required — 100% platform managed cloud',
-    '1 Master AI CEO + All 75+ Specialized Business & Freelancer AI Helpers (#01–#75)',
-    'Regularly Added New AI Helpers Included FREE in 1 Subscription',
-    'Control AI CEO & All 75 Helpers via Web, WhatsApp & Telegram',
+    '1 Master AI CEO + Bespoke Business & Freelancer AI Agents',
+    'Regularly Added New Agents & Tools Included FREE in 1 Subscription',
+    'Control AI CEO & Custom Agents via Web, WhatsApp & Telegram',
     'Platform-managed high-speed AI cluster (Gemini 2.0 Flash & GPT-4o)',
     '5,000 fast-lane requests / month + Commercial Image & Logo Generation',
-    'Custom Studio Options + Interactive Chat for every AI Helper',
+    'Dedicated Studio Workspaces + Interactive Chat for every Agent',
     'Dedicated VIP WhatsApp concierge & 24/7 priority support'
   ],
   featureToggles: {

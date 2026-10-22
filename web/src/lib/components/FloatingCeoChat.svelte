@@ -328,18 +328,18 @@
 
   // Filtered helpers for slash command popover
   const filteredTools = $derived.by(() => {
-    if (!slashQuery) return accessibleTools.slice(0, 80);
+    if (!slashQuery) return accessibleTools;
     const q = slashQuery.toLowerCase().replace(/^#/, '');
     return accessibleTools.filter((t) => {
-      const codeClean = t.code.toLowerCase().replace(/^#/, '');
+      const codeClean = (t.code || '').toLowerCase().replace(/^#/, '');
       return (
         codeClean.includes(q) ||
         t.name.toLowerCase().includes(q) ||
-        t.agentName.toLowerCase().includes(q) ||
-        t.categoryName.toLowerCase().includes(q) ||
+        (t.agentName || '').toLowerCase().includes(q) ||
+        (t.categoryName || '').toLowerCase().includes(q) ||
         t.keywords?.some((k) => k.toLowerCase().includes(q))
       );
-    }).slice(0, 80);
+    });
   });
 
   // Detect slash typing
@@ -406,7 +406,7 @@
     }
   }
 
-  // Selecting a helper inserts visual mention chip: [⚡ #01 Facebook Ad Copy]
+  // Selecting a helper inserts visual mention chip: [⚡ Facebook Ad Copy]
   function selectHelper(helper: AITool) {
     const isUserAdmin = typeof window !== 'undefined' && sessionStorage.getItem('ezbo_admin_authed') === 'true';
     const isUnlocked = isHelperUnlocked(helper.id, $subscription?.tier || $currentUser?.tier || 'byok_starter', $plansStore);
@@ -415,7 +415,8 @@
       activeDashboardTab.set('billing');
       return;
     }
-    const chip = `[⚡ ${helper.code} ${helper.name}] `;
+    const codePrefix = helper.code && !helper.code.startsWith('#') ? `${helper.code} ` : '';
+    const chip = `[⚡ ${codePrefix}${helper.name}] `;
     if (!textareaRef) {
       inputMessage = chip;
     } else {
@@ -1116,7 +1117,7 @@
             </span>
           </div>
           <p class="text-[10px] text-[#5E7694] truncate">
-            {activeSession?.title || 'Master AI CEO • Controls All 75 Helpers'}
+            {activeSession?.title || 'Master AI CEO • Executive Orchestrator'}
           </p>
         </div>
       </div>
@@ -1723,9 +1724,11 @@
                   : 'hover:bg-[#F8FAFC] text-[#102A56]'}"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <span class="px-1.5 py-0.5 rounded-md font-mono font-bold text-[11px] shrink-0 {isUnlocked ? 'bg-[#1677FF]/10 text-[#1677FF]' : 'bg-gray-100 text-gray-500'}">
-                    {tool.code}
-                  </span>
+                  {#if tool.code && !tool.code.startsWith('#')}
+                    <span class="px-1.5 py-0.5 rounded-md font-mono font-bold text-[11px] shrink-0 {isUnlocked ? 'bg-[#1677FF]/10 text-[#1677FF]' : 'bg-gray-100 text-gray-500'}">
+                      {tool.code}
+                    </span>
+                  {/if}
                   <div class="w-5 h-5 rounded flex items-center justify-center shrink-0">
                     <BrandIcon name={tool.name} modelId={tool.id} icon={tool.icon} size={16} />
                   </div>
@@ -1785,7 +1788,7 @@
               oninput={handleInput}
               onkeydown={handleKeyDown}
               rows="1"
-              placeholder="Ask Ezbo anything, or type / to invoke any of 75 AI Helpers..."
+              placeholder="Ask Ezbo anything, or type / to invoke custom agents..."
               class="w-full px-3.5 py-2.5 rounded-xl border border-[#CFE2FA] text-xs sm:text-sm text-[#102A56] placeholder-[#889DB5] focus:outline-none focus:border-[#1677FF] focus:ring-2 focus:ring-[#1677FF]/20 bg-[#F8FAFC] resize-none max-h-32 leading-relaxed"
             ></textarea>
           </div>
