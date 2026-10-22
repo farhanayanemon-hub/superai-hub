@@ -811,7 +811,7 @@
                 class="px-4 py-2 rounded-xl blue-btn text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Icon name="Crown" size={14} />
-                <span>Command via AI CEO</span>
+                <span>Command via AI Ezbo</span>
               </button>
             </div>
           </div>
