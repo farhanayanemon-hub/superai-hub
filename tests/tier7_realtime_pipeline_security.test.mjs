@@ -5,6 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runAdminAutosaveColdstartTests } from './admin_autosave_coldstart_preview.test.mjs';
+import { runFullscreenStudioAndPlanIntelligenceTests } from './fullscreen_studio_plan_intelligence.test.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -893,5 +894,13 @@ describe('Tier 7: Real-Time Pipeline, Missing Key Detection & Security Suite', (
   describe('11. Milestone 4: Admin Auto-Save, Cold-Start Master Persistence & Dashboard Preview Suite', () => {
     runAdminAutosaveColdstartTests(describe, it);
   });
+
+  // ==========================================================================
+  // 12. Full-Screen Agent Studio Workspace & Real-Time Plan Intelligence
+  // ==========================================================================
+  describe('12. Full-Screen Agent Studio Workspace & Real-Time Plan Intelligence', () => {
+    runFullscreenStudioAndPlanIntelligenceTests(describe, it);
+  });
 });
+
 

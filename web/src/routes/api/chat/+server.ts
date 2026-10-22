@@ -9,7 +9,8 @@ import {
   buildCeoOrHelperSystemPrompt,
   isVisualGenerationHelper,
   isRestrictedStarterIntent,
-  getStarterGuardResponse
+  getStarterGuardResponse,
+  extractPlanCapabilities
 } from '$lib/services/ceoRouter';
 import { GEMINI_FALLBACK_MODELS } from '$lib/services/gemini';
 
@@ -93,22 +94,20 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ success: false, error: 'Message is required' }, { status: 400 });
     }
 
-    // Starter tier plan guard: intercept restricted requests politely
+    // Starter tier plan guard: inspect adminConfig.plans[effectivePlanTier] and extract plan capabilities
     const rawPlanTier = body.planTier || body.userPlan || body.tier || 'byok_starter';
+    const planCapabilities = extractPlanCapabilities(adminConfig, rawPlanTier);
+    const effectivePlanTier = planCapabilities.tierId;
+
     const isProTier =
-      rawPlanTier === 'byok_pro' ||
+      effectivePlanTier === 'byok_pro' ||
+      effectivePlanTier === 'managed' ||
       rawPlanTier === 'pro' ||
       rawPlanTier === 'managed' ||
       rawPlanTier === 'complete' ||
-      rawPlanTier === 'ultra' ||
-      rawPlanTier === 'byok';
+      rawPlanTier === 'ultra';
 
-    const isStarter = !isProTier && (
-      rawPlanTier === 'byok_starter' ||
-      rawPlanTier === 'free' ||
-      !rawPlanTier
-    );
-    const effectivePlanTier = isProTier ? 'byok_pro' : rawPlanTier;
+    const isStarter = !isProTier;
 
     if (isStarter && isRestrictedStarterIntent(message)) {
       const guardResponse = getStarterGuardResponse();
@@ -209,6 +208,7 @@ export const POST: RequestHandler = async ({ request }) => {
       mode,
       ceoCustomPrompt,
       planTier: effectivePlanTier,
+      planCapabilities,
       multiHelpers: isMultiChain ? multiHelpers : undefined,
       recommendedHelper,
       userMessage: message

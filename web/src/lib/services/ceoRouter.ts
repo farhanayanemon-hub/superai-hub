@@ -1,4 +1,6 @@
 import { TOOLS, AI_CEO_PROFILE, type ToolConfig } from '$lib/config/tools';
+import { DEFAULT_PLANS, type PlansSettings, type PlanConfig } from '$lib/config/plans';
+import { TOOL_CONNECTORS } from '$lib/config/toolConnectors';
 
 const KEYWORD_RULES: Array<{ helperId: string; keywords: string[] }> = [
   { helperId: 'fb_insta_ads', keywords: ['facebook ad', 'fb ad', 'instagram ad', 'ig ad', 'meta ad', ' ফেসবুক এড', 'বিজ্ঞাপন'] },
@@ -578,6 +580,167 @@ export function detectUserLanguage(message: string): DetectedLanguage {
   return 'english';
 }
 
+export interface PlanCapabilityContext {
+  tierId: 'byok_starter' | 'byok_pro' | 'managed' | 'free';
+  planName: string;
+  badge: string;
+  isFree: boolean;
+  unlockedHelpersCount: number;
+  totalHelpersCount: number;
+  unlockedHelpers: Array<{ id: string; code: string; name: string; category: string }>;
+  lockedHelpers: Array<{ id: string; code: string; name: string }>;
+  allHelpersUnlocked: boolean;
+  unlockedToolsCount: number;
+  totalToolsCount: number;
+  unlockedTools: Array<{ id: string; name: string; category: string }>;
+  lockedTools: Array<{ id: string; name: string }>;
+  allToolsUnlocked: boolean;
+  features: {
+    workflowCustomization: boolean;
+    multiKeyVault: boolean;
+    multiModelFailover: boolean;
+    commercialImages: boolean;
+    customPrompts: boolean;
+    prioritySupport: boolean;
+    zeroKeyManagedCloud: boolean;
+  };
+  pricing: {
+    monthlyPrice: number;
+    yearlyMonthlyPrice: number;
+  };
+}
+
+export function extractPlanCapabilities(
+  adminConfig: any,
+  rawTier?: string | null
+): PlanCapabilityContext {
+  const cleanTier = String(rawTier || 'byok_starter').trim().toLowerCase();
+  const isFree = cleanTier === 'free';
+
+  let effectivePlanTier: 'byok_starter' | 'byok_pro' | 'managed' = 'byok_starter';
+  if (cleanTier === 'managed' || cleanTier === 'complete') {
+    effectivePlanTier = 'managed';
+  } else if (cleanTier === 'byok_pro' || cleanTier === 'pro' || cleanTier === 'ultra' || cleanTier === 'byok') {
+    effectivePlanTier = 'byok_pro';
+  } else {
+    effectivePlanTier = 'byok_starter';
+  }
+
+  const plans: PlansSettings = adminConfig?.plans || DEFAULT_PLANS;
+  const currentPlan: PlanConfig =
+    plans[effectivePlanTier] ||
+    plans.byok_starter ||
+    DEFAULT_PLANS[effectivePlanTier] ||
+    DEFAULT_PLANS.byok_starter;
+
+  const toggles = currentPlan.featureToggles || DEFAULT_PLANS.byok_starter.featureToggles;
+
+  const masterEnabledConnectors: string[] =
+    Array.isArray(adminConfig?.enabledToolConnectors) && adminConfig.enabledToolConnectors.length > 0
+      ? adminConfig.enabledToolConnectors
+      : TOOL_CONNECTORS.map((t) => t.id);
+
+  const platformTools = TOOL_CONNECTORS.filter((t) => masterEnabledConnectors.includes(t.id));
+
+  const allHelpersUnlocked = !isFree && toggles.allHelpersEnabled !== false;
+  const unlockedHelpers = TOOLS.filter((h) => {
+    if (isFree) return false;
+    if (toggles.allHelpersEnabled !== false) return true;
+    return Array.isArray(toggles.enabledHelpers) && toggles.enabledHelpers.includes(h.id);
+  });
+  const lockedHelpers = TOOLS.filter((h) => !unlockedHelpers.some((u) => u.id === h.id));
+
+  const allToolsUnlocked = !isFree && toggles.allToolsEnabled !== false;
+  const unlockedTools = platformTools.filter((t) => {
+    if (isFree) return false;
+    if (toggles.allToolsEnabled !== false) return true;
+    return Array.isArray(toggles.enabledTools) && toggles.enabledTools.includes(t.id);
+  });
+  const lockedTools = platformTools.filter((t) => !unlockedTools.some((u) => u.id === t.id));
+
+  const planName = isFree ? 'Free Trial / Unsubscribed' : currentPlan.name;
+  const badge = isFree ? 'Free Access' : currentPlan.badge;
+
+  const workflowCustomization =
+    !isFree &&
+    effectivePlanTier !== 'byok_starter' &&
+    adminConfig?.workflowCustomizationUserEnabled !== false;
+
+  return {
+    tierId: isFree ? 'free' : effectivePlanTier,
+    planName,
+    badge,
+    isFree,
+    unlockedHelpersCount: unlockedHelpers.length,
+    totalHelpersCount: TOOLS.length,
+    unlockedHelpers: unlockedHelpers.map((h) => ({
+      id: h.id,
+      code: h.code,
+      name: h.name,
+      category: h.categoryName || h.category
+    })),
+    lockedHelpers: lockedHelpers.map((h) => ({ id: h.id, code: h.code, name: h.name })),
+    allHelpersUnlocked,
+    unlockedToolsCount: unlockedTools.length,
+    totalToolsCount: platformTools.length,
+    unlockedTools: unlockedTools.map((t) => ({ id: t.id, name: t.name, category: t.category })),
+    lockedTools: lockedTools.map((t) => ({ id: t.id, name: t.name })),
+    allToolsUnlocked,
+    features: {
+      workflowCustomization,
+      multiKeyVault: !isFree && !!toggles.multiKeyVault,
+      multiModelFailover: !isFree && !!toggles.multiModelFailover,
+      commercialImages: !isFree && !!toggles.commercialImages,
+      customPrompts: !isFree && !!toggles.customPrompts,
+      prioritySupport: !isFree && !!toggles.prioritySupport,
+      zeroKeyManagedCloud: !isFree && effectivePlanTier === 'managed'
+    },
+    pricing: {
+      monthlyPrice: isFree ? 0 : currentPlan.monthlyPrice,
+      yearlyMonthlyPrice: isFree ? 0 : currentPlan.yearlyMonthlyPrice
+    }
+  };
+}
+
+export function buildPlanCapabilityDirective(caps: PlanCapabilityContext): string {
+  const helpersSummary = caps.allHelpersUnlocked
+    ? `All 80 AI Helpers (#01 to #80 across all 8 business categories) are unlocked and authorized for execution.`
+    : `Access is granted to ${caps.unlockedHelpersCount} of ${caps.totalHelpersCount} AI Helpers. Unlocked (${caps.unlockedHelpersCount}): [${caps.unlockedHelpers.map((h) => `${h.code} ${h.name}`).join(', ') || 'None'}]. Locked (${caps.lockedHelpers.length}): [${caps.lockedHelpers.map((h) => `${h.code} ${h.name}`).join(', ') || 'None'}].`;
+
+  const toolsSummary = caps.allToolsUnlocked
+    ? `Full access to all 100+ Enterprise Tool Connectors across 10 categories (Google Workspace, WhatsApp, Telegram, E-Commerce, CRMs, Social Media, Marketing & Ads, Microsoft 365, Storage & Media, Productivity).`
+    : `Access is granted to ${caps.unlockedToolsCount} of ${caps.totalToolsCount} tool connectors. Unlocked (${caps.unlockedToolsCount}): [${caps.unlockedTools.map((t) => t.name).join(', ') || 'None'}]. Locked (${caps.lockedTools.length}): [${caps.lockedTools.map((t) => t.name).join(', ') || 'None'}].`;
+
+  return `================================================================================
+⚡ PLAN CAPABILITY & AWARENESS DIRECTIVE (REAL-TIME SUBSCRIPTION INTELLIGENCE)
+================================================================================
+USER ACTIVE PLAN: ${caps.planName} (Tier: ${caps.tierId.toUpperCase()}) | Badge: ${caps.badge}
+PRICING: BDT ${caps.pricing.monthlyPrice}/mo (BDT ${caps.pricing.yearlyMonthlyPrice}/mo yearly)
+
+1. ACTIVE PLAN ASSET ENTITLEMENTS:
+• AI Helpers: ${helpersSummary}
+• Tool Connectors: ${toolsSummary}
+• Visual Workflow Studio & Custom Node Editing: ${caps.features.workflowCustomization ? 'UNLOCKED (Executive Authority Active)' : 'LOCKED (Starter / Free Tier restriction)'}
+• Multi-Key Vault & Failover Rotation: ${caps.features.multiKeyVault ? 'UNLOCKED' : 'LOCKED (Pro Plan feature)'}
+• AI Cluster Execution Mode: ${caps.features.zeroKeyManagedCloud ? 'PLATFORM MANAGED CLUSTER (Zero API Keys required, 5,000 fast-lane requests)' : 'BYOK (Bring Your Own Key via Google Gemini, OpenAI, etc.)'}
+
+2. MANDATORY INTERACTION DIRECTIVES:
+• PLAN TOOL & AGENT INQUIRIES: When the user asks which tools, helpers, or integrations are in their plan (e.g. "which tools are in my plan?", "আমার প্ল্যানে কি কি টুল আছে?", "amr plan e ki ki agent ache?"):
+  - List their accessible tools/agents accurately based on the ACTIVE PLAN ASSET ENTITLEMENTS above.
+  - Deliver your reply exclusively in the user's matching language (Bengali, Banglish, or English).
+• LOCKED HELPER OR TOOL COMMANDS: If the user commands you to run or deploy a helper or tool that is locked on their current plan:
+  - Do NOT fake or pretend to execute it.
+  - Politely and professionally explain that this helper/tool is restricted on their current plan (${caps.planName}).
+  - Clearly guide them on how to upgrade: navigate to "Subscription Plans" in the sidebar or click "Upgrade Plan" to unlock Pro / Cloud Managed.
+  - State this explanation naturally in the user's matching language (Bengali, Banglish, or English).
+• PLAN DIFFERENCES & COMPARISON KNOWLEDGE: You possess authoritative knowledge of all Ezbo subscription tiers:
+  - Starter Plan (BDT 499/mo | BDT 399/mo yearly): 80 readymade agent workflows (#01–#80), 100+ tool connectors, Single-Key BYOK (Free Gemini key supported with 1,500 free calls/day), run-only execution, standard support. Cannot visually edit workflow nodes or build custom agents.
+  - Pro Plan (BDT 899/mo | BDT 719/mo yearly): Everything in Starter, PLUS Visual Workflow Studio with node graph canvas & curved cables, full workflow customization, unlimited custom agent builder, Multi-Key Vault with round-robin rotation & auto-failover, OpenRouter model chains, priority WhatsApp & email support.
+  - All-Inclusive Cloud Managed Plan (BDT 1,499/mo | BDT 1,199/mo yearly): 100% plug & play zero-setup cloud, NO API keys required, 5,000 fast-lane requests/month on high-speed cluster (Gemini 2.0 Flash & GPT-4o), VIP WhatsApp concierge & 24/7 priority support.
+  Answer any plan comparison or upgrade questions accurately, objectively, and persuasively in the user's matching language.
+================================================================================`;
+}
+
 export function buildCeoOrHelperSystemPrompt(
   helper: ToolConfig | null,
   options?: {
@@ -586,6 +749,7 @@ export function buildCeoOrHelperSystemPrompt(
     mode?: 'ceo' | 'helper';
     ceoCustomPrompt?: string;
     planTier?: string;
+    planCapabilities?: PlanCapabilityContext;
     multiHelpers?: ToolConfig[];
     recommendedHelper?: ToolConfig | null;
     userMessage?: string;
@@ -622,12 +786,10 @@ You MUST reply in the EXACT SAME LANGUAGE and tone used by the user. If the user
     ? `\nTONE & STYLE: Use a ${options.tone} tone.`
     : `\nTONE & STYLE: Executive, structured, high-converting, ready-to-use output with clear headings and bullet points.`;
 
-  const tierInstruction =
-    options?.planTier === 'byok_starter' || options?.planTier === 'free'
-      ? `\n\nPLAN TIER EXECUTION DIRECTIVE: The user is on the Starter Plan. Execute tasks within the scope of the 75 readymade AI helper workflows and connected tools. If the user asks for visual workflow node editing, custom agent building from scratch, or multi-key failover, inform them that those features require the Pro Plan.`
-      : options?.planTier === 'byok_pro'
-        ? `\n\nPLAN TIER EXECUTION DIRECTIVE: The user is on the Pro Plan with unrestricted executive authority for workflow orchestration, node customization, custom agent creation, and multi-key failover.`
-        : '';
+  const planCaps =
+    options?.planCapabilities || extractPlanCapabilities(null, options?.planTier);
+  const planDirective = buildPlanCapabilityDirective(planCaps);
+  const tierInstruction = `\n\n${planDirective}`;
 
   const customDirective = options?.ceoCustomPrompt && options.ceoCustomPrompt.trim()
     ? `\n\nUSER DIRECTIVE & MASTER PERSONA (STRICT PRIORITY):\n${options.ceoCustomPrompt.trim()}`
